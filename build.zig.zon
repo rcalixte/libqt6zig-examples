@@ -1,0 +1,18 @@
+.{
+    .name = .libqt6zig_examples,
+    .version = "6.4.2",
+    .dependencies = .{
+        .libqt6zig = .{
+            .url = "git+https://github.com/rcalixte/libqt6zig#abbe6deca85a898110da22ef5e1945c29711319c",
+            .hash = "libqt6zig-6.4.2-OSXtXMhs9AY65fKyGqdjixUmxdk6VDKOhbjmkPsgUlit",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+    .fingerprint = 0xbea52862a32763df,
+}
