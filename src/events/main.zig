@@ -34,7 +34,7 @@ pub fn main() void {
 fn mousePressEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
     const mouse = qmouseevent.Button(event);
     var buffer: [64]u8 = undefined;
-    switch (qmouseevent.Button(event)) {
+    switch (mouse) {
         qnamespace_enums.MouseButton.LeftButton => {
             const text = "Left mouse button pressed!";
             const formatted = std.fmt.bufPrintZ(&buffer, text, .{}) catch @panic("Buffer full");
