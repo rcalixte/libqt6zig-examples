@@ -64,9 +64,7 @@ pub const AppWindow = struct {
                         apptab.deinit();
 
                         // Free the AppTab instance
-                        // if (apptab.*.tab != null) {
                         allocator.destroy(apptab);
-                        // }
                         break;
                     }
                 }
@@ -95,10 +93,8 @@ pub const AppWindow = struct {
         defer file.close();
 
         const fileSize = file.getEndPos() catch @panic("Failed to get file size");
-
-        const contents = allocator.alloc(u8, fileSize) catch @panic("Failed to allocate memory");
+        const contents = file.readToEndAlloc(allocator, fileSize) catch @panic("Failed to read file contents");
         defer allocator.free(contents);
-        _ = file.readAll(contents) catch @panic("Failed to read file");
 
         createTabWithContents(main_window, std.fs.path.basename(fname), contents);
     }
