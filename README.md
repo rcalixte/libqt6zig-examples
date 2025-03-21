@@ -82,7 +82,7 @@ FAQ
 
 ### Q1. How long does it take to compile the examples?
 
-The examples compile the main library and then build the sample applications from the source code. The first compilation should take less than 10 minutes, assuming the hardware in use is at or above the level of that of a consumer-grade mid-tier machine released in the past decade. Once the build cache is warmed up for the examples, subsequent compilations should be very fast, on the order of seconds.
+The examples compile the entire main library and then build the sample applications from the source code. The first compilation should take less than 10 minutes, assuming the hardware in use is at or above the level of that of a consumer-grade mid-tier machine released in the past decade. Once the build cache is warmed up for the examples, subsequent compilations should be very fast, on the order of seconds. For client applications that use and configure a specific subset of the main library, the expected compilation time should be much shorter, e.g. compiling the `helloworld` example, only linking the libraries needed and without a warm cache, should take under 30 seconds.
 
 ### Q2. What build modes are supported by the examples?
 
