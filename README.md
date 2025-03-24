@@ -102,7 +102,7 @@ Several options are available to implement translations ranging from functions a
 
 | ![debian_cinnamon_helloworld](assets/debian_cinnamon_helloworld.png) | ![endeavour_kde_helloworld](assets/endeavour_kde_helloworld.png) |
 | :------------------------------------------------------------------: | :--------------------------------------------------------------: |
-|              Debian + Cinnamon + Qt 6.7 (custom theme)               |                    EndeavourOS + KDE + Qt 6.8                    |
+|              Debian + Cinnamon + Qt 6.8 (custom theme)               |                    EndeavourOS + KDE + Qt 6.8                    |
 |      ![fedora_kde_helloworld](assets/fedora_kde_helloworld.png)      |  ![freebsd_xfce_helloworld](assets/freebsd_xfce_helloworld.png)  |
 |                        Fedora + KDE + Qt 6.8                         |                     FreeBSD + Xfce + Qt 6.8                      |
 |   ![mint_cinnamon_helloworld](assets/mint_cinnamon_helloworld.png)   |        ![ubuntu_helloworld](assets/ubuntu_helloworld.png)        |
