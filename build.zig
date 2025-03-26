@@ -34,12 +34,13 @@ pub fn build(b: *std.Build) !void {
         }
     }
 
-    if (main_files.items.len == 0) {
+    if (main_files.items.len == 0)
         @panic("No main.zig files found.\n");
-    }
 
     // Qt system libraries to link
-    const qt_libs = &[_][]const u8{
+    var qt_libs: std.ArrayListUnmanaged([]const u8) = .empty;
+
+    try qt_libs.appendSlice(allocator, &[_][]const u8{
         "Qt6Core",
         "Qt6Gui",
         "Qt6Widgets",
@@ -49,7 +50,10 @@ pub fn build(b: *std.Build) !void {
         "Qt6SvgWidgets",
         "Qt6WebEngineCore",
         "Qt6WebEngineWidgets",
-    };
+    });
+
+    if (!skip_restricted)
+        try qt_libs.append(allocator, "qscintilla2_qt6");
 
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
@@ -61,6 +65,10 @@ pub fn build(b: *std.Build) !void {
     // Create an executable for each main.zig
     for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
+
+        if (skip_restricted and std.mem.eql(u8, exe_name, "qscintilla"))
+            continue;
+
         const exe = b.addExecutable(.{
             .name = exe_name,
             .root_module = b.createModule(.{
@@ -73,11 +81,10 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport("libqt6zig", qt6zig.module("libqt6zig"));
 
         // Link Qt system libraries
-        if (is_bsd_family) {
+        if (is_bsd_family)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
-        }
 
-        for (qt_libs) |lib| {
+        for (qt_libs.items) |lib| {
             exe.root_module.linkSystemLibrary(lib, .{});
         }
 
