@@ -1,6 +1,5 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qguiapplication = qt6.qguiapplication;
 const qapplication = qt6.qapplication;
 const qgroupbox = qt6.qgroupbox;
 const qnamespace_enums = qt6.qnamespace_enums;
