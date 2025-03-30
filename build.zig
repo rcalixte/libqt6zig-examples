@@ -35,9 +35,9 @@ pub fn build(b: *std.Build) !void {
 
             var lib_contents: std.ArrayListUnmanaged([]const u8) = .empty;
             while (try lib_file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize))) |line| {
-                if (std.mem.startsWith(u8, line, "#")) {
+                if (std.mem.startsWith(u8, line, "#"))
                     continue;
-                }
+
                 try lib_contents.append(allocator, try allocator.dupe(u8, line));
             }
 
@@ -59,6 +59,7 @@ pub fn build(b: *std.Build) !void {
         "Qt6Core",
         "Qt6Gui",
         "Qt6Widgets",
+        "Qt6Charts",
         "Qt6Multimedia",
         "Qt6MultimediaWidgets",
         "Qt6PrintSupport",
