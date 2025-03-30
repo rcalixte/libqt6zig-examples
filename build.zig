@@ -16,21 +16,36 @@ pub fn build(b: *std.Build) !void {
     const allocator = arena.allocator();
 
     // Find all main.zig files
-    var main_files: std.ArrayListUnmanaged(struct { dir: []const u8, path: []const u8 }) = .empty;
+    var main_files: std.ArrayListUnmanaged(struct {
+        dir: []const u8,
+        path: []const u8,
+        libraries: []const []const u8,
+    }) = .empty;
 
-    {
-        var dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
-        var walker = try dir.walk(b.allocator);
-        defer walker.deinit();
+    var dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
+    var walker = try dir.walk(b.allocator);
+    defer walker.deinit();
 
-        while (try walker.next()) |entry| {
-            if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
-                const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
-                try main_files.append(allocator, .{
-                    .dir = try b.allocator.dupe(u8, parent_dir),
-                    .path = try b.allocator.dupe(u8, entry.path),
-                });
+    while (try walker.next()) |entry| {
+        if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
+            const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
+            const lib_path = try std.fs.path.join(allocator, &.{ parent_dir, "qtlibs" });
+            const lib_file = try std.fs.cwd().openFile(lib_path, .{});
+            defer lib_file.close();
+
+            var lib_contents: std.ArrayListUnmanaged([]const u8) = .empty;
+            while (try lib_file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize))) |line| {
+                if (std.mem.startsWith(u8, line, "#")) {
+                    continue;
+                }
+                try lib_contents.append(allocator, try allocator.dupe(u8, line));
             }
+
+            try main_files.append(allocator, .{
+                .dir = try b.allocator.dupe(u8, parent_dir),
+                .path = try b.allocator.dupe(u8, entry.path),
+                .libraries = try lib_contents.toOwnedSlice(allocator),
+            });
         }
     }
 
@@ -89,11 +104,8 @@ pub fn build(b: *std.Build) !void {
         }
 
         // Link libqt6zig static libraries
-        for (qt6zig.builder.install_tls.step.dependencies.items) |qt_lib| {
-            if (std.mem.indexOf(u8, qt_lib.name, " ")) |index| {
-                const qt_lib_name = qt_lib.name[index + 1 ..];
-                exe.root_module.linkLibrary(qt6zig.artifact(qt_lib_name));
-            }
+        for (main.libraries) |lib| {
+            exe.root_module.linkLibrary(qt6zig.artifact(lib));
         }
 
         // Install the executable

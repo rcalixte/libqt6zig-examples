@@ -1,0 +1,9 @@
+qapplication
+qbrush
+qcoreapplication
+qevent
+qframe
+qgroupbox
+qguiapplication
+qpainter
+qwidget

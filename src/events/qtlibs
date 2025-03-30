@@ -1,0 +1,7 @@
+qapplication
+qcoreapplication
+qevent
+qguiapplication
+qlabel
+qpaintdevice
+qwidget

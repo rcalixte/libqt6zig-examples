@@ -1,0 +1,11 @@
+qabstractitemmodel
+qapplication
+qcoreapplication
+qdir
+qfilesystemmodel
+qguiapplication
+qlistview
+qpaintdevice
+qsplitter
+qtreeview
+qwidget
