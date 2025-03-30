@@ -3,7 +3,6 @@ const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 const qboxlayout = qt6.qboxlayout;
-const qboxlayout_enums = qt6.qboxlayout_enums;
 const qhboxlayout = qt6.qhboxlayout;
 const qtabwidget = qt6.qtabwidget;
 const qfiledialog = qt6.qfiledialog;
