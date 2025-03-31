@@ -59,7 +59,6 @@ pub fn build(b: *std.Build) !void {
         "Qt6Core",
         "Qt6Gui",
         "Qt6Widgets",
-        "Qt6Charts",
         "Qt6Multimedia",
         "Qt6MultimediaWidgets",
         "Qt6PrintSupport",
@@ -68,8 +67,12 @@ pub fn build(b: *std.Build) !void {
         "Qt6WebEngineWidgets",
     });
 
-    if (!skip_restricted)
-        try qt_libs.append(allocator, "qscintilla2_qt6");
+    if (!skip_restricted) {
+        try qt_libs.appendSlice(allocator, &[_][]const u8{
+            "Qt6Charts",
+            "qscintilla2_qt6",
+        });
+    }
 
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
@@ -82,7 +85,8 @@ pub fn build(b: *std.Build) !void {
     for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
 
-        if (skip_restricted and std.mem.eql(u8, exe_name, "qscintilla"))
+        if (skip_restricted)
+            if (std.mem.eql(u8, exe_name, "charts") or std.mem.eql(u8, exe_name, "qscintilla"))
             continue;
 
         const exe = b.addExecutable(.{
