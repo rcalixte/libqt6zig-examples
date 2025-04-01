@@ -85,8 +85,7 @@ pub fn build(b: *std.Build) !void {
     for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
 
-        if (skip_restricted)
-            if (std.mem.eql(u8, exe_name, "charts") or std.mem.eql(u8, exe_name, "qscintilla"))
+        if (skip_restricted and std.mem.containsAtLeast(u8, main.dir, 1, "restricted-extras"))
             continue;
 
         const exe = b.addExecutable(.{
