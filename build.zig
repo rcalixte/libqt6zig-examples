@@ -6,6 +6,8 @@ pub fn build(b: *std.Build) !void {
     const enable_workaround = b.option(bool, "enable-workaround", "Enable workaround for missing Qt C++ headers") orelse false;
     const skip_restricted = b.option(bool, "skip-restricted", "Skip restricted libraries") orelse false;
 
+    const is_windows = target.result.os.tag == .windows;
+
     const is_bsd_family = switch (target.result.os.tag) {
         .dragonfly, .freebsd, .netbsd, .openbsd => true,
         else => false,
@@ -74,6 +76,31 @@ pub fn build(b: *std.Build) !void {
         });
     }
 
+    var qt_win_paths: std.ArrayListUnmanaged([]const u8) = .empty;
+
+    if (is_windows) {
+        const qt_win_versions = &.{
+            "6.4.3",
+            "6.5.5",
+            "6.6.3",
+            "6.7.3",
+            "6.8.2",
+            "6.9.0",
+        };
+
+        const win_compilers = &.{
+            "mingw_64",
+            "msvc2019_64",
+            "msvc2022_64",
+        };
+
+        inline for (qt_win_versions) |ver| {
+            inline for (win_compilers) |wc| {
+                try qt_win_paths.append(allocator, "C:/Qt/" ++ ver ++ "/" ++ wc ++ "/lib");
+            }
+        }
+    }
+
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
         .optimize = .ReleaseFast,
@@ -102,6 +129,12 @@ pub fn build(b: *std.Build) !void {
         // Link Qt system libraries
         if (is_bsd_family)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
+
+        if (is_windows) {
+            for (qt_win_paths.items) |path| {
+                exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = path });
+            }
+        }
 
         for (qt_libs.items) |lib| {
             exe.root_module.linkSystemLibrary(lib, .{});
