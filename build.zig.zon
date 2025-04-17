@@ -7,12 +7,6 @@
             .hash = "libqt6zig-6.4.2-OSXtXGjPkAfVfq9xnjVdV5mxKxySIjM_Gwb7vunyDCAR",
         },
     },
-    .paths = .{
-        "build.zig",
-        "build.zig.zon",
-        "src",
-        "LICENSE",
-        "README.md",
-    },
+    .paths = .{""},
     .fingerprint = 0xbea52862a32763df,
 }
