@@ -63,6 +63,7 @@ pub fn build(b: *std.Build) !void {
         "Qt6Widgets",
         "Qt6Multimedia",
         "Qt6MultimediaWidgets",
+        "Qt6PdfWidgets",
         "Qt6PrintSupport",
         "Qt6SvgWidgets",
         "Qt6WebEngineCore",
