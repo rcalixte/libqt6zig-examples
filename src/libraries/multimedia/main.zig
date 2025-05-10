@@ -8,6 +8,7 @@ const qurl = qt6.qurl;
 const qcoreapplication = qt6.qcoreapplication;
 
 const allocator = std.heap.page_allocator;
+const stdout = std.io.getStdOut().writer();
 
 pub fn main() !void {
     const argc = std.os.argv.len;
@@ -31,17 +32,17 @@ pub fn main() !void {
 
     qmediaplayer.OnPlaybackStateChanged(player, onPlaybackStateChanged);
 
-    std.debug.print("Playback starting...\n", .{});
+    try stdout.print("Playback starting...\n", .{});
     qmediaplayer.Play(player);
 
     _ = qapplication.Exec();
 }
 
 fn onPlaybackStateChanged(_: ?*anyopaque, state: i64) callconv(.c) void {
-    std.debug.print("Playback state: {any}\n", .{state});
+    stdout.print("Playback state: {any}\n", .{state}) catch @panic("Playback state stdout error");
 
     if (state == qmediaplayer_enums.PlaybackState.StoppedState) {
-        std.debug.print("Playback complete.\n", .{});
+        stdout.print("Playback complete.\n", .{}) catch @panic("Playback complete stdout error");
         qcoreapplication.Exit();
     }
 }
