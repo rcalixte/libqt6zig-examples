@@ -104,7 +104,7 @@ pub fn build(b: *std.Build) !void {
 
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
         .@"enable-workaround" = enable_workaround or is_bsd_family,
         .@"skip-restricted" = skip_restricted,
     });
