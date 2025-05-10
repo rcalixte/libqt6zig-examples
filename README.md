@@ -42,13 +42,13 @@ zig build
 Users of Arch-based distributions need to __make sure that all packages are up-to-date__ first and will need to add the following option to support successful compilation:
 
 ```bash
-zig build -Denable-workaround=true
+zig build -Denable-workaround
 ```
 
 To skip the restricted extras:
 
 ```bash
-zig build -Dskip-restricted=true
+zig build -Dskip-restricted
 ```
 
 Example applications can also be built and run independently:
@@ -90,6 +90,12 @@ Currently, only `ReleaseFast`, `ReleaseSafe`, and `ReleaseSmall` are supported. 
 
 ```bash
 zig build -Doptimize=ReleaseSafe
+```
+
+or
+
+```bash
+zig build --release=safe
 ```
 
 ### Q3. Are translations supported?
