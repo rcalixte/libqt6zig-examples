@@ -69,7 +69,7 @@ pub fn main() void {
     }
 
     // QList<Qt type>
-    var keyarray = [_]?*C.QKeySequence{
+    var keyarray = [_]C.QKeySequence{
         qkeysequence.FromString("F1"),
         qkeysequence.FromString("F2"),
         qkeysequence.FromString("F3"),
