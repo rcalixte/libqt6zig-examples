@@ -172,7 +172,7 @@ const Counter = struct {
     }
 
     const UpdateCallback = struct {
-        pub fn callback(ctx: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
+        pub fn callback(ctx: ?*anyopaque) callconv(.c) void {
             if (ctx) |ptr| {
                 const counter: *Counter = @ptrCast(@alignCast(ptr));
                 var text_buf: [64]u8 = undefined;
