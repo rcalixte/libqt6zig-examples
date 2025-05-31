@@ -35,7 +35,7 @@ pub fn main() void {
     _ = qapplication.Exec();
 }
 
-pub fn createIntroPage() ?*C.QWizardPage {
+pub fn createIntroPage() C.QWizardPage {
     const page = qwizardpage.New2();
     qwizardpage.SetTitle(page, "Introduction");
     const text = "This wizard will help you register your copy of Super Product Two";
@@ -49,7 +49,7 @@ pub fn createIntroPage() ?*C.QWizardPage {
     return page;
 }
 
-pub fn createRegistrationPage() ?*C.QWizardPage {
+pub fn createRegistrationPage() C.QWizardPage {
     const page = qwizardpage.New2();
 
     const title = "Registration";
@@ -76,7 +76,7 @@ pub fn createRegistrationPage() ?*C.QWizardPage {
     return page;
 }
 
-pub fn createConclusionPage() ?*C.QWizardPage {
+pub fn createConclusionPage() C.QWizardPage {
     const page = qwizardpage.New2();
 
     const title = "Conclusion";
