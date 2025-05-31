@@ -2,7 +2,6 @@ const std = @import("std");
 const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
-const qboxlayout = qt6.qboxlayout;
 const qhboxlayout = qt6.qhboxlayout;
 const qtabwidget = qt6.qtabwidget;
 const qfiledialog = qt6.qfiledialog;
@@ -39,9 +38,9 @@ var app_window_tab_map: AppWindowMap = undefined;
 var main_window: *AppWindow = undefined;
 
 pub const AppWindow = struct {
-    w: ?*C.QMainWindow,
-    cw: ?*C.QWidget,
-    tabs: ?*C.QTabWidget,
+    w: C.QMainWindow,
+    cw: C.QWidget,
+    tabs: C.QTabWidget,
 
     pub fn handleTabClose(self: ?*anyopaque, index: c_int) callconv(.c) void {
         if (app_window_tab_map.get(self)) |appwindow| {
@@ -133,9 +132,9 @@ pub const AppWindow = struct {
 };
 
 pub const AppTab = struct {
-    tab: ?*C.QWidget,
-    outline: ?*C.QListWidget,
-    textArea: ?*C.QTextEdit,
+    tab: C.QWidget,
+    outline: C.QListWidget,
+    textArea: C.QTextEdit,
 
     pub fn handleJumpToBookmark(self: ?*anyopaque, _: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
         if (app_tab_map.get(self)) |apptab| {
@@ -221,7 +220,7 @@ pub fn NewAppTab() !*AppTab {
     const layout = qhboxlayout.New(ret.tab);
 
     const panes = qsplitter.New2();
-    qboxlayout.AddWidget(layout, panes);
+    qhboxlayout.AddWidget(layout, panes);
 
     ret.outline = qlistwidget.New(ret.tab);
 
@@ -281,7 +280,7 @@ pub fn NewAppWindow() !*AppWindow {
     defer qicon.QDelete(exitIcon);
     qaction.SetIcon(exit, exitIcon);
     qaction.OnTriggered(exit, AppWindow.handleExit);
-    const mainMenuActions = [_]?*C.QAction{ newtab, open, exit };
+    const mainMenuActions = [_]C.QAction{ newtab, open, exit };
     qmenubar.AddActions(fileMenu, @ptrCast(@constCast(&mainMenuActions)));
 
     // Help menu
