@@ -1,4 +1,5 @@
 qabstractitemmodel
+qabstractitemview
 qapplication
 qcoreapplication
 qdir
