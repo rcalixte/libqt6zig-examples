@@ -234,8 +234,8 @@ pub fn NewAppTab() !*AppTab {
     qtextedit.OnTextChanged(ret.textArea, AppTab.handleTextChanged);
     qsplitter.AddWidget(panes, ret.textArea);
 
-    const sizes = [_]i32{ 250, 550 };
-    qsplitter.SetSizes(panes, @constCast(&sizes));
+    var sizes = [_]i32{ 250, 550 };
+    qsplitter.SetSizes(panes, &sizes);
 
     return ret;
 }
@@ -280,8 +280,8 @@ pub fn NewAppWindow() !*AppWindow {
     defer qicon.QDelete(exitIcon);
     qaction.SetIcon(exit, exitIcon);
     qaction.OnTriggered(exit, AppWindow.handleExit);
-    const mainMenuActions = [_]C.QAction{ newtab, open, exit };
-    qmenubar.AddActions(fileMenu, @ptrCast(@constCast(&mainMenuActions)));
+    var mainMenuActions = [_]C.QAction{ newtab, open, exit };
+    qmenubar.AddActions(fileMenu, &mainMenuActions);
 
     // Help menu
     const helpMenu = qmenubar.AddMenuWithTitle(mnu, "&Help");
