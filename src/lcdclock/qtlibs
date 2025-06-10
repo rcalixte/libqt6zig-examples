@@ -2,7 +2,6 @@ qapplication
 qboxlayout
 qcoreapplication
 qdatetime
-qfont
 qguiapplication
 qlcdnumber
 qobject
