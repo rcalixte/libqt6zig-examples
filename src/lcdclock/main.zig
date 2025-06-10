@@ -5,13 +5,16 @@ const qapplication = qt6.qapplication;
 const qwidget = qt6.qwidget;
 const qhboxlayout = qt6.qhboxlayout;
 const qlcdnumber = qt6.qlcdnumber;
-const qfont = qt6.qfont;
 const qtime = qt6.qtime;
 const qtimer = qt6.qtimer;
 
 const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
+
+var buffer: [6]u8 = undefined;
+var fba: std.heap.FixedBufferAllocator = .init(&buffer);
+const fb_allocator = fba.allocator();
 
 var lcd: ?*anyopaque = undefined;
 var time: ?*anyopaque = undefined;
@@ -30,36 +33,31 @@ pub fn main() void {
 
     const hbox = qhboxlayout.New(widget);
     lcd = qlcdnumber.New(widget);
-    const font = qfont.New6("DejaVu Sans", 14);
-    defer qfont.QDelete(font);
 
-    qlcdnumber.SetFont(lcd, font);
     qlcdnumber.SetStyleSheet(lcd, "background-color: #ec915c; color: white;");
 
-    show_time(lcd, time);
+    show_time(null);
 
     qhboxlayout.AddWidget(hbox, lcd);
 
     const timer = qtimer.New2(widget);
     qtimer.Start(timer, 1000);
-    qtimer.OnTimerEvent(timer, show_time);
+    qtimer.OnTimeout(timer, show_time);
 
     qwidget.Show(widget);
 
     _ = qapplication.Exec();
 }
 
-fn show_time(_: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
+fn show_time(_: ?*anyopaque) callconv(.c) void {
     time = qtime.CurrentTime();
     defer qtime.QDelete(time);
 
     const text = qtime.ToStringWithFormat(time, "hh:mm", allocator);
     defer allocator.free(text);
 
-    var lcd_text = allocator.alloc(u8, text.len) catch @panic("Failed to allocate lcd_text");
-    defer allocator.free(lcd_text);
-
-    @memcpy(lcd_text, text);
+    var lcd_text = fb_allocator.dupeZ(u8, text) catch @panic("Failed to allocate lcd_text");
+    defer fb_allocator.free(lcd_text);
 
     if (@mod(qtime.Second(time), 2) == 0) {
         lcd_text[2] = ' ';
