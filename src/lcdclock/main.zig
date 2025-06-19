@@ -12,10 +12,6 @@ const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
 
-var buffer: [6]u8 = undefined;
-var fba: std.heap.FixedBufferAllocator = .init(&buffer);
-const fb_allocator = fba.allocator();
-
 var lcd: ?*anyopaque = undefined;
 var time: ?*anyopaque = undefined;
 
@@ -53,17 +49,12 @@ fn show_time(_: ?*anyopaque) callconv(.c) void {
     time = qtime.CurrentTime();
     defer qtime.QDelete(time);
 
-    const text = qtime.ToStringWithFormat(time, "hh:mm", allocator);
+    const lcd_format = if (@mod(qtime.Second(time), 2) == 0) "hh:mm" else "hh mm";
+
+    const text = qtime.ToStringWithFormat(time, lcd_format, allocator);
     defer allocator.free(text);
 
-    var lcd_text = fb_allocator.dupeZ(u8, text) catch @panic("Failed to allocate lcd_text");
-    defer fb_allocator.free(lcd_text);
-
-    if (@mod(qtime.Second(time), 2) == 0) {
-        lcd_text[2] = ' ';
-    }
-
-    qlcdnumber.Display(lcd, lcd_text);
+    qlcdnumber.Display(lcd, text);
 }
 
 pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
