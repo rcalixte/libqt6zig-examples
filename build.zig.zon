@@ -3,8 +3,8 @@
     .version = "6.4.2",
     .dependencies = .{
         .libqt6zig = .{
-            .url = "git+https://github.com/rcalixte/libqt6zig#571bc280a32185e3a20921fe69a128eb0f904027",
-            .hash = "libqt6zig-6.4.2-OSXtXBqHeQiweaUy-JkfdQntSiJLLZPAbEX0THZF3y_V",
+            .url = "git+https://github.com/rcalixte/libqt6zig#518dce0eaeba3905ab45138fd747b4662560973e",
+            .hash = "libqt6zig-6.4.2-OSXtXBuHeQjjAZcPHIWcdd_HWj2sp8beVZ0lCjpp_i6d",
         },
     },
     .paths = .{""},
