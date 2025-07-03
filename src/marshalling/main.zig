@@ -50,7 +50,7 @@ pub fn main() void {
 
     // QList<int>
     var seq = [_]i32{ 10, 20, 30, 40, 50 };
-    const li = qversionnumber.New2(seq[0..]);
+    const li = qversionnumber.New2(&seq);
     const segs = qversionnumber.Segments(li, allocator);
     defer allocator.free(segs);
     defer qversionnumber.QDelete(li);
@@ -60,10 +60,10 @@ pub fn main() void {
     const c = qinputdialog.New2();
     defer qinputdialog.QDelete(c);
     var items = [_][]const u8{ "foo", "bar", "baz", "quux" };
-    qinputdialog.SetComboBoxItems(c, items[0..], allocator);
+    qinputdialog.SetComboBoxItems(c, &items, allocator);
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
     defer allocator.free(comboItems);
-    for (comboItems, 0..comboItems.len) |item, _i| {
+    for (comboItems, 0..) |item, _i| {
         stdout.print("ComboBoxItems[{}]: {s}\n", .{ _i, item }) catch @panic("QStringList stdout\n");
         defer allocator.free(item);
     }
@@ -76,10 +76,10 @@ pub fn main() void {
     };
     const qa = qaction.New();
     defer qaction.QDelete(qa);
-    qaction.SetShortcuts(qa, keyarray[0..]);
+    qaction.SetShortcuts(qa, &keyarray);
     const shortcuts = qaction.Shortcuts(qa, allocator);
     defer allocator.free(shortcuts);
-    for (shortcuts, 0..shortcuts.len) |shortcut, _i| {
+    for (shortcuts, 0..) |shortcut, _i| {
         const qkey_tostring = qkeysequence.ToString(shortcut, allocator);
         defer allocator.free(qkey_tostring);
         stdout.print("Shortcuts[{}]: {s}\n", .{ _i, qkey_tostring }) catch @panic("QList<Qt type> stdout\n");
