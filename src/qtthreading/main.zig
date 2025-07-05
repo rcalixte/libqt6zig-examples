@@ -94,8 +94,8 @@ pub fn main() void {
     _ = qpushbutton.SetProperty(button, "buttonData", variant);
 
     // Modify the button callback
-    qpushbutton.OnClicked1(button, struct {
-        pub fn callback(button_ptr: ?*anyopaque, _: bool) callconv(.c) void {
+    qpushbutton.OnClicked(button, struct {
+        pub fn callback(button_ptr: ?*anyopaque) callconv(.c) void {
             if (qpushbutton.Property(button_ptr, "buttonData")) |variant_ptr| {
                 const ptr_val = qvariant.ToLongLong(variant_ptr);
                 const data_ptr = @as(*ButtonData, @ptrFromInt(@as(usize, @intCast(ptr_val))));
