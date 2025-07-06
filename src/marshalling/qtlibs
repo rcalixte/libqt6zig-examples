@@ -8,6 +8,7 @@ qguiapplication
 qinputdialog
 qjsonobject
 qkeysequence
+qobject
 qpaintdevice
 qsettings
 qsize

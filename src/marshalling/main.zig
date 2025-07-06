@@ -14,6 +14,7 @@ const qkeysequence = qt6.qkeysequence;
 const qfile = qt6.qfile;
 const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
+const qobject = qt6.qobject;
 
 pub fn main() void {
     // Initialize Qt application and allocator
@@ -94,10 +95,10 @@ pub fn main() void {
     stdout.print("QByteArray: {s}\n", .{f_output}) catch @panic("QByteArray stdout\n");
 
     // QAnyStringView parameter
-    const variant = qvariant.New14("QAnyStringView");
-    defer qvariant.QDelete(variant);
-    const value = qvariant.ToString(variant, allocator);
-    defer allocator.free(value);
+    const object = qobject.New();
+    defer qobject.QDelete(object);
+    qobject.SetObjectName(object, "QAnyStringView Name");
+    const value = qobject.ObjectName(object, allocator);
     stdout.print("Value: {s}\n", .{value}) catch @panic("QAnyStringView stdout\n");
 }
 
