@@ -1,10 +1,10 @@
 .{
     .name = .libqt6zig_examples,
-    .version = "6.4.2",
+    .version = "6.8.2",
     .dependencies = .{
         .libqt6zig = .{
-            .url = "git+https://github.com/rcalixte/libqt6zig#518dce0eaeba3905ab45138fd747b4662560973e",
-            .hash = "libqt6zig-6.4.2-OSXtXBuHeQjjAZcPHIWcdd_HWj2sp8beVZ0lCjpp_i6d",
+            .url = "git+https://github.com/rcalixte/libqt6zig#60933ed6017adbfe706e499bcbd7176fe7de6852",
+            .hash = "libqt6zig-6.8.2-OSXtXF0G6Ai-5UcguL-CnAt2hfmwn4zD3qFlffgmirq9",
         },
     },
     .paths = .{""},
