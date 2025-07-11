@@ -195,7 +195,7 @@ const Counter = struct {
 
             threading.Async(self, UpdateCallback.callback);
             self.counter += 1;
-            std.time.sleep(1 * std.time.ns_per_ms);
+            std.Thread.sleep(1 * std.time.ns_per_ms);
         }
     }
 };
