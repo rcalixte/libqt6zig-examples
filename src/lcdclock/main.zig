@@ -51,7 +51,7 @@ fn show_time(_: ?*anyopaque) callconv(.c) void {
 
     const lcd_format = if (@mod(qtime.Second(time), 2) == 0) "hh:mm" else "hh mm";
 
-    const text = qtime.ToStringWithFormat(time, lcd_format, allocator);
+    const text = qtime.ToString2(time, lcd_format, allocator);
     defer allocator.free(text);
 
     qlcdnumber.Display(lcd, text);
