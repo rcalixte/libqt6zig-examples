@@ -247,9 +247,9 @@ pub fn NewAppWindow() !*AppWindow {
     const mnu = qmenubar.New2();
 
     // File menu
-    const fileMenu = qmenubar.AddMenuWithTitle(mnu, "&File");
+    const fileMenu = qmenubar.AddMenu2(mnu, "&File");
 
-    const newtab = qmenubar.AddActionWithText(fileMenu, "New Tab");
+    const newtab = qmenubar.AddAction2(fileMenu, "New Tab");
     const newTabKeySequence = qkeysequence.New2("Ctrl+N");
     defer qkeysequence.QDelete(newTabKeySequence);
     qaction.SetShortcut(newtab, newTabKeySequence);
@@ -258,7 +258,7 @@ pub fn NewAppWindow() !*AppWindow {
     qaction.SetIcon(newtab, newIcon);
     qaction.OnTriggered(newtab, AppWindow.handleNewTab);
 
-    const open = qmenubar.AddActionWithText(fileMenu, "Open...");
+    const open = qmenubar.AddAction2(fileMenu, "Open...");
     const openKeySequence = qkeysequence.New2("Ctrl+O");
     defer qkeysequence.QDelete(openKeySequence);
     qaction.SetShortcut(open, openKeySequence);
@@ -269,7 +269,7 @@ pub fn NewAppWindow() !*AppWindow {
 
     _ = qmenubar.AddSeparator(fileMenu);
 
-    const exit = qmenubar.AddActionWithText(fileMenu, "Exit");
+    const exit = qmenubar.AddAction2(fileMenu, "Exit");
     const exitKeySequence = qkeysequence.New2("Ctrl+Q");
     defer qkeysequence.QDelete(exitKeySequence);
     qaction.SetShortcut(exit, exitKeySequence);
@@ -279,8 +279,8 @@ pub fn NewAppWindow() !*AppWindow {
     qaction.OnTriggered(exit, AppWindow.handleExit);
 
     // Help menu
-    const helpMenu = qmenubar.AddMenuWithTitle(mnu, "&Help");
-    const about = qmenubar.AddActionWithText(helpMenu, "About Qt");
+    const helpMenu = qmenubar.AddMenu2(mnu, "&Help");
+    const about = qmenubar.AddAction2(helpMenu, "About Qt");
     const aboutIcon = qicon.FromTheme("help-about");
     defer qicon.QDelete(aboutIcon);
     qaction.SetIcon(about, aboutIcon);
@@ -295,7 +295,7 @@ pub fn NewAppWindow() !*AppWindow {
     const closeKeyParam = "Ctrl+W";
     const closeKeySequence = qkeysequence.New2(closeKeyParam);
     defer qkeysequence.QDelete(closeKeySequence);
-    const close = qmainwindow.AddAction3(ret.w, closeKeyParam, closeKeySequence);
+    const close = qmainwindow.AddAction4(ret.w, closeKeyParam, closeKeySequence);
     qaction.SetShortcut(close, closeKeySequence);
     qaction.OnTriggered(close, AppWindow.handleCloseCurrentTab);
 
