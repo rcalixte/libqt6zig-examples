@@ -60,7 +60,7 @@ fn onData(_: ?*anyopaque, index: ?*anyopaque, role: i32) callconv(.c) C.QVariant
         qnamespace_enums.ItemDataRole.DisplayRole => {
             var buf: [16]u8 = undefined;
             const str = std.fmt.bufPrintZ(&buf, "this is row {d}", .{qmodelindex.Row(index)}) catch @panic("failed to bufPrintZ");
-            return qvariant.New23(str);
+            return qvariant.New24(str);
         },
         else => return qvariant.New(),
     }
