@@ -15,18 +15,15 @@ pub fn main() void {
     _ = qapplication.New(argc, argv);
 
     const wizard = qwizard.New2();
-    defer qwizard.QDelete(wizard);
+    defer qwizard.DeleteLater(wizard);
 
     const introPage = createIntroPage();
-    defer qwizardpage.QDelete(introPage);
     _ = qwizard.AddPage(wizard, introPage);
 
     const registrationPage = createRegistrationPage();
-    defer qwizardpage.QDelete(registrationPage);
     _ = qwizard.AddPage(wizard, registrationPage);
 
     const conclusionPage = createConclusionPage();
-    defer qwizardpage.QDelete(conclusionPage);
     _ = qwizard.AddPage(wizard, conclusionPage);
 
     qwizard.SetWindowTitle(wizard, "TrivialWizard");
