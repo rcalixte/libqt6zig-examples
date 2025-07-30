@@ -46,7 +46,7 @@ fn mousePressEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
             qlabel.SetText(self, formatted);
         },
         else => {
-            const text = "Mouse button keycode: {}";
+            const text = "Mouse button keycode: {d}";
             const formatted = std.fmt.bufPrintZ(&buffer, text, .{mouse}) catch @panic("Buffer full");
             qlabel.SetText(self, formatted);
         },
@@ -56,7 +56,7 @@ fn mousePressEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
 fn keyPressEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
     const key = qkeyevent.Key(event);
     var buffer: [64]u8 = undefined;
-    const text = "You pressed key code: {}";
+    const text = "You pressed key code: {d}";
     const formatted = std.fmt.bufPrintZ(&buffer, text, .{key}) catch @panic("Buffer full");
     qlabel.SetText(self, formatted);
 }
