@@ -60,7 +60,7 @@ pub fn main() void {
 fn button_callback(self: ?*anyopaque) callconv(.c) void {
     counter += 1;
     var buffer: [64]u8 = undefined;
-    const text = "You have clicked the button {} time(s)";
+    const text = "You have clicked the button {d} time(s)";
     const formatted = std.fmt.bufPrintZ(&buffer, text, .{counter}) catch @panic("Failed to bufPrintZ");
     qpushbutton.SetText(self, formatted);
 }
