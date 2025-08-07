@@ -4,7 +4,6 @@ qboxlayout
 qcoreapplication
 qguiapplication
 qlabel
-qlayout
 qmainwindow
 qobject
 qpushbutton

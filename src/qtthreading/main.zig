@@ -1,16 +1,22 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
+const C = qt6.C;
 const qapplication = qt6.qapplication;
 const qmainwindow = qt6.qmainwindow;
 const qwidget = qt6.qwidget;
 const qvboxlayout = qt6.qvboxlayout;
-const qlayout = qt6.qlayout;
 const qlabel = qt6.qlabel;
 const qnamespace_enums = qt6.qnamespace_enums;
 const qpushbutton = qt6.qpushbutton;
 const qvariant = qt6.qvariant;
 const threading = qt6.threading;
+
+// Data for each button, attached via Qt's property system
+const ButtonData = struct {
+    counters: *std.ArrayListUnmanaged(*Counter),
+    button: C.QPushButton,
+};
 
 pub fn main() void {
     const argc = std.os.argv.len;
@@ -35,9 +41,7 @@ pub fn main() void {
     qmainwindow.SetWindowTitle(window, "Qt 6 Threading Example");
 
     const widget = qwidget.New(window);
-    const vlayout = qvboxlayout.New2();
-    defer qvboxlayout.QDelete(vlayout);
-    qwidget.SetLayout(widget, vlayout);
+    const vboxlayout = qvboxlayout.New(widget);
     qmainwindow.SetCentralWidget(window, widget);
 
     // Create a counter for each thread
@@ -59,14 +63,12 @@ pub fn main() void {
         const label = qlabel.New(window);
         qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
         qlabel.SetText(label, "0 0");
-        const wlayout = qwidget.Layout(widget);
-        qlayout.AddWidget(wlayout, label);
+        qvboxlayout.AddWidget(vboxlayout, label);
 
         const counter = allocator.create(Counter) catch @panic("Failed to create Counter");
 
         counter.* = Counter{
-            .object = label,
-            .allocator = allocator,
+            .label = label,
             .counter = 0,
         };
 
@@ -75,12 +77,6 @@ pub fn main() void {
 
     // Create start button
     const button = qpushbutton.New5("Start!", window);
-
-    // Setup button data and callback
-    const ButtonData = struct {
-        counters: *std.ArrayListUnmanaged(*Counter),
-        button: ?*anyopaque,
-    };
 
     var button_data = ButtonData{
         .counters = &counters,
@@ -93,53 +89,49 @@ pub fn main() void {
     defer qvariant.QDelete(variant);
     _ = qpushbutton.SetProperty(button, "buttonData", variant);
 
-    // Modify the button callback
-    qpushbutton.OnClicked(button, struct {
-        pub fn callback(button_ptr: ?*anyopaque) callconv(.c) void {
-            if (qpushbutton.Property(button_ptr, "buttonData")) |variant_ptr| {
-                const ptr_val = qvariant.ToLongLong(variant_ptr);
-                const data_ptr = @as(*ButtonData, @ptrFromInt(@as(usize, @intCast(ptr_val))));
-
-                // Check if any counter is running
-                const is_running = for (data_ptr.counters.items) |counter| {
-                    if (counter.running) break true;
-                } else false;
-
-                if (is_running) {
-                    // Stop all counters
-                    for (data_ptr.counters.items) |counter| {
-                        counter.stop();
-                    }
-                    qpushbutton.SetText(data_ptr.button, "Start!");
-                } else {
-                    // Start all counters
-                    for (data_ptr.counters.items) |counter| {
-                        counter.start();
-                    }
-                    qpushbutton.SetText(data_ptr.button, "Stop!");
-                }
-            }
-        }
-    }.callback);
-
-    const qwlayout = qwidget.Layout(widget);
-    qlayout.AddWidget(qwlayout, button);
+    qpushbutton.OnClicked(button, onClicked);
+    qvboxlayout.AddWidget(vboxlayout, button);
 
     qmainwindow.Show(window);
 
     _ = qapplication.Exec();
 }
 
+fn onClicked(self: ?*anyopaque) callconv(.c) void {
+    if (qpushbutton.Property(self, "buttonData")) |variant_ptr| {
+        const ptr_val = qvariant.ToLongLong(variant_ptr);
+        const data_ptr = @as(*ButtonData, @ptrFromInt(@as(usize, @intCast(ptr_val))));
+
+        // Check if any counter is running
+        const is_running = for (data_ptr.counters.items) |counter| {
+            if (counter.running) break true;
+        } else false;
+
+        if (is_running) {
+            // Stop all counters
+            for (data_ptr.counters.items) |counter| {
+                counter.stop();
+            }
+            qpushbutton.SetText(data_ptr.button, "Start!");
+        } else {
+            // Start all counters
+            for (data_ptr.counters.items) |counter| {
+                counter.start();
+            }
+            qpushbutton.SetText(data_ptr.button, "Stop!");
+        }
+    }
+}
+
 const Counter = struct {
     counter: i32,
-    object: ?*anyopaque,
-    allocator: std.mem.Allocator,
+    label: C.QLabel,
     running: bool = false,
     thread: ?std.Thread = null,
     mutex: std.Thread.Mutex = .{},
     stop_requested: bool = false,
 
-    pub fn start(self: *Counter) void {
+    fn start(self: *Counter) void {
         self.mutex.lock();
         defer self.mutex.unlock();
 
@@ -154,7 +146,7 @@ const Counter = struct {
         }
     }
 
-    pub fn stop(self: *Counter) void {
+    fn stop(self: *Counter) void {
         // First signal the thread to stop
         self.mutex.lock();
         if (self.running) {
@@ -171,21 +163,19 @@ const Counter = struct {
         }
     }
 
-    const UpdateCallback = struct {
-        pub fn callback(ctx: ?*anyopaque) callconv(.c) void {
-            if (ctx) |ptr| {
-                const counter: *Counter = @ptrCast(@alignCast(ptr));
-                var text_buf: [64]u8 = undefined;
-                const text = std.fmt.bufPrint(&text_buf, "{d} {d}", .{
-                    counter.counter,
-                    std.time.timestamp(),
-                }) catch @panic("Failed to bufPrint");
-                qlabel.SetText(counter.object, text);
-            }
+    fn async_callback(ctx: ?*anyopaque) callconv(.c) void {
+        if (ctx) |ptr| {
+            const counter: *Counter = @ptrCast(@alignCast(ptr));
+            var text_buf: [64]u8 = undefined;
+            const text = std.fmt.bufPrint(&text_buf, "{d} {d}", .{
+                counter.counter,
+                std.time.timestamp(),
+            }) catch @panic("Failed to bufPrint");
+            qlabel.SetText(counter.label, text);
         }
-    };
+    }
 
-    pub fn run_counter(self: *Counter) void {
+    fn run_counter(self: *Counter) void {
         while (true) {
             self.mutex.lock();
             const should_continue = self.running and !self.stop_requested;
@@ -193,14 +183,14 @@ const Counter = struct {
 
             if (!should_continue) break;
 
-            threading.Async(self, UpdateCallback.callback);
+            threading.Async(self, async_callback);
             self.counter += 1;
             std.Thread.sleep(1 * std.time.ns_per_ms);
         }
     }
 };
 
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
+fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
     if (builtin.mode == .Debug) {
         return std.heap.DebugAllocatorConfig{
             .safety = true,
