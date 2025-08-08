@@ -65,7 +65,7 @@ pub fn main() void {
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
     defer allocator.free(comboItems);
     for (comboItems, 0..) |item, _i| {
-        stdout.print("ComboBoxItems[{}]: {s}\n", .{ _i, item }) catch @panic("QStringList stdout\n");
+        stdout.print("ComboBoxItems[{d}]: {s}\n", .{ _i, item }) catch @panic("QStringList stdout\n");
         defer allocator.free(item);
     }
 
@@ -83,7 +83,7 @@ pub fn main() void {
     for (shortcuts, 0..) |shortcut, _i| {
         const qkey_tostring = qkeysequence.ToString(shortcut, allocator);
         defer allocator.free(qkey_tostring);
-        stdout.print("Shortcuts[{}]: {s}\n", .{ _i, qkey_tostring }) catch @panic("QList<Qt type> stdout\n");
+        stdout.print("Shortcuts[{d}]: {s}\n", .{ _i, qkey_tostring }) catch @panic("QList<Qt type> stdout\n");
     }
 
     // QByteArray
