@@ -1,4 +1,5 @@
 const std = @import("std");
+const stdout = std.io.getStdOut().writer();
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
@@ -109,6 +110,11 @@ pub fn build(b: *std.Build) !void {
         .@"skip-restricted" = skip_restricted,
     });
 
+    // Create a module for the centralized custom allocator configuration
+    const alloc_config = b.addModule("alloc_config", .{
+        .root_source_file = b.path("src/alloc_config.zig"),
+    });
+
     // Create an executable for each main.zig
     for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
@@ -126,6 +132,7 @@ pub fn build(b: *std.Build) !void {
         });
 
         exe.root_module.addImport("libqt6zig", qt6zig.module("libqt6zig"));
+        exe.root_module.addImport("alloc_config", alloc_config);
 
         // Link Qt system libraries
         if (is_bsd_family)
@@ -189,7 +196,7 @@ fn standardOptimizeOption(b: *std.Build, options: std.Build.StandardOptimizeOpti
 
 fn checkSupportedMode(mode: std.builtin.OptimizeMode) void {
     if (mode == .Debug) {
-        std.debug.print("libqt6zig-examples does not support Debug build mode.\n", .{});
+        stdout.print("libqt6zig-examples does not support Debug build mode.\n", .{}) catch @panic("Failed to print to stdout");
         std.process.exit(1);
     }
 }
