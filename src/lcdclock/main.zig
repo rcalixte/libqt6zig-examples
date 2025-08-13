@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const qapplication = qt6.qapplication;
 const qwidget = qt6.qwidget;
@@ -8,6 +7,7 @@ const qlcdnumber = qt6.qlcdnumber;
 const qtime = qt6.qtime;
 const qtimer = qt6.qtimer;
 
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
@@ -55,22 +55,4 @@ fn show_time(_: ?*anyopaque) callconv(.c) void {
     defer allocator.free(text);
 
     qlcdnumber.Display(lcd, text);
-}
-
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
-    if (builtin.mode == .Debug) {
-        return std.heap.DebugAllocatorConfig{
-            .safety = true,
-            .never_unmap = true,
-            .retain_metadata = true,
-            .verbose_log = false,
-        };
-    } else {
-        return std.heap.DebugAllocatorConfig{
-            .safety = false,
-            .never_unmap = false,
-            .retain_metadata = false,
-            .verbose_log = false,
-        };
-    }
 }
