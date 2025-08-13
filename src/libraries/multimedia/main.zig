@@ -7,13 +7,19 @@ const qaudiooutput = qt6.qaudiooutput;
 const qurl = qt6.qurl;
 const qcoreapplication = qt6.qcoreapplication;
 
-const allocator = std.heap.page_allocator;
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
+const config = getAllocatorConfig();
+var gda: std.heap.DebugAllocator(config) = .init;
+const allocator = gda.allocator();
+
 const stdout = std.io.getStdOut().writer();
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     _ = qapplication.New(argc, argv);
+
+    defer _ = gda.deinit();
 
     const mp3 = try std.fs.cwd().realpathAlloc(allocator, "src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
     defer allocator.free(mp3);
