@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 const qhboxlayout = qt6.qhboxlayout;
@@ -24,11 +23,12 @@ const qaction = qt6.qaction;
 const qmenubar = qt6.qmenubar;
 const qmenu = qt6.qmenu;
 
-const lineNumberRole = qnamespace_enums.ItemDataRole.UserRole + 1;
-
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
+
+const lineNumberRole = qnamespace_enums.ItemDataRole.UserRole + 1;
 
 const AppTabMap = std.AutoHashMap(?*anyopaque, *AppTab);
 const AppWindowMap = std.AutoHashMap(?*anyopaque, *AppWindow);
@@ -302,6 +302,7 @@ pub fn NewAppWindow() !*AppWindow {
     // Main widgets
     ret.tabs = qtabwidget.New(ret.w);
     qtabwidget.SetTabsClosable(ret.tabs, true);
+    qtabwidget.SetMovable(ret.tabs, true);
     qtabwidget.OnTabCloseRequested(ret.tabs, AppWindow.handleTabClose);
     qmainwindow.SetCentralWidget(ret.w, ret.tabs);
 
@@ -351,22 +352,4 @@ pub fn main() !void {
     qmainwindow.Show(app.w);
 
     _ = qapplication.Exec();
-}
-
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
-    if (builtin.mode == .Debug) {
-        return std.heap.DebugAllocatorConfig{
-            .safety = true,
-            .never_unmap = true,
-            .retain_metadata = true,
-            .verbose_log = false,
-        };
-    } else {
-        return std.heap.DebugAllocatorConfig{
-            .safety = false,
-            .never_unmap = false,
-            .retain_metadata = false,
-            .verbose_log = false,
-        };
-    }
 }
