@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 const qapplication = qt6.qapplication;
@@ -16,8 +15,10 @@ const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
 const qobject = qt6.qobject;
 
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
+
 pub fn main() void {
-    // Initialize Qt application and allocator
+    // Initialize Qt application, allocator, and stdout
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     _ = qapplication.New(argc, argv);
@@ -100,22 +101,4 @@ pub fn main() void {
     qobject.SetObjectName(object, "QAnyStringView Name");
     const value = qobject.ObjectName(object, allocator);
     stdout.print("Value: {s}\n", .{value}) catch @panic("QAnyStringView stdout\n");
-}
-
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
-    if (builtin.mode == .Debug) {
-        return std.heap.DebugAllocatorConfig{
-            .safety = true,
-            .never_unmap = true,
-            .retain_metadata = true,
-            .verbose_log = false,
-        };
-    } else {
-        return std.heap.DebugAllocatorConfig{
-            .safety = false,
-            .never_unmap = false,
-            .retain_metadata = false,
-            .verbose_log = false,
-        };
-    }
 }
