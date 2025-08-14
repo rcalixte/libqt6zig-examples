@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const qapplication = qt6.qapplication;
 const qdnslookup = qt6.qdnslookup;
@@ -7,6 +6,7 @@ const qdnslookup_enums = qt6.qdnslookup_enums;
 const qdnshostaddressrecord = qt6.qdnshostaddressrecord;
 const qhostaddress = qt6.qhostaddress;
 
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
@@ -17,6 +17,7 @@ pub fn main() void {
     _ = qapplication.New(argc, argv);
 
     defer _ = gda.deinit();
+
     const stdout = std.io.getStdOut().writer();
     stdout.print("Looking up DNS info, please wait...", .{}) catch @panic("Failed to print to stdout");
 
@@ -54,22 +55,4 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
     }
 
     qapplication.Exit();
-}
-
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
-    if (builtin.mode == .Debug) {
-        return std.heap.DebugAllocatorConfig{
-            .safety = true,
-            .never_unmap = true,
-            .retain_metadata = true,
-            .verbose_log = false,
-        };
-    } else {
-        return std.heap.DebugAllocatorConfig{
-            .safety = false,
-            .never_unmap = false,
-            .retain_metadata = false,
-            .verbose_log = false,
-        };
-    }
 }
