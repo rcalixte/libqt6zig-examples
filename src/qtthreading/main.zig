@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 const qapplication = qt6.qapplication;
@@ -11,6 +10,8 @@ const qnamespace_enums = qt6.qnamespace_enums;
 const qpushbutton = qt6.qpushbutton;
 const qvariant = qt6.qvariant;
 const threading = qt6.threading;
+
+const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 
 // Data for each button, attached via Qt's property system
 const ButtonData = struct {
@@ -189,21 +190,3 @@ const Counter = struct {
         }
     }
 };
-
-fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
-    if (builtin.mode == .Debug) {
-        return std.heap.DebugAllocatorConfig{
-            .safety = true,
-            .never_unmap = true,
-            .retain_metadata = true,
-            .verbose_log = false,
-        };
-    } else {
-        return std.heap.DebugAllocatorConfig{
-            .safety = false,
-            .never_unmap = false,
-            .retain_metadata = false,
-            .verbose_log = false,
-        };
-    }
-}
