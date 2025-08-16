@@ -1,22 +1,102 @@
 const std = @import("std");
+const host_os = @import("builtin").os.tag;
 const stdout = std.io.getStdOut().writer();
+
+const ExtraLibrary = struct {
+    name: []const u8,
+    libraries: []const []const u8,
+    prefix: []const u8,
+};
+
+// Define the extra libraries
+const extra_libraries = [_]ExtraLibrary{
+    .{
+        .name = "charts",
+        .libraries = &.{"Qt6Charts"},
+        .prefix = "restricted-extras",
+    },
+    .{
+        .name = "qscintilla",
+        .libraries = &.{"qscintilla2_qt6"},
+        .prefix = "restricted-extras",
+    },
+};
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = standardOptimizeOption(b, .{});
     const enable_workaround = b.option(bool, "enable-workaround", "Enable workaround for missing Qt C++ headers") orelse false;
-    const skip_restricted = b.option(bool, "skip-restricted", "Skip restricted libraries") orelse false;
 
-    const is_windows = target.result.os.tag == .windows;
+    const is_macos = target.result.os.tag == .macos or host_os == .macos;
+    const is_windows = target.result.os.tag == .windows or host_os == .windows;
 
-    const is_bsd_family = switch (target.result.os.tag) {
+    const is_bsd_host = switch (host_os) {
         .dragonfly, .freebsd, .netbsd, .openbsd => true,
         else => false,
     };
 
+    const is_bsd_target = switch (target.result.os.tag) {
+        .dragonfly, .freebsd, .netbsd, .openbsd => true,
+        else => false,
+    };
+
+    const is_bsd_family = is_bsd_host or is_bsd_target;
+
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
+
+    var disabled_paths: std.ArrayListUnmanaged([]const u8) = .empty;
+
+    // System libraries to link
+    var system_libs: std.ArrayListUnmanaged([]const u8) = .empty;
+
+    try system_libs.appendSlice(allocator, &[_][]const u8{
+        "Qt6Core",
+        "Qt6Gui",
+        "Qt6Widgets",
+        "Qt6Multimedia",
+        "Qt6MultimediaWidgets",
+        "Qt6Network",
+        "Qt6Pdf",
+        "Qt6PdfWidgets",
+        "Qt6PrintSupport",
+        "Qt6SvgWidgets",
+        "Qt6WebEngineCore",
+        "Qt6WebEngineWidgets",
+    });
+
+    // If applicable, determine valid build target paths and append the dependent libraries
+    inline for (extra_libraries) |extra_lib| {
+        const option_name = try std.mem.concat(allocator, u8, &.{ "enable-", extra_lib.name });
+        const option_description = try std.mem.concat(allocator, u8, &.{ "Enable ", extra_lib.name, " library" });
+        var is_supported = true;
+        if (is_windows and (std.mem.startsWith(u8, extra_lib.prefix, "foss-") or std.mem.startsWith(u8, extra_lib.prefix, "posix-"))) {
+            is_supported = false;
+            try disabled_paths.append(allocator, "foss-");
+            try disabled_paths.append(allocator, "posix-");
+        }
+        if (is_macos and std.mem.startsWith(u8, extra_lib.prefix, "foss-")) {
+            is_supported = false;
+            try disabled_paths.append(allocator, "foss-");
+        }
+
+        var is_enabled = true;
+        if ((host_os == .macos or host_os == .windows) and std.mem.eql(u8, extra_lib.prefix, "extras")) {
+            is_enabled = false;
+        }
+        const option_value = b.option(bool, option_name, option_description);
+        const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
+
+        if (result_value) {
+            inline for (extra_lib.libraries) |lib| {
+                try system_libs.append(allocator, lib);
+            }
+        } else {
+            const path = try std.mem.concat(allocator, u8, &.{ extra_lib.prefix, "/", extra_lib.name });
+            try disabled_paths.append(allocator, path);
+        }
+    }
 
     // Find all main.zig files
     var main_files: std.ArrayListUnmanaged(struct {
@@ -55,44 +135,16 @@ pub fn build(b: *std.Build) !void {
     if (main_files.items.len == 0)
         @panic("No main.zig files found.\n");
 
-    // Qt system libraries to link
-    var qt_libs: std.ArrayListUnmanaged([]const u8) = .empty;
-
-    try qt_libs.appendSlice(allocator, &[_][]const u8{
-        "Qt6Core",
-        "Qt6Gui",
-        "Qt6Widgets",
-        "Qt6Multimedia",
-        "Qt6MultimediaWidgets",
-        "Qt6PdfWidgets",
-        "Qt6PrintSupport",
-        "Qt6SvgWidgets",
-        "Qt6WebEngineCore",
-        "Qt6WebEngineWidgets",
-    });
-
-    if (!skip_restricted) {
-        try qt_libs.appendSlice(allocator, &[_][]const u8{
-            "Qt6Charts",
-            "qscintilla2_qt6",
-        });
-    }
-
     var qt_win_paths: std.ArrayListUnmanaged([]const u8) = .empty;
 
-    if (is_windows) {
+    if (host_os == .windows) {
         const qt_win_versions = &.{
-            "6.4.3",
-            "6.5.5",
-            "6.6.3",
-            "6.7.3",
             "6.8.2",
-            "6.9.0",
+            "6.9.1",
         };
 
         const win_compilers = &.{
             "mingw_64",
-            "msvc2019_64",
             "msvc2022_64",
         };
 
@@ -106,8 +158,7 @@ pub fn build(b: *std.Build) !void {
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
         .optimize = optimize,
-        .@"enable-workaround" = enable_workaround or is_bsd_family,
-        .@"skip-restricted" = skip_restricted,
+        .@"enable-workaround" = enable_workaround or is_bsd_family or is_macos,
     });
 
     // Create a module for the centralized custom allocator configuration
@@ -116,11 +167,14 @@ pub fn build(b: *std.Build) !void {
     });
 
     // Create an executable for each main.zig
-    for (main_files.items) |main| {
+    main_loop: for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
 
-        if (skip_restricted and std.mem.containsAtLeast(u8, main.dir, 1, "restricted-extras"))
-            continue;
+        for (disabled_paths.items) |disabled_path| {
+            if (std.mem.containsAtLeast(u8, main.dir, 1, disabled_path)) {
+                continue :main_loop;
+            }
+        }
 
         const exe = b.addExecutable(.{
             .name = exe_name,
@@ -135,16 +189,16 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport("alloc_config", alloc_config);
 
         // Link Qt system libraries
-        if (is_bsd_family)
+        if (is_bsd_host)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
 
-        if (is_windows) {
+        if (host_os == .windows) {
             for (qt_win_paths.items) |path| {
                 exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = path });
             }
         }
 
-        for (qt_libs.items) |lib| {
+        for (system_libs.items) |lib| {
             exe.root_module.linkSystemLibrary(lib, .{});
         }
 
@@ -161,7 +215,7 @@ pub fn build(b: *std.Build) !void {
         const run_cmd = b.addRunArtifact(exe);
         run_cmd.step.dependOn(&exe_install.step);
 
-        const run_description = try std.fmt.allocPrint(allocator, "Run the {s} example", .{exe_name});
+        const run_description = b.fmt("Build and run the {s} example", .{exe_name});
 
         const run_step = b.step(exe_name, run_description);
         run_step.dependOn(&run_cmd.step);
