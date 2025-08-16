@@ -1,5 +1,6 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
+const C = qt6.C;
 const qapplication = qt6.qapplication;
 const qwidget = qt6.qwidget;
 const qhboxlayout = qt6.qhboxlayout;
@@ -12,8 +13,8 @@ const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
 
-var lcd: ?*anyopaque = undefined;
-var time: ?*anyopaque = undefined;
+var lcd: C.QLCDNumber = undefined;
+var time: C.QTime = undefined;
 
 pub fn main() void {
     // Initialize Qt application
