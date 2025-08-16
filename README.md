@@ -45,10 +45,10 @@ Users of Arch-based distributions need to __make sure that all packages are up-t
 zig build -Denable-workaround
 ```
 
-To skip the restricted extras:
+Prefixed libraries have per-library options that can be used to enable or disable them (where supported):
 
 ```bash
-zig build -Dskip-restricted
+zig build -Denable-charts=true -Denable-qscintilla=false
 ```
 
 Example applications can also be built and run independently:
