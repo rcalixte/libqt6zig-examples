@@ -44,7 +44,7 @@ pub fn main() !void {
     _ = qapplication.Exec();
 }
 
-fn onPlaybackStateChanged(_: ?*anyopaque, state: i64) callconv(.c) void {
+fn onPlaybackStateChanged(_: ?*anyopaque, state: i32) callconv(.c) void {
     stdout.print("Playback state: {any}\n", .{state}) catch @panic("Playback state stdout error");
 
     if (state == qmediaplayer_enums.PlaybackState.StoppedState) {
