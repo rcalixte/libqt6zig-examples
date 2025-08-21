@@ -16,8 +16,8 @@ pub fn main() void {
 
     qlineseries.SetName(series, "Sine Wave");
 
-    var x: f64 = 0;
-    var y: f64 = 0;
+    var x: f64 = 0.0;
+    var y: f64 = 0.0;
 
     var i: i32 = -500;
     while (i <= 500) : (i += 1) {
