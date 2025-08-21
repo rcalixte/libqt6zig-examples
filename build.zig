@@ -11,6 +11,11 @@ const ExtraLibrary = struct {
 // Define the extra libraries
 const extra_libraries = [_]ExtraLibrary{
     .{
+        .name = "kcodecs",
+        .libraries = &.{"KF6Codecs"},
+        .prefix = "extras",
+    },
+    .{
         .name = "charts",
         .libraries = &.{"Qt6Charts"},
         .prefix = "restricted-extras",
