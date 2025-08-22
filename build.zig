@@ -16,6 +16,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "ki18n",
+        .libraries = &.{ "KF6I18n", "KF6I18nLocaleData" },
+        .prefix = "extras",
+    },
+    .{
         .name = "charts",
         .libraries = &.{"Qt6Charts"},
         .prefix = "restricted-extras",
