@@ -21,6 +21,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "qtermwidget",
+        .libraries = &.{"qtermwidget6"},
+        .prefix = "posix-restricted-extras",
+    },
+    .{
         .name = "charts",
         .libraries = &.{"Qt6Charts"},
         .prefix = "restricted-extras",
@@ -96,6 +101,8 @@ pub fn build(b: *std.Build) !void {
         if ((host_os == .macos or host_os == .windows) and std.mem.eql(u8, extra_lib.prefix, "extras")) {
             is_enabled = false;
         }
+        if (host_os == .macos and std.mem.eql(u8, extra_lib.prefix, "posix-"))
+            is_enabled = false;
         const option_value = b.option(bool, option_name, option_description);
         const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
 
