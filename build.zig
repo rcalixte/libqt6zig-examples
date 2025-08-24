@@ -16,8 +16,18 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kconfig",
+        .libraries = &.{"KF6ConfigCore", "KF6ConfigGui", "KF6ConfigWidgets"},
+        .prefix = "extras",
+    },
+    .{
         .name = "ki18n",
         .libraries = &.{ "KF6I18n", "KF6I18nLocaleData" },
+        .prefix = "extras",
+    },
+    .{
+        .name = "kwidgetsaddons",
+        .libraries = &.{ "KF6WidgetsAddons" },
         .prefix = "extras",
     },
     .{
