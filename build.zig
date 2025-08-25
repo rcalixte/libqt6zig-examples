@@ -26,6 +26,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kitemviews",
+        .libraries = &.{ "KF6ItemViews" },
+        .prefix = "extras",
+    },
+    .{
         .name = "kwidgetsaddons",
         .libraries = &.{ "KF6WidgetsAddons" },
         .prefix = "extras",
