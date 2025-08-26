@@ -1,0 +1,10 @@
+ktexttohtml
+qapplication
+qboxlayout
+qcoreapplication
+qguiapplication
+qmainwindow
+qtextbrowser
+qtextedit
+qtimer
+qwidget
