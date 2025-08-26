@@ -17,7 +17,12 @@ const extra_libraries = [_]ExtraLibrary{
     },
     .{
         .name = "kconfig",
-        .libraries = &.{"KF6ConfigCore", "KF6ConfigGui", "KF6ConfigWidgets"},
+        .libraries = &.{ "KF6ConfigCore", "KF6ConfigGui", "KF6ConfigWidgets" },
+        .prefix = "extras",
+    },
+    .{
+        .name = "kcoreaddons",
+        .libraries = &.{"KF6CoreAddons"},
         .prefix = "extras",
     },
     .{
@@ -27,12 +32,12 @@ const extra_libraries = [_]ExtraLibrary{
     },
     .{
         .name = "kitemviews",
-        .libraries = &.{ "KF6ItemViews" },
+        .libraries = &.{"KF6ItemViews"},
         .prefix = "extras",
     },
     .{
         .name = "kwidgetsaddons",
-        .libraries = &.{ "KF6WidgetsAddons" },
+        .libraries = &.{"KF6WidgetsAddons"},
         .prefix = "extras",
     },
     .{
