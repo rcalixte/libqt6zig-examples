@@ -19,7 +19,7 @@ var all_countries: []C.KCountry = undefined;
 var emoji_flag_label: C.QLabel = undefined;
 var currency_label: C.QLabel = undefined;
 
-pub fn main() !void {
+pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     _ = qapplication.New(argc, argv);
