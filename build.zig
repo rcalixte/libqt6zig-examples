@@ -26,6 +26,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kguiaddons",
+        .libraries = &.{"KF6GuiAddons"},
+        .prefix = "extras",
+    },
+    .{
         .name = "ki18n",
         .libraries = &.{ "KF6I18n", "KF6I18nLocaleData" },
         .prefix = "extras",
