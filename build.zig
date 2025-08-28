@@ -41,6 +41,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "sonnet",
+        .libraries = &.{ "KF6SonnetCore", "KF6SonnetUi" },
+        .prefix = "extras",
+    },
+    .{
         .name = "kwidgetsaddons",
         .libraries = &.{"KF6WidgetsAddons"},
         .prefix = "extras",
