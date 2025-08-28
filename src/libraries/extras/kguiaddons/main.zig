@@ -46,7 +46,7 @@ pub fn main() void {
     _ = qapplication.Exec();
 }
 
-fn onTextChanged(self: ?*anyopaque, text: [*:0]const u8) callconv(.C) void {
+fn onTextChanged(self: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
     var pos = qlineedit.CursorPosition(self);
     const ret = kdatevalidator.Validate(qlineedit.Validator(self), std.mem.span(text), &pos);
 
