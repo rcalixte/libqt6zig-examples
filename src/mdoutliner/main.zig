@@ -219,11 +219,14 @@ pub const AppWindow = struct {
         const file = std.fs.cwd().openFile(fname, .{}) catch @panic("Failed to open file");
         defer file.close();
 
+        var buffer: [4096]u8 = undefined;
+        var file_reader = file.reader(&buffer);
+
         const fileSize = file.getEndPos() catch @panic("Failed to get file size");
 
         const contents = allocator.alloc(u8, fileSize) catch @panic("Failed to allocate memory");
         defer allocator.free(contents);
-        _ = file.readAll(contents) catch @panic("Failed to read file");
+        _ = file_reader.read(contents) catch @panic("Failed to read file");
 
         createTabWithContents(main_window, std.fs.path.basename(fname), contents);
     }
