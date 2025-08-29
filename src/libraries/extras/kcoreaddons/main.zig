@@ -54,7 +54,7 @@ pub fn main() void {
     _ = qapplication.Exec();
 }
 
-fn onTimeout(_: ?*anyopaque) callconv(.C) void {
+fn onTimeout(_: ?*anyopaque) callconv(.c) void {
     const plaintext = qtextedit.ToPlainText(plainTextEditor, allocator);
     defer allocator.free(plaintext);
     const html = ktexttohtml.ConvertToHtml(plaintext, &0, 4096, 255, allocator);
@@ -62,6 +62,6 @@ fn onTimeout(_: ?*anyopaque) callconv(.C) void {
     qtextbrowser.SetHtml(htmlview, html);
 }
 
-fn onTextChanged(_: ?*anyopaque) callconv(.C) void {
+fn onTextChanged(_: ?*anyopaque) callconv(.c) void {
     qtimer.Start2(timer);
 }
