@@ -1,6 +1,8 @@
 const std = @import("std");
 const host_os = @import("builtin").os.tag;
-const stdout = std.io.getStdOut().writer();
+
+var buffer: [1024]u8 = undefined;
+var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
 const ExtraLibrary = struct {
     name: []const u8,
@@ -161,15 +163,18 @@ pub fn build(b: *std.Build) !void {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
             const lib_path = try std.fs.path.join(allocator, &.{ parent_dir, "qtlibs" });
-            const lib_file = try std.fs.cwd().openFile(lib_path, .{});
+            var lib_file = try std.fs.cwd().openFile(lib_path, .{});
             defer lib_file.close();
+            var lib_file_reader = lib_file.reader(&buffer);
 
             var lib_contents: std.ArrayListUnmanaged([]const u8) = .empty;
-            while (try lib_file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize))) |line| {
+            while (lib_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
                 if (std.mem.startsWith(u8, line, "#"))
                     continue;
 
                 try lib_contents.append(allocator, try allocator.dupe(u8, line));
+            } else |err| {
+                if (!lib_file_reader.atEnd()) return err;
             }
 
             try main_files.append(allocator, .{
@@ -298,7 +303,8 @@ fn standardOptimizeOption(b: *std.Build, options: std.Build.StandardOptimizeOpti
 
 fn checkSupportedMode(mode: std.builtin.OptimizeMode) void {
     if (mode == .Debug) {
-        stdout.print("libqt6zig-examples does not support Debug build mode.\n", .{}) catch @panic("Failed to print to stdout");
+        stdout_writer.interface.writeAll("libqt6zig-examples does not support Debug build mode.\n") catch @panic("Failed to write to stdout");
+        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
         std.process.exit(1);
     }
 }
