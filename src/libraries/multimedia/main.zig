@@ -7,22 +7,13 @@ const qaudiooutput = qt6.qaudiooutput;
 const qurl = qt6.qurl;
 const qcoreapplication = qt6.qcoreapplication;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
-
-const stdout = std.io.getStdOut().writer();
+var buffer: [32]u8 = undefined;
+var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     _ = qapplication.New(argc, argv);
-
-    defer _ = gda.deinit();
-
-    const mp3 = try std.fs.cwd().realpathAlloc(allocator, "src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
-    defer allocator.free(mp3);
 
     const player = qmediaplayer.New();
     defer qmediaplayer.QDelete(player);
@@ -31,24 +22,27 @@ pub fn main() !void {
     defer qaudiooutput.QDelete(output);
 
     qmediaplayer.SetAudioOutput(player, output);
-    const url = qurl.New3(mp3);
+    const url = qurl.New3("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
     defer qurl.QDelete(url);
     qmediaplayer.SetSource(player, url);
     qaudiooutput.SetVolume(output, 50);
 
     qmediaplayer.OnPlaybackStateChanged(player, onPlaybackStateChanged);
 
-    try stdout.print("Playback starting...\n", .{});
+    try stdout_writer.interface.writeAll("Playback starting...\n");
+    try stdout_writer.interface.flush();
     qmediaplayer.Play(player);
 
     _ = qapplication.Exec();
 }
 
 fn onPlaybackStateChanged(_: ?*anyopaque, state: i32) callconv(.c) void {
-    stdout.print("Playback state: {any}\n", .{state}) catch @panic("Playback state stdout error");
+    stdout_writer.interface.print("Playback state: {any}\n", .{state}) catch @panic("Playback state stdout error");
+    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
 
     if (state == qmediaplayer_enums.PlaybackState.StoppedState) {
-        stdout.print("Playback complete.\n", .{}) catch @panic("Playback complete stdout error");
+        stdout_writer.interface.writeAll("Playback complete.\n") catch @panic("Playback complete stdout error");
+        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
         qcoreapplication.Exit();
     }
 }
