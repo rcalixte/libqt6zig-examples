@@ -5,10 +5,14 @@ const kguiitem = qt6.kguiitem;
 const kmessagebox = qt6.kmessagebox;
 const kmessagebox_enums = qt6.kmessagebox_enums;
 
+var buffer: [32]u8 = undefined;
+var stdout_writer = std.fs.File.stdout().writer(&buffer);
+
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const primaryAction = kguiitem.New7(
         "Hello",
@@ -29,14 +33,13 @@ pub fn main() !void {
         kmessagebox_enums.Option.Notify,
     );
 
-    const stdout = std.io.getStdOut().writer();
-
     switch (res) {
         kmessagebox_enums.ButtonCode.PrimaryAction => {
-            try stdout.print("You clicked Hello\n", .{});
+            try stdout_writer.interface.writeAll("You clicked Hello\n");
         },
         else => {
-            try stdout.print("You clicked Bye\n", .{});
+            try stdout_writer.interface.writeAll("You clicked Bye\n");
         },
     }
+    try stdout_writer.interface.flush();
 }
