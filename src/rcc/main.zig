@@ -8,7 +8,8 @@ const qradiobutton = qt6.qradiobutton;
 const qicon = qt6.qicon;
 const qsize = qt6.qsize;
 
-const stdout = std.io.getStdOut().writer();
+var buffer: [64]u8 = undefined;
+var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
 pub fn main() !void {
     // Initialize Qt application
@@ -17,12 +18,16 @@ pub fn main() !void {
     _ = qapplication.New(argc, argv);
 
     var ok = rcc.init();
-    if (!ok)
-        try stdout.print("Resource initialization failed!\n", .{});
+    if (!ok) {
+        try stdout_writer.interface.writeAll("Resource initialization failed!\n");
+        try stdout_writer.interface.flush();
+    }
     defer {
         ok = rcc.deinit();
-        if (!ok)
-            stdout.print("Resource deinitialization failed!\n", .{}) catch @panic("Failed to stdout deinit\n");
+        if (!ok) {
+            stdout_writer.interface.writeAll("Resource deinitialization failed!\n") catch @panic("Failed to stdout deinit\n");
+            stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        }
     }
 
     const widget = qwidget.New2();
