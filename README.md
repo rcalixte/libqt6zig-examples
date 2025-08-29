@@ -2,7 +2,7 @@
 <img alt="libqt6zig-examples" src="assets/libqt6zig-examples.png" height="128px;" />
 
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
-[![Static Badge](https://img.shields.io/badge/v0.14%20(stable)-f7a41d?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
+[![Static Badge](https://img.shields.io/badge/v0.15%20(stable)-f7a41d?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
 </div>
 
 ---
