@@ -53,6 +53,16 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kcolorscheme",
+        .libraries = &.{"KF6ColorScheme"},
+        .prefix = "extras",
+    },
+    .{
+        .name = "kconfigwidgets",
+        .libraries = &.{"KF6ConfigWidgets"},
+        .prefix = "extras",
+    },
+    .{
         .name = "qtermwidget",
         .libraries = &.{"qtermwidget6"},
         .prefix = "posix-restricted-extras",
