@@ -43,6 +43,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kplotting",
+        .libraries = &.{"KF6Plotting"},
+        .prefix = "extras",
+    },
+    .{
         .name = "sonnet",
         .libraries = &.{ "KF6SonnetCore", "KF6SonnetUi" },
         .prefix = "extras",
