@@ -58,6 +58,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "ktextwidgets",
+        .libraries = &.{"KF6TextWidgets"},
+        .prefix = "extras",
+    },
+    .{
         .name = "kwidgetsaddons",
         .libraries = &.{"KF6WidgetsAddons"},
         .prefix = "extras",
@@ -75,7 +80,7 @@ const extra_libraries = [_]ExtraLibrary{
     .{
         .name = "qtermwidget",
         .libraries = &.{"qtermwidget6"},
-        .prefix = "posix-restricted-extras",
+        .prefix = "posix-restricted",
     },
     .{
         .name = "charts",
