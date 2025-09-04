@@ -78,6 +78,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kiconthemes",
+        .libraries = &.{ "KF6IconThemes", "KF6IconWidgets" },
+        .prefix = "extras",
+    },
+    .{
         .name = "qtermwidget",
         .libraries = &.{"qtermwidget6"},
         .prefix = "posix-restricted",
