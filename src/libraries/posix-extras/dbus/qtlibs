@@ -1,0 +1,6 @@
+qapplication
+qcoreapplication
+qdbusconnection
+qdbusmessage
+qguiapplication
+qvariant
