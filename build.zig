@@ -83,6 +83,11 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "dbus",
+        .libraries = &.{"Qt6DBus"},
+        .prefix = "posix-extras",
+    },
+    .{
         .name = "qtermwidget",
         .libraries = &.{"qtermwidget6"},
         .prefix = "posix-restricted",
