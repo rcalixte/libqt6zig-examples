@@ -14,6 +14,7 @@ const qfile = qt6.qfile;
 const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
 const qobject = qt6.qobject;
+const klocalizedstring = qt6.klocalizedstring;
 
 const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 
@@ -108,6 +109,17 @@ pub fn main() void {
     defer qobject.QDelete(object);
     qobject.SetObjectName(object, "QAnyStringView Name");
     const value = qobject.ObjectName(object, allocator);
+    defer allocator.free(value);
     stdout_writer.interface.print("Value: {s}\n", .{value}) catch @panic("QAnyStringView stdout\n");
     stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+
+    // QSet<QString>
+    var qtdom = "Qt".*;
+    var domainki18n = klocalizedstring.AvailableDomainTranslations(&qtdom, allocator);
+    defer domainki18n.deinit(allocator);
+    var dk_it = domainki18n.keyIterator();
+    while (dk_it.next()) |entry| {
+        stdout_writer.interface.print("AvailableDomainTranslations: {s}\n", .{entry.*}) catch @panic("QSet<QString> stdout\n");
+        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    }
 }
