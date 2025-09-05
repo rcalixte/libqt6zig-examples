@@ -83,6 +83,16 @@ const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kxmlgui",
+        .libraries = &.{ "KF6XmlGui", "KF6Crash" },
+        .prefix = "extras",
+    },
+    .{
+        .name = "globalaccel",
+        .libraries = &.{"KF6GlobalAccel"},
+        .prefix = "foss-extras",
+    },
+    .{
         .name = "dbus",
         .libraries = &.{"Qt6DBus"},
         .prefix = "posix-extras",
@@ -147,6 +157,7 @@ pub fn build(b: *std.Build) !void {
         "Qt6SvgWidgets",
         "Qt6WebEngineCore",
         "Qt6WebEngineWidgets",
+        "Qt6Xml",
     });
 
     // If applicable, determine valid build target paths and append the dependent libraries
