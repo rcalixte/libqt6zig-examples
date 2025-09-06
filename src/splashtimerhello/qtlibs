@@ -4,7 +4,6 @@ qcoreapplication
 qcoreevent
 qguiapplication
 qobject
-qpaintdevice
 qpixmap
 qpushbutton
 qsplashscreen

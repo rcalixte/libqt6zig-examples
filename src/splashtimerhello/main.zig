@@ -50,7 +50,7 @@ pub fn main() void {
     _ = qtimer.SetProperty(timer, "widget", widget_qv);
 
     qtimer.Start(timer, 3000);
-    qtimer.OnTimerEvent(timer, onTimerEvent);
+    qtimer.OnTimeout(timer, onTimeout);
 
     _ = qapplication.Exec();
 
@@ -67,7 +67,7 @@ fn button_callback(self: ?*anyopaque) callconv(.c) void {
 
 fn onMousePressEvent(_: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {}
 
-fn onTimerEvent(self: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
+fn onTimeout(self: ?*anyopaque) callconv(.c) void {
     const splash_qv = qtimer.Property(self, "splash");
     const splash_i = qvariant.ToLongLong(splash_qv);
 
