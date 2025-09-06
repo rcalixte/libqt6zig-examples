@@ -51,6 +51,18 @@ Prefixed libraries have per-library options that can be used to enable or disabl
 zig build -Denable-charts=true -Denable-qscintilla=false
 ```
 
+In the event that one or more extra library include paths are needed e.g. a locally compiled extra library in a non-standard path, the `extra-paths` option supports this use case:
+
+```bash
+zig build -Dextra-paths="C:/Qt/6/mingw_64/include"
+```
+
+or
+
+```bash
+zig build -Dextra-paths={"/opt/qt6","/opt/lib/qt6"}
+```
+
 Example applications can also be built and run independently:
 
 ```bash
