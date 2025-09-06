@@ -10,7 +10,6 @@ qinputdialog
 qjsonobject
 qkeysequence
 qobject
-qpaintdevice
 qsettings
 qsize
 qvariant
