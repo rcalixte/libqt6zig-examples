@@ -10,7 +10,6 @@ qlistwidget
 qmainwindow
 qmenu
 qmenubar
-qpaintdevice
 qsplitter
 qtabwidget
 qtextcursor
