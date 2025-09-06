@@ -4,7 +4,5 @@ qcoreapplication
 qdatetime
 qguiapplication
 qlcdnumber
-qobject
-qpaintdevice
 qtimer
 qwidget
