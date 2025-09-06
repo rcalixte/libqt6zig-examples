@@ -4,120 +4,13 @@ const host_os = @import("builtin").os.tag;
 var buffer: [1024]u8 = undefined;
 var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
-const ExtraLibrary = struct {
-    name: []const u8,
-    libraries: []const []const u8,
-    prefix: []const u8,
-};
-
-// Define the extra libraries
-const extra_libraries = [_]ExtraLibrary{
-    .{
-        .name = "kcodecs",
-        .libraries = &.{"KF6Codecs"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kcompletion",
-        .libraries = &.{"KF6Completion"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kconfig",
-        .libraries = &.{ "KF6ConfigCore", "KF6ConfigGui" },
-        .prefix = "extras",
-    },
-    .{
-        .name = "kcoreaddons",
-        .libraries = &.{"KF6CoreAddons"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kguiaddons",
-        .libraries = &.{"KF6GuiAddons"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "ki18n",
-        .libraries = &.{ "KF6I18n", "KF6I18nLocaleData" },
-        .prefix = "extras",
-    },
-    .{
-        .name = "kitemviews",
-        .libraries = &.{"KF6ItemViews"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kplotting",
-        .libraries = &.{"KF6Plotting"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "sonnet",
-        .libraries = &.{ "KF6SonnetCore", "KF6SonnetUi" },
-        .prefix = "extras",
-    },
-    .{
-        .name = "ktextwidgets",
-        .libraries = &.{"KF6TextWidgets"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kwidgetsaddons",
-        .libraries = &.{"KF6WidgetsAddons"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kcolorscheme",
-        .libraries = &.{"KF6ColorScheme"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kconfigwidgets",
-        .libraries = &.{"KF6ConfigWidgets"},
-        .prefix = "extras",
-    },
-    .{
-        .name = "kiconthemes",
-        .libraries = &.{ "KF6IconThemes", "KF6IconWidgets" },
-        .prefix = "extras",
-    },
-    .{
-        .name = "kxmlgui",
-        .libraries = &.{ "KF6XmlGui", "KF6Crash" },
-        .prefix = "extras",
-    },
-    .{
-        .name = "globalaccel",
-        .libraries = &.{"KF6GlobalAccel"},
-        .prefix = "foss-extras",
-    },
-    .{
-        .name = "dbus",
-        .libraries = &.{"Qt6DBus"},
-        .prefix = "posix-extras",
-    },
-    .{
-        .name = "qtermwidget",
-        .libraries = &.{"qtermwidget6"},
-        .prefix = "posix-restricted",
-    },
-    .{
-        .name = "charts",
-        .libraries = &.{"Qt6Charts"},
-        .prefix = "restricted-extras",
-    },
-    .{
-        .name = "qscintilla",
-        .libraries = &.{"qscintilla2_qt6"},
-        .prefix = "restricted-extras",
-    },
-};
+const extra_libraries = @import("libraries.zig").extra_libraries;
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = standardOptimizeOption(b, .{});
     const enable_workaround = b.option(bool, "enable-workaround", "Enable workaround for missing Qt C++ headers") orelse false;
+    const extra_paths = b.option([]const []const u8, "extra-paths", "Extra library header and include search paths") orelse &.{};
 
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
@@ -234,30 +127,11 @@ pub fn build(b: *std.Build) !void {
     if (main_files.items.len == 0)
         @panic("No main.zig files found.\n");
 
-    var qt_win_paths: std.ArrayListUnmanaged([]const u8) = .empty;
-
-    if (host_os == .windows) {
-        const qt_win_versions = &.{
-            "6.8.2",
-            "6.9.1",
-        };
-
-        const win_compilers = &.{
-            "mingw_64",
-            "msvc2022_64",
-        };
-
-        inline for (qt_win_versions) |ver| {
-            inline for (win_compilers) |wc| {
-                try qt_win_paths.append(allocator, "C:/Qt/" ++ ver ++ "/" ++ wc ++ "/lib");
-            }
-        }
-    }
-
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
         .optimize = optimize,
         .@"enable-workaround" = enable_workaround or is_bsd_family or is_macos,
+        .@"extra-paths" = extra_paths,
     });
 
     // Create a module for the centralized custom allocator configuration
@@ -291,10 +165,8 @@ pub fn build(b: *std.Build) !void {
         if (is_bsd_host)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
 
-        if (host_os == .windows) {
-            for (qt_win_paths.items) |path| {
-                exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = path });
-            }
+        for (extra_paths) |path| {
+            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = b.dupe(path) });
         }
 
         for (system_libs.items) |lib| {
