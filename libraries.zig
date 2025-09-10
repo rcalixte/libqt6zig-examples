@@ -72,6 +72,11 @@ pub const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kbookmarks",
+        .libraries = &.{ "KF6Bookmarks", "KF6BookmarksWidgets" },
+        .prefix = "extras",
+    },
+    .{
         .name = "kiconthemes",
         .libraries = &.{ "KF6IconThemes", "KF6IconWidgets" },
         .prefix = "extras",
