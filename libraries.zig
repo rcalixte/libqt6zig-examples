@@ -87,6 +87,11 @@ pub const extra_libraries = [_]ExtraLibrary{
         .prefix = "extras",
     },
     .{
+        .name = "kio",
+        .libraries = &.{ "KF6KIOCore", "KF6KIOFileWidgets", "KF6KIOGui", "KF6KIOWidgets" },
+        .prefix = "extras",
+    },
+    .{
         .name = "globalaccel",
         .libraries = &.{"KF6GlobalAccel"},
         .prefix = "foss-extras",
