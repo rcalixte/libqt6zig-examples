@@ -45,7 +45,7 @@ Users of Arch-based distributions need to __make sure that all packages are up-t
 zig build -Denable-workaround
 ```
 
-Prefixed libraries have per-library options that can be used to enable or disable them (where supported):
+Examples in special subdirectories have per-example options that can be used to enable or disable them:
 
 ```bash
 zig build -Denable-charts=true -Denable-qscintilla=false

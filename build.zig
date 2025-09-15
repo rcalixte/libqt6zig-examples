@@ -4,8 +4,6 @@ const host_os = @import("builtin").os.tag;
 var buffer: [1024]u8 = undefined;
 var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
-const extra_libraries = @import("libraries.zig").extra_libraries;
-
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = standardOptimizeOption(b, .{});
@@ -40,87 +38,110 @@ pub fn build(b: *std.Build) !void {
         "Qt6Core",
         "Qt6Gui",
         "Qt6Widgets",
-        "Qt6Multimedia",
-        "Qt6MultimediaWidgets",
-        "Qt6Network",
-        "Qt6Pdf",
-        "Qt6PdfWidgets",
-        "Qt6PrintSupport",
-        "Qt6Sql",
-        "Qt6SvgWidgets",
-        "Qt6WebEngineCore",
-        "Qt6WebEngineWidgets",
-        "Qt6Xml",
     });
-
-    // If applicable, determine valid build target paths and append the dependent libraries
-    inline for (extra_libraries) |extra_lib| {
-        const option_name = try std.mem.concat(allocator, u8, &.{ "enable-", extra_lib.name });
-        const option_description = try std.mem.concat(allocator, u8, &.{ "Enable ", extra_lib.name, " library" });
-        var is_supported = true;
-        if (is_windows and (std.mem.startsWith(u8, extra_lib.prefix, "foss-") or std.mem.startsWith(u8, extra_lib.prefix, "posix-"))) {
-            is_supported = false;
-            try disabled_paths.append(allocator, "foss-");
-            try disabled_paths.append(allocator, "posix-");
-        }
-        if (is_macos and std.mem.startsWith(u8, extra_lib.prefix, "foss-")) {
-            is_supported = false;
-            try disabled_paths.append(allocator, "foss-");
-        }
-
-        var is_enabled = true;
-        if ((host_os == .macos or host_os == .windows) and std.mem.eql(u8, extra_lib.prefix, "extras")) {
-            is_enabled = false;
-        }
-        if (host_os == .macos and std.mem.eql(u8, extra_lib.prefix, "posix-"))
-            is_enabled = false;
-        const option_value = b.option(bool, option_name, option_description);
-        const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
-
-        if (result_value) {
-            inline for (extra_lib.libraries) |lib| {
-                try system_libs.append(allocator, lib);
-            }
-        } else {
-            const path = try std.mem.concat(allocator, u8, &.{ extra_lib.prefix, "/", extra_lib.name });
-            try disabled_paths.append(allocator, path);
-        }
-    }
 
     // Find all main.zig files
     var main_files: std.ArrayList(struct {
         dir: []const u8,
         path: []const u8,
-        libraries: []const []const u8,
+        qt_libraries: []const []const u8,
+        sys_libraries: []const []const u8,
     }) = .empty;
 
     var dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
     var walker = try dir.walk(b.allocator);
     defer walker.deinit();
 
+    const special_dirs = [_][]const u8{
+        "/extras/",
+        "/foss-extras/",
+        "/foss-restricted/",
+        "/posix-extras/",
+        "/posix-restricted/",
+        "/restricted-extras/",
+    };
+
     while (try walker.next()) |entry| {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
-            const lib_path = try std.fs.path.join(allocator, &.{ parent_dir, "qtlibs" });
-            var lib_file = try std.fs.cwd().openFile(lib_path, .{});
-            defer lib_file.close();
-            var lib_file_reader = lib_file.reader(&buffer);
+            const qtlibs_path = try std.fs.path.join(allocator, &.{ parent_dir, "qtlibs" });
+            var qtlibs_file = try std.fs.cwd().openFile(qtlibs_path, .{});
+            defer qtlibs_file.close();
+            var qtlibs_file_reader = qtlibs_file.reader(&buffer);
 
-            var lib_contents: std.ArrayList([]const u8) = .empty;
-            while (lib_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
+            var qtlibs_contents: std.ArrayList([]const u8) = .empty;
+            while (qtlibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
                 if (std.mem.startsWith(u8, line, "#"))
                     continue;
 
-                try lib_contents.append(allocator, try allocator.dupe(u8, line));
+                try qtlibs_contents.append(allocator, try allocator.dupe(u8, line));
             } else |err| {
-                if (!lib_file_reader.atEnd()) return err;
+                if (!qtlibs_file_reader.atEnd()) return err;
+            }
+
+            const syslibs_path = try std.fs.path.join(allocator, &.{ parent_dir, "syslibs" });
+            var syslibs_file = try std.fs.cwd().openFile(syslibs_path, .{});
+            defer syslibs_file.close();
+            var syslibs_file_reader = syslibs_file.reader(&buffer);
+
+            var syslibs_contents: std.ArrayList([]const u8) = .empty;
+            while (syslibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
+                if (std.mem.startsWith(u8, line, "#"))
+                    continue;
+
+                try syslibs_contents.append(allocator, try allocator.dupe(u8, line));
+            } else |err| {
+                if (!syslibs_file_reader.atEnd()) return err;
             }
 
             try main_files.append(allocator, .{
                 .dir = try b.allocator.dupe(u8, parent_dir),
                 .path = try b.allocator.dupe(u8, entry.path),
-                .libraries = try lib_contents.toOwnedSlice(allocator),
+                .qt_libraries = try qtlibs_contents.toOwnedSlice(allocator),
+                .sys_libraries = try syslibs_contents.toOwnedSlice(allocator),
             });
+        } else if (entry.kind == .directory) {
+            const is_special_dir = for (special_dirs) |dir_name| {
+                if (std.mem.containsAtLeast(u8, entry.path, 1, dir_name)) break true;
+            } else false;
+
+            if (!is_special_dir) continue;
+
+            var path_it = std.mem.splitScalar(u8, entry.path, '/');
+            _ = path_it.first();
+            _ = path_it.next();
+            const prefix = path_it.next().?;
+
+            const name = while (path_it.next()) |name| {
+                if (path_it.peek() == null) break name;
+            } else continue;
+
+            const option_name = try std.mem.concat(allocator, u8, &.{ "enable-", name });
+            const option_description = try std.mem.concat(allocator, u8, &.{ "Enable ", name, " library example" });
+            var is_supported = true;
+            if (is_windows and (std.mem.startsWith(u8, prefix, "foss-") or std.mem.startsWith(u8, prefix, "posix-"))) {
+                is_supported = false;
+                try disabled_paths.append(allocator, "foss-");
+                try disabled_paths.append(allocator, "posix-");
+            }
+            if (is_macos and std.mem.startsWith(u8, prefix, "foss-")) {
+                is_supported = false;
+                try disabled_paths.append(allocator, "foss-");
+            }
+
+            var is_enabled = true;
+            if ((host_os == .macos or host_os == .windows) and std.mem.eql(u8, prefix, "extras")) {
+                is_enabled = false;
+            }
+            if (host_os == .macos and std.mem.eql(u8, prefix, "posix-"))
+                is_enabled = false;
+            const option_value = b.option(bool, option_name, option_description);
+            const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
+
+            if (!result_value) {
+                const path = try std.mem.concat(allocator, u8, &.{ "/", name });
+                try disabled_paths.append(allocator, path);
+            }
         }
     }
 
@@ -173,8 +194,12 @@ pub fn build(b: *std.Build) !void {
             exe.root_module.linkSystemLibrary(lib, .{});
         }
 
+        for (main.sys_libraries) |lib| {
+            exe.root_module.linkSystemLibrary(lib, .{});
+        }
+
         // Link libqt6zig static libraries
-        for (main.libraries) |lib| {
+        for (main.qt_libraries) |lib| {
             exe.root_module.linkLibrary(qt6zig.artifact(lib));
         }
 
