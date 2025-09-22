@@ -33,10 +33,16 @@ The dependencies for building the sample applications are the same as the main l
 
 It is recommended to execute an initial build to generate a clean build cache before making any changes. This allows the build process to use the cached build artifacts to speed up subsequent builds.
 
-Once the required packages are installed, the library can be built from the root of the repository:
+Once the required packages are installed, the examples can be built from the root of the repository:
 
 ```bash
 zig build
+```
+
+To build and run all of the examples:
+
+```bash
+zig build run
 ```
 
 Users of Arch-based distributions need to __make sure that all packages are up-to-date__ first and will need to add the following option to support successful compilation:
