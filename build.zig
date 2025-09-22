@@ -161,6 +161,8 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/alloc_config.zig"),
     });
 
+    const run_all_step = b.step("run", "Build and run all of the examples");
+
     // Create an executable for each main.zig
     main_loop: for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
@@ -216,6 +218,7 @@ pub fn build(b: *std.Build) !void {
 
         const run_step = b.step(exe_name, run_description);
         run_step.dependOn(&run_cmd.step);
+        run_all_step.dependOn(&run_cmd.step);
     }
 }
 
