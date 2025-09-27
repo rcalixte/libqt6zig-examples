@@ -1,0 +1,8 @@
+qapplication
+qcoreapplication
+qmainwindow
+qopenglcontext
+qopenglextrafunctions
+qopenglfunctions
+qopenglwidget
+qwidget
