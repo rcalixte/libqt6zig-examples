@@ -8,10 +8,8 @@ qdockwidget
 qformlayout
 qframe
 qgridlayout
-qguiapplication
 qkeysequence
 qlabel
-qlayout
 qmainwindow
 qmenu
 qmenubar
