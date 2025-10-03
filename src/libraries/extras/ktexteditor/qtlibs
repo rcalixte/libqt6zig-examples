@@ -1,0 +1,11 @@
+document
+qtoolbar
+qfont
+editor
+qapplication
+qcoreapplication
+qdir
+qmainwindow
+qurl
+qwidget
+readonlypart
