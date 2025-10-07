@@ -45,13 +45,7 @@ To build and run all of the examples:
 zig build run
 ```
 
-Users of Arch-based distributions need to __make sure that all packages are up-to-date__ first and will need to add the following option to support successful compilation:
-
-```bash
-zig build -Denable-workaround
-```
-
-Examples in special subdirectories have per-example options that can be used to enable or disable them:
+Examples in special subdirectories have per-example options that can be used to explicitly enable or disable them:
 
 ```bash
 zig build -Denable-charts=true -Denable-qscintilla=false
@@ -100,7 +94,7 @@ FAQ
 
 ### Q1. How long does it take to compile the examples?
 
-The examples compile a subset of the entire main library and then build the sample applications from the source code. The first compilation should take less than 3 minutes, assuming the hardware in use is at or above the level of that of a consumer-grade mid-tier machine released in the past decade. Once the build cache is warmed up for the examples, subsequent compilations should be very fast, on the order of seconds. For client applications that use and configure a specific subset of the main library, the expected compilation time should be similar to the examples.
+The examples compile a subset of the entire main library and then build the sample applications from the source code. The first compilation should take less than 6 minutes, assuming the hardware in use is at or above the level of that of a consumer-grade mid-tier machine released in the past decade. Once the build cache is warmed up for the examples, subsequent compilations should be very fast, on the order of seconds. For client applications that use and configure a specific subset of the main library, the expected compilation time should be similar to the examples.
 
 ### Q2. What build modes are supported by the examples?
 
