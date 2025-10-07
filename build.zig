@@ -6,9 +6,10 @@ var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
-    const optimize = standardOptimizeOption(b, .{});
-    const enable_workaround = b.option(bool, "enable-workaround", "Enable workaround for missing Qt C++ headers") orelse false;
     const extra_paths = b.option([]const []const u8, "extra-paths", "Extra library header and include search paths") orelse &.{};
+
+    var optimize = b.standardOptimizeOption(.{});
+    if (optimize == .Debug) optimize = .ReleaseFast;
 
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
@@ -17,13 +18,6 @@ pub fn build(b: *std.Build) !void {
         .dragonfly, .freebsd, .netbsd, .openbsd => true,
         else => false,
     };
-
-    const is_bsd_target = switch (target.result.os.tag) {
-        .dragonfly, .freebsd, .netbsd, .openbsd => true,
-        else => false,
-    };
-
-    const is_bsd_family = is_bsd_host or is_bsd_target;
 
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
@@ -152,7 +146,6 @@ pub fn build(b: *std.Build) !void {
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
         .optimize = optimize,
-        .@"enable-workaround" = enable_workaround or is_bsd_family or is_macos,
         .@"extra-paths" = extra_paths,
     });
 
@@ -219,39 +212,5 @@ pub fn build(b: *std.Build) !void {
         const run_step = b.step(exe_name, run_description);
         run_step.dependOn(&run_cmd.step);
         run_all_step.dependOn(&run_cmd.step);
-    }
-}
-
-fn standardOptimizeOption(b: *std.Build, options: std.Build.StandardOptimizeOptionOptions) std.builtin.OptimizeMode {
-    if (options.preferred_optimize_mode) |mode| {
-        checkSupportedMode(mode);
-        if (b.option(bool, "release", "optimize for end users") orelse (b.release_mode != .off)) {
-            return mode;
-        } else {
-            return .ReleaseFast;
-        }
-    }
-
-    if (b.option(
-        std.builtin.OptimizeMode,
-        "optimize",
-        "Prioritize performance, safety, or binary size",
-    )) |mode| {
-        checkSupportedMode(mode);
-        return mode;
-    }
-
-    return switch (b.release_mode) {
-        .off, .any, .fast => .ReleaseFast,
-        .safe => .ReleaseSafe,
-        .small => .ReleaseSmall,
-    };
-}
-
-fn checkSupportedMode(mode: std.builtin.OptimizeMode) void {
-    if (mode == .Debug) {
-        stdout_writer.interface.writeAll("libqt6zig-examples does not support Debug build mode.\n") catch @panic("Failed to write to stdout");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
-        std.process.exit(1);
     }
 }
