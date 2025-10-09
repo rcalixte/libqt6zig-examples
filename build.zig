@@ -2,7 +2,21 @@ const std = @import("std");
 const host_os = @import("builtin").os.tag;
 
 var buffer: [1024]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
+var disabled_paths: std.ArrayList([]const u8) = .empty;
+var system_libs: std.ArrayList([]const u8) = .{ .items = &base_libs };
+
+var base_libs = [_][]const u8{
+    "Qt6Core",
+    "Qt6Gui",
+    "Qt6Widgets",
+};
+
+var main_files: std.ArrayList(struct {
+    dir: []const u8,
+    path: []const u8,
+    qt_libraries: []const []const u8,
+    sys_libraries: []const []const u8,
+}) = .empty;
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
@@ -14,48 +28,16 @@ pub fn build(b: *std.Build) !void {
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
 
-    const is_bsd_host = switch (host_os) {
-        .dragonfly, .freebsd, .netbsd, .openbsd => true,
-        else => false,
-    };
-
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var disabled_paths: std.ArrayList([]const u8) = .empty;
-
-    // System libraries to link
-    var system_libs: std.ArrayList([]const u8) = .empty;
-
-    try system_libs.appendSlice(allocator, &[_][]const u8{
-        "Qt6Core",
-        "Qt6Gui",
-        "Qt6Widgets",
-    });
-
     // Find all main.zig files
-    var main_files: std.ArrayList(struct {
-        dir: []const u8,
-        path: []const u8,
-        qt_libraries: []const []const u8,
-        sys_libraries: []const []const u8,
-    }) = .empty;
-
     const src_dir = try std.fs.path.join(allocator, &.{ b.build_root.path.?, "src" });
     var dir = try std.fs.cwd().openDir(src_dir, .{ .iterate = true });
     defer dir.close();
     var walker = try dir.walk(b.allocator);
     defer walker.deinit();
-
-    const special_dirs = [_][]const u8{
-        "/extras/",
-        "/foss-extras/",
-        "/foss-restricted/",
-        "/posix-extras/",
-        "/posix-restricted/",
-        "/restricted-extras/",
-    };
 
     while (try walker.next()) |entry| {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
@@ -140,8 +122,7 @@ pub fn build(b: *std.Build) !void {
         }
     }
 
-    if (main_files.items.len == 0)
-        @panic("No main.zig files found.\n");
+    std.debug.assert(main_files.items.len != 0);
 
     const qt6zig = b.dependency("libqt6zig", .{
         .target = target,
@@ -183,6 +164,9 @@ pub fn build(b: *std.Build) !void {
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
 
         for (extra_paths) |path| {
+            std.fs.cwd().access(path, .{}) catch {
+                continue;
+            };
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = b.dupe(path) });
         }
 
@@ -214,3 +198,17 @@ pub fn build(b: *std.Build) !void {
         run_all_step.dependOn(&run_cmd.step);
     }
 }
+
+const is_bsd_host = switch (host_os) {
+    .dragonfly, .freebsd, .netbsd, .openbsd => true,
+    else => false,
+};
+
+const special_dirs = [_][]const u8{
+    "/extras/",
+    "/foss-extras/",
+    "/foss-restricted/",
+    "/posix-extras/",
+    "/posix-restricted/",
+    "/restricted-extras/",
+};
