@@ -58,18 +58,21 @@ pub fn build(b: *std.Build) !void {
             }
 
             const syslibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, "syslibs" });
-            var syslibs_file = try std.fs.cwd().openFile(syslibs_path, .{});
-            defer syslibs_file.close();
-            var syslibs_file_reader = syslibs_file.reader(&buffer);
-
+            const syslibs_file = std.fs.cwd().openFile(syslibs_path, .{}) catch null;
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
-            while (syslibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
-                if (std.mem.startsWith(u8, line, "#"))
-                    continue;
 
-                try syslibs_contents.append(allocator, try allocator.dupe(u8, line));
-            } else |err| {
-                if (!syslibs_file_reader.atEnd()) return err;
+            if (syslibs_file) |syslib_file| {
+                defer syslib_file.close();
+                var syslibs_file_reader = syslib_file.reader(&buffer);
+
+                while (syslibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
+                    if (std.mem.startsWith(u8, line, "#"))
+                        continue;
+
+                    try syslibs_contents.append(allocator, try allocator.dupe(u8, line));
+                } else |err| {
+                    if (!syslibs_file_reader.atEnd()) return err;
+                }
             }
 
             try main_files.append(allocator, .{
