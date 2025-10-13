@@ -15,7 +15,6 @@ pub fn main() void {
     _ = qpdfdocument.Load(document, "assets/example.pdf");
 
     const pdfview = qpdfview.New2();
-    defer qpdfview.DeleteLater(pdfview);
 
     qpdfview.SetWindowTitle(pdfview, "Qt 6 PDF Example");
     qpdfview.SetMinimumSize2(pdfview, 650, 600);

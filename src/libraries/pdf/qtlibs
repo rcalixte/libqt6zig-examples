@@ -1,6 +1,5 @@
 qapplication
 qcoreapplication
-qguiapplication
 qobject
 qpdfdocument
 qpdfview
