@@ -48,11 +48,12 @@ pub fn build(b: *std.Build) !void {
             var qtlibs_file_reader = qtlibs_file.reader(&buffer);
 
             var qtlibs_contents: std.ArrayList([]const u8) = .empty;
-            while (qtlibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
+            while (qtlibs_file_reader.interface.takeDelimiterInclusive('\n')) |line| {
                 if (std.mem.startsWith(u8, line, "#"))
                     continue;
 
-                try qtlibs_contents.append(allocator, try allocator.dupe(u8, line));
+                const lib_name = std.mem.trimRight(u8, line, "\n");
+                try qtlibs_contents.append(allocator, try allocator.dupe(u8, lib_name));
             } else |err| {
                 if (!qtlibs_file_reader.atEnd()) return err;
             }
@@ -65,11 +66,12 @@ pub fn build(b: *std.Build) !void {
                 defer syslib_file.close();
                 var syslibs_file_reader = syslib_file.reader(&buffer);
 
-                while (syslibs_file_reader.interface.takeDelimiterExclusive('\n')) |line| {
+                while (syslibs_file_reader.interface.takeDelimiterInclusive('\n')) |line| {
                     if (std.mem.startsWith(u8, line, "#"))
                         continue;
 
-                    try syslibs_contents.append(allocator, try allocator.dupe(u8, line));
+                    const lib_name = std.mem.trimRight(u8, line, "\n");
+                    try syslibs_contents.append(allocator, try allocator.dupe(u8, lib_name));
                 } else |err| {
                     if (!syslibs_file_reader.atEnd()) return err;
                 }
