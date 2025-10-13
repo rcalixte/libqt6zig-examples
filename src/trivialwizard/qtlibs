@@ -2,7 +2,6 @@ qapplication
 qboxlayout
 qcoreapplication
 qgridlayout
-qguiapplication
 qlabel
 qlineedit
 qobject

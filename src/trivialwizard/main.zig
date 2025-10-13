@@ -15,7 +15,6 @@ pub fn main() void {
     _ = qapplication.New(argc, argv);
 
     const wizard = qwizard.New2();
-    defer qwizard.DeleteLater(wizard);
 
     const introPage = createIntroPage();
     _ = qwizard.AddPage(wizard, introPage);
