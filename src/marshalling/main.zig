@@ -21,7 +21,7 @@ const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
 var buffer: [256]u8 = undefined;
 var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
-pub fn main() void {
+pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
@@ -36,15 +36,23 @@ pub fn main() void {
     const b = qcheckbox.New2();
     defer qcheckbox.QDelete(b);
     qcheckbox.SetChecked(b, true);
-    stdout_writer.interface.print("Checked: {any}\n", .{qcheckbox.IsChecked(b)}) catch @panic("Bool stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("Checked: {any}\n", .{qcheckbox.IsChecked(b)});
+    try stdout_writer.interface.flush();
 
     // Int
     const s = qsize.New3();
     defer qsize.QDelete(s);
     qsize.SetWidth(s, 128);
-    stdout_writer.interface.print("Width: {any}\n", .{qsize.Width(s)}) catch @panic("Int stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("Width: {d}\n", .{qsize.Width(s)});
+    try stdout_writer.interface.flush();
+
+    // Int by reference
+    const i = qsize.New4(32, 32);
+    defer qsize.QDelete(i);
+    const r = qsize.Rheight(i);
+    r.?.* = 64;
+    try stdout_writer.interface.print("Height: {d}\n", .{qsize.Height(i)});
+    try stdout_writer.interface.flush();
 
     // QString
     const w = qwidget.New2();
@@ -52,8 +60,8 @@ pub fn main() void {
     qwidget.SetToolTip(w, "Sample text");
     const tooltip = qwidget.ToolTip(w, allocator);
     defer allocator.free(tooltip);
-    stdout_writer.interface.print("ToolTip: {s}\n", .{tooltip}) catch @panic("String stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("ToolTip: {s}\n", .{tooltip});
+    try stdout_writer.interface.flush();
 
     // QList<int>
     var seq = [_]i32{ 10, 20, 30, 40, 50 };
@@ -61,8 +69,8 @@ pub fn main() void {
     const segs = qversionnumber.Segments(li, allocator);
     defer allocator.free(segs);
     defer qversionnumber.QDelete(li);
-    stdout_writer.interface.print("Segments: {any}\n", .{segs}) catch @panic("QList<int> stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("Segments: {any}\n", .{segs});
+    try stdout_writer.interface.flush();
 
     // QStringList
     const c = qinputdialog.New2();
@@ -72,8 +80,8 @@ pub fn main() void {
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
     defer allocator.free(comboItems);
     for (comboItems, 0..) |item, _i| {
-        stdout_writer.interface.print("ComboBoxItems[{d}]: {s}\n", .{ _i, item }) catch @panic("QStringList stdout\n");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        try stdout_writer.interface.print("ComboBoxItems[{d}]: {s}\n", .{ _i, item });
+        try stdout_writer.interface.flush();
         defer allocator.free(item);
     }
 
@@ -91,8 +99,8 @@ pub fn main() void {
     for (shortcuts, 0..) |shortcut, _i| {
         const qkey_tostring = qkeysequence.ToString(shortcut, allocator);
         defer allocator.free(qkey_tostring);
-        stdout_writer.interface.print("Shortcuts[{d}]: {s}\n", .{ _i, qkey_tostring }) catch @panic("QList<Qt type> stdout\n");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        try stdout_writer.interface.print("Shortcuts[{d}]: {s}\n", .{ _i, qkey_tostring });
+        try stdout_writer.interface.flush();
     }
 
     // QByteArray
@@ -101,8 +109,8 @@ pub fn main() void {
     defer allocator.free(bat);
     const f_output = qfile.DecodeName(bat, allocator);
     defer allocator.free(f_output);
-    stdout_writer.interface.print("QByteArray: {s}\n", .{f_output}) catch @panic("QByteArray stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("QByteArray: {s}\n", .{f_output});
+    try stdout_writer.interface.flush();
 
     // QAnyStringView parameter
     const object = qobject.New();
@@ -110,8 +118,8 @@ pub fn main() void {
     qobject.SetObjectName(object, "QAnyStringView Name");
     const value = qobject.ObjectName(object, allocator);
     defer allocator.free(value);
-    stdout_writer.interface.print("Value: {s}\n", .{value}) catch @panic("QAnyStringView stdout\n");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    try stdout_writer.interface.print("Value: {s}\n", .{value});
+    try stdout_writer.interface.flush();
 
     // QSet<QString>
     var qtdom = "Qt".*;
@@ -119,7 +127,7 @@ pub fn main() void {
     defer domainki18n.deinit(allocator);
     var dk_it = domainki18n.keyIterator();
     while (dk_it.next()) |entry| {
-        stdout_writer.interface.print("AvailableDomainTranslations: {s}\n", .{entry.*}) catch @panic("QSet<QString> stdout\n");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        try stdout_writer.interface.print("AvailableDomainTranslations: {s}\n", .{entry.*});
+        try stdout_writer.interface.flush();
     }
 }
