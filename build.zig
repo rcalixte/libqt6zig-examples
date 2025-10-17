@@ -165,15 +165,17 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport("alloc_config", alloc_config);
 
         // Link Qt system libraries
-        if (is_bsd_host)
-            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
-
         for (extra_paths) |path| {
             std.fs.cwd().access(path, .{}) catch {
                 continue;
             };
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = b.dupe(path) });
         }
+
+        if (is_bsd_host)
+            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
+        if (is_windows)
+            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "C:/Qt/6.8.3/msvc2022_64/lib" });
 
         for (system_libs.items) |lib| {
             exe.root_module.linkSystemLibrary(lib, .{});
