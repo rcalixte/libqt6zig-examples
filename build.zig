@@ -3,13 +3,6 @@ const host_os = @import("builtin").os.tag;
 
 var buffer: [1024]u8 = undefined;
 var disabled_paths: std.ArrayList([]const u8) = .empty;
-var system_libs: std.ArrayList([]const u8) = .{ .items = &base_libs };
-
-var base_libs = [_][]const u8{
-    "Qt6Core",
-    "Qt6Gui",
-    "Qt6Widgets",
-};
 
 var main_files: std.ArrayList(struct {
     dir: []const u8,
@@ -31,6 +24,23 @@ pub fn build(b: *std.Build) !void {
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
+
+    var base_libs = switch (is_macos) {
+        true => [_][]const u8{
+            "QtCore",
+            "QtGui",
+            "QtWidgets",
+        },
+        false => [_][]const u8{
+            "Qt6Core",
+            "Qt6Gui",
+            "Qt6Widgets",
+        },
+    };
+
+    const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
+
+    const system_libs: std.ArrayList([]const u8) = .{ .items = &base_libs };
 
     // Find all main.zig files
     const src_dir = try std.fs.path.join(allocator, &.{ b.build_root.path.?, "src" });
@@ -58,7 +68,7 @@ pub fn build(b: *std.Build) !void {
                 if (!qtlibs_file_reader.atEnd()) return err;
             }
 
-            const syslibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, "syslibs" });
+            const syslibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, syslibsfile });
             const syslibs_file = std.fs.cwd().openFile(syslibs_path, .{}) catch null;
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
 
@@ -98,8 +108,8 @@ pub fn build(b: *std.Build) !void {
                 if (path_it.peek() == null) break name;
             } else continue;
 
-            const option_name = try std.mem.concat(allocator, u8, &.{ "enable-", name });
-            const option_description = try std.mem.concat(allocator, u8, &.{ "Enable ", name, " library example" });
+            const option_name = b.fmt("enable-{s}", .{name});
+            const option_description = b.fmt("Enable {s} library example", .{name});
             var is_supported = true;
             if (is_windows and (std.mem.startsWith(u8, prefix, "foss-") or std.mem.startsWith(u8, prefix, "posix-"))) {
                 is_supported = false;
@@ -121,7 +131,7 @@ pub fn build(b: *std.Build) !void {
             const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
 
             if (!result_value) {
-                const path = try std.mem.concat(allocator, u8, &.{ "/", name });
+                const path = b.fmt("/{s}", .{name});
                 try disabled_paths.append(allocator, path);
             }
         }
@@ -174,15 +184,27 @@ pub fn build(b: *std.Build) !void {
 
         if (is_bsd_host)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/usr/local/lib/qt6" });
+        if (is_macos) {
+            exe.root_module.addFrameworkPath(std.Build.LazyPath{ .cwd_relative = "/opt/homebrew/Frameworks" });
+            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/opt/homebrew/lib" });
+        }
         if (is_windows)
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "C:/Qt/6.8.3/msvc2022_64/lib" });
 
         for (system_libs.items) |lib| {
-            exe.root_module.linkSystemLibrary(lib, .{});
+            if (is_macos) {
+                exe.root_module.linkFramework(lib, .{});
+            } else {
+                exe.root_module.linkSystemLibrary(lib, .{});
+            }
         }
 
         for (main.sys_libraries) |lib| {
-            exe.root_module.linkSystemLibrary(lib, .{});
+            if (is_macos and !std.mem.eql(u8, exe_name, "qscintilla")) {
+                exe.root_module.linkFramework(lib, .{});
+            } else {
+                exe.root_module.linkSystemLibrary(lib, .{});
+            }
         }
 
         // Link libqt6zig static libraries
