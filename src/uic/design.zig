@@ -135,6 +135,7 @@ pub fn NewMainWindowUi(allocator: std.mem.Allocator) !*MainWindowUi {
     qt6.qtreewidget.SetHeaderItem(ui.treeWidget, ui_treeWidgetItem);
     qt6.qtreewidgetitem.SetText(ui_treeWidgetItem, 0, "1");
     qt6.qgridlayout.AddWidget2(ui.gridLayout, ui.treeWidget, 0, 1);
+
     qt6.qmainwindow.SetCentralWidget(ui.MainWindow, ui.centralwidget);
 
     ui.menubar = qt6.qmenubar.New(ui.MainWindow);
