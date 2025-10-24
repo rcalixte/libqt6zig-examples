@@ -7,7 +7,7 @@
 
 ---
 
-Example applications using the MIT-licensed Qt 6 bindings for Zig
+Example applications using the [MIT-licensed Qt 6 bindings for Zig](https://github.com/rcalixte/libqt6zig)
 
 These examples can be thought of as instructive templates for using the main library. Though some of the examples have some complexity to them, the intention is to aim for simplicity while demonstrating valid uses of the library. All of source code for the examples are a single file by design. Any auxiliary files are placed in the same directory for either compilation or execution purposes. Please try out the sample applications and start a [discussion](https://github.com/rcalixte/libqt6zig/discussions) if you have any questions or issues relevant to these examples.
 
