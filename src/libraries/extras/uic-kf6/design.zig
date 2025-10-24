@@ -188,6 +188,7 @@ pub fn NewMainWindowUi(allocator: std.mem.Allocator) !*MainWindowUi {
 
     _ = qt6.qtabwidget.AddTab(ui.tabWidget, ui.tab_2, "");
     qt6.qgridlayout.AddWidget2(ui.gridLayout, ui.tabWidget, 0, 0);
+
     qt6.qmainwindow.SetCentralWidget(ui.MainWindow, ui.centralwidget);
 
     ui.menubar = qt6.qmenubar.New(ui.MainWindow);
