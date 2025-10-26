@@ -21,6 +21,8 @@ pub fn build(b: *std.Build) !void {
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
 
+    const line_trim = if (is_windows) "\r\n" else "\n";
+
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
@@ -52,6 +54,7 @@ pub fn build(b: *std.Build) !void {
     while (try walker.next()) |entry| {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
+            if (is_windows and std.mem.containsAtLeast(u8, parent_dir, 2, "\\")) continue;
             const qtlibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, "qtlibs" });
             var qtlibs_file = try std.fs.cwd().openFile(qtlibs_path, .{});
             defer qtlibs_file.close();
@@ -62,7 +65,7 @@ pub fn build(b: *std.Build) !void {
                 if (std.mem.startsWith(u8, line, "#"))
                     continue;
 
-                const lib_name = std.mem.trimRight(u8, line, "\n");
+                const lib_name = std.mem.trimRight(u8, line, line_trim);
                 try qtlibs_contents.append(allocator, try allocator.dupe(u8, lib_name));
             } else |err| {
                 if (!qtlibs_file_reader.atEnd()) return err;
@@ -80,7 +83,7 @@ pub fn build(b: *std.Build) !void {
                     if (std.mem.startsWith(u8, line, "#"))
                         continue;
 
-                    const lib_name = std.mem.trimRight(u8, line, "\n");
+                    const lib_name = std.mem.trimRight(u8, line, line_trim);
                     try syslibs_contents.append(allocator, try allocator.dupe(u8, lib_name));
                 } else |err| {
                     if (!syslibs_file_reader.atEnd()) return err;
@@ -122,10 +125,10 @@ pub fn build(b: *std.Build) !void {
             }
 
             var is_enabled = true;
-            if ((host_os == .macos or host_os == .windows) and std.mem.eql(u8, prefix, "extras")) {
+            if ((host_os == .macos or host_os == .windows) and (std.mem.eql(u8, prefix, "extras") or std.mem.eql(u8, prefix, "restricted-extras"))) {
                 is_enabled = false;
             }
-            if (host_os == .macos and std.mem.eql(u8, prefix, "posix-"))
+            if (host_os == .macos and std.mem.startsWith(u8, prefix, "posix-"))
                 is_enabled = false;
             const option_value = b.option(bool, option_name, option_description);
             const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
