@@ -23,11 +23,20 @@ pub fn build(b: *std.Build) !void {
 
     const line_trim = if (is_windows) "\r\n" else "\n";
 
+    var qt_dir: []const u8 = "";
+    if (is_windows) {
+        qt_dir = b.option([]const u8, "QTDIR", "The directory where Qt is installed") orelse win_root;
+        std.fs.cwd().access(qt_dir, .{}) catch {
+            std.log.err("QTDIR '{s}' does not exist", .{qt_dir});
+            return error.QTDIRNotFound;
+        };
+    }
+
     var arena = std.heap.ArenaAllocator.init(b.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var base_libs = switch (is_macos) {
+    const base_libs = switch (is_macos) {
         true => [_][]const u8{
             "QtCore",
             "QtGui",
@@ -41,8 +50,6 @@ pub fn build(b: *std.Build) !void {
     };
 
     const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
-
-    const system_libs: std.ArrayList([]const u8) = .{ .items = &base_libs };
 
     // Find all main.zig files
     const src_dir = try std.fs.path.join(allocator, &.{ b.build_root.path.?, "src" });
@@ -178,11 +185,16 @@ pub fn build(b: *std.Build) !void {
         exe.root_module.addImport("alloc_config", alloc_config);
 
         // Link Qt system libraries
+        const sub_paths = [_][]const u8{ "/bin", "/lib", "" };
+
         for (extra_paths) |path| {
-            std.fs.cwd().access(path, .{}) catch {
-                continue;
-            };
-            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = b.dupe(path) });
+            for (sub_paths) |sub_path| {
+                const extra_path = b.fmt("{s}{s}", .{ path, sub_path });
+                std.fs.cwd().access(extra_path, .{}) catch {
+                    continue;
+                };
+                exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = extra_path });
+            }
         }
 
         if (is_bsd_host)
@@ -191,10 +203,12 @@ pub fn build(b: *std.Build) !void {
             exe.root_module.addFrameworkPath(std.Build.LazyPath{ .cwd_relative = "/opt/homebrew/Frameworks" });
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/opt/homebrew/lib" });
         }
-        if (is_windows)
-            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "C:/Qt/6.8.3/msvc2022_64/lib" });
+        if (is_windows) {
+            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = win_root ++ "/bin" });
+            if (!std.mem.eql(u8, exe_name, "marshalling") and !std.mem.eql(u8, exe_name, "network")) exe.subsystem = .Windows;
+        }
 
-        for (system_libs.items) |lib| {
+        for (base_libs) |lib| {
             if (is_macos) {
                 exe.root_module.linkFramework(lib, .{});
             } else {
@@ -228,6 +242,41 @@ pub fn build(b: *std.Build) !void {
         const run_step = b.step(exe_name, run_description);
         run_step.dependOn(&run_cmd.step);
         run_all_step.dependOn(&run_cmd.step);
+
+        if (is_windows) {
+            const win_libs = base_libs ++ .{ "libc++", "libunwind", "opengl32sw" };
+
+            for (win_libs) |lib| {
+                const bin_path = b.fmt("bin/{s}.dll", .{lib});
+                const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
+                std.fs.cwd().access(dll_path, .{}) catch {
+                    continue;
+                };
+                const install_win_dll = b.addInstallFile(std.Build.LazyPath{ .cwd_relative = dll_path }, bin_path);
+                run_cmd.step.dependOn(&install_win_dll.step);
+            }
+
+            for (main.sys_libraries) |lib| {
+                const bin_path = b.fmt("bin/{s}.dll", .{lib});
+                const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
+                std.fs.cwd().access(dll_path, .{}) catch {
+                    continue;
+                };
+                const install_win_dll = b.addInstallFile(std.Build.LazyPath{ .cwd_relative = dll_path }, bin_path);
+                run_cmd.step.dependOn(&install_win_dll.step);
+            }
+
+            const plugins_path = b.fmt("{s}/plugins", .{qt_dir});
+            std.fs.cwd().access(plugins_path, .{}) catch {
+                continue;
+            };
+            const install_plugins = b.addInstallDirectory(.{
+                .source_dir = std.Build.LazyPath{ .cwd_relative = plugins_path },
+                .install_dir = .prefix,
+                .install_subdir = "bin/plugins",
+            });
+            run_cmd.step.dependOn(&install_plugins.step);
+        }
     }
 }
 
@@ -235,6 +284,8 @@ const is_bsd_host = switch (host_os) {
     .dragonfly, .freebsd, .netbsd, .openbsd => true,
     else => false,
 };
+
+const win_root = "C:/Qt/6.8.3/llvm-mingw_64";
 
 const special_dirs = [_][]const u8{
     "/extras/",
