@@ -1,11 +1,8 @@
-klocalizedstring
 qabstractbutton
 qaction
 qapplication
 qcheckbox
-qcoreapplication
 qfile
-qguiapplication
 qinputdialog
 qjsonobject
 qkeysequence

@@ -14,23 +14,23 @@ const qfile = qt6.qfile;
 const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
 const qobject = qt6.qobject;
-const klocalizedstring = qt6.klocalizedstring;
 
 const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-
-var buffer: [256]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
 pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const config = getAllocatorConfig();
     var da: std.heap.DebugAllocator(config) = .init;
     defer _ = da.deinit();
     const allocator = da.allocator();
+
+    var buffer: [256]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
     // Bool
     const b = qcheckbox.New2();
@@ -120,14 +120,4 @@ pub fn main() !void {
     defer allocator.free(value);
     try stdout_writer.interface.print("Value: {s}\n", .{value});
     try stdout_writer.interface.flush();
-
-    // QSet<QString>
-    var qtdom = "Qt".*;
-    var domainki18n = klocalizedstring.AvailableDomainTranslations(&qtdom, allocator);
-    defer domainki18n.deinit(allocator);
-    var dk_it = domainki18n.keyIterator();
-    while (dk_it.next()) |entry| {
-        try stdout_writer.interface.print("AvailableDomainTranslations: {s}\n", .{entry.*});
-        try stdout_writer.interface.flush();
-    }
 }
