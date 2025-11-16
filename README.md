@@ -1,3 +1,5 @@
+#
+
 <div align="center">
 <img alt="libqt6zig-examples" src="assets/libqt6zig-examples.png" height="128px;" />
 
@@ -54,7 +56,7 @@ zig build -Denable-charts=true -Denable-qscintilla=false
 In the event that one or more extra library include paths are needed e.g. a locally compiled extra library in a non-standard path, the `extra-paths` option supports this use case:
 
 ```bash
-zig build -Dextra-paths="C:/Qt/6/mingw_64/include"
+zig build -Dextra-paths="C:/Qt/6/llvm-mingw_64"
 ```
 
 or
