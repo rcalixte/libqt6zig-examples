@@ -76,19 +76,36 @@ pub const AppTab = struct {
         qlistwidget.Clear(self.outline);
 
         var lines = std.mem.splitScalar(u8, content, '\n');
-        var lineNumber: c_int = 0;
+        var inCodeBlock = false;
+        var lineNumber: i32 = 0;
+        var prevLine: []const u8 = undefined;
+        var buf: [32]u8 = undefined;
 
         while (lines.next()) |line| {
-            if (std.mem.startsWith(u8, line, "#")) {
-                const bookmark = qlistwidgetitem.New7(line, self.outline);
-                const tooltip = std.fmt.allocPrint(allocator, "Line {d}", .{lineNumber + 1}) catch continue;
-                defer allocator.free(tooltip);
+            if (!inCodeBlock) {
+                if (std.mem.startsWith(u8, line, "#")) {
+                    const bookmark = qlistwidgetitem.New7(line, self.outline);
+                    const tooltip = std.fmt.bufPrint(&buf, "Line {d}", .{lineNumber + 1}) catch continue;
 
-                qlistwidgetitem.SetToolTip(bookmark, tooltip);
-                const lineNum = qvariant.New4(lineNumber);
-                defer qvariant.QDelete(lineNum);
-                qlistwidgetitem.SetData(bookmark, lineNumberRole, lineNum);
+                    qlistwidgetitem.SetToolTip(bookmark, tooltip);
+                    const lineNum = qvariant.New4(lineNumber);
+                    defer qvariant.QDelete(lineNum);
+                    qlistwidgetitem.SetData(bookmark, lineNumberRole, lineNum);
+                } else if ((std.mem.startsWith(u8, line, "---") or std.mem.startsWith(u8, line, "===")) and !std.mem.eql(u8, prevLine, "")) {
+                    const bookmark = qlistwidgetitem.New7(prevLine, self.outline);
+                    const tooltip = std.fmt.bufPrint(&buf, "Line {d}", .{lineNumber}) catch continue;
+
+                    qlistwidgetitem.SetToolTip(bookmark, tooltip);
+                    const lineNum = qvariant.New4(lineNumber - 1);
+                    defer qvariant.QDelete(lineNum);
+                    qlistwidgetitem.SetData(bookmark, lineNumberRole, lineNum);
+                }
             }
+
+            if (std.mem.startsWith(u8, line, "```"))
+                inCodeBlock = !inCodeBlock;
+
+            prevLine = line;
             lineNumber += 1;
         }
     }
@@ -144,7 +161,7 @@ pub const AppWindow = struct {
     w: C.QMainWindow,
     tabs: C.QTabWidget,
 
-    pub fn handleTabClose(self: ?*anyopaque, index: c_int) callconv(.c) void {
+    pub fn handleTabClose(self: ?*anyopaque, index: i32) callconv(.c) void {
         if (app_window_tab_map.get(self)) |appwindow| {
             // Get the widget at this index before removing it
             const widget = qtabwidget.Widget(appwindow.tabs, index);
@@ -319,7 +336,8 @@ pub fn NewAppWindow() !*AppWindow {
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     defer _ = gda.deinit();
 
