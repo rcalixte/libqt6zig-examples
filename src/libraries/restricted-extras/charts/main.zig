@@ -9,7 +9,8 @@ const qpainter_enums = qt6.qpainter_enums;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const series = qlineseries.New();
     defer qlineseries.QDelete(series);

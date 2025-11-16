@@ -2,9 +2,7 @@ qabstractseries
 qapplication
 qchart
 qchartview
-qcoreapplication
 qgraphicsview
-qguiapplication
 qlineseries
 qwidget
 qxyseries
