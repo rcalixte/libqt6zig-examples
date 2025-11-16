@@ -8,14 +8,15 @@ const qradiobutton = qt6.qradiobutton;
 const qicon = qt6.qicon;
 const qsize = qt6.qsize;
 
-var buffer: [64]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
 pub fn main() !void {
     // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
+
+    var buffer: [64]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
     var ok = rcc.init();
     if (!ok) {

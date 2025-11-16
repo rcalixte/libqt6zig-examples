@@ -1,8 +1,6 @@
 qabstractbutton
 qapplication
 qboxlayout
-qcoreapplication
-qguiapplication
 qicon
 qradiobutton
 qresource
