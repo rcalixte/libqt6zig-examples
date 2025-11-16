@@ -8,7 +8,8 @@ const qpdfview_enums = qt6.qpdfview_enums;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const document = qpdfdocument.New();
     defer qpdfdocument.QDelete(document);
