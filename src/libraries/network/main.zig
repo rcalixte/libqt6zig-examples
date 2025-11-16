@@ -12,17 +12,20 @@ var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
 
 var buffer: [1024]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
+var messages: std.ArrayList([]const u8) = .empty;
 
-pub fn main() void {
+pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     defer _ = gda.deinit();
 
-    stdout_writer.interface.writeAll("Looking up DNS info, please wait...") catch @panic("Failed to print to stdout");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    var stdout_writer = std.fs.File.stdout().writer(&buffer);
+
+    try stdout_writer.interface.writeAll("Looking up DNS info, please wait...");
+    try stdout_writer.interface.flush();
 
     const dns = qdnslookup.New2(qdnslookup_enums.Type.A, "google.com");
 
@@ -30,6 +33,15 @@ pub fn main() void {
     qdnslookup.Lookup(dns);
 
     _ = qapplication.Exec();
+
+    defer messages.deinit(allocator);
+
+    for (messages.items) |message| {
+        defer allocator.free(message);
+
+        try stdout_writer.interface.writeAll(message);
+        try stdout_writer.interface.flush();
+    }
 }
 
 fn onFinished(dns: ?*anyopaque) callconv(.c) void {
@@ -38,15 +50,17 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
     if (qdnslookup.Error(dns) != qdnslookup_enums.Error.NoError) {
         const dns_error = qdnslookup.ErrorString(dns, allocator);
         defer allocator.free(dns_error);
-        stdout_writer.interface.print("DNS lookup failed: {s}\n", .{dns_error}) catch @panic("Failed to print to stdout");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+
+        const errorStr = std.fmt.allocPrint(allocator, "DNS lookup failed: {s}\n", .{dns_error}) catch @panic("Failed to allocPrint error(s)");
+        messages.append(allocator, errorStr) catch @panic("Failed to append error(s)");
         return;
     }
 
     const results = qdnslookup.HostAddressRecords(dns, allocator);
     defer allocator.free(results);
-    stdout_writer.interface.print("Found {d} results.\n", .{results.len}) catch @panic("Failed to print to stdout");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+
+    const resultsStr = std.fmt.allocPrint(allocator, "Found {d} results.\n", .{results.len}) catch @panic("Failed to allocPrint results");
+    messages.append(allocator, resultsStr) catch @panic("Failed to append results");
 
     for (results) |result| {
         const value = qdnshostaddressrecord.Value(result);
@@ -55,8 +69,8 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
         const record = qhostaddress.ToString(value, allocator);
         defer allocator.free(record);
 
-        stdout_writer.interface.print("- {s}\n", .{record}) catch @panic("Failed to print record to stdout");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        const recordStr = std.fmt.allocPrint(allocator, "- {s}\n", .{record}) catch @panic("Failed to allocPrint record(s)");
+        messages.append(allocator, recordStr) catch @panic("Failed to append record(s)");
     }
 
     qapplication.Exit();
