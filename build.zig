@@ -27,7 +27,7 @@ pub fn build(b: *std.Build) !void {
     if (is_windows) {
         qt_dir = b.option([]const u8, "QTDIR", "The directory where Qt is installed") orelse win_root;
         std.fs.cwd().access(qt_dir, .{}) catch {
-            std.log.err("QTDIR '{s}' does not exist", .{qt_dir});
+            std.log.err("QTDIR '{s}' does not exist\n", .{qt_dir});
             return error.QTDIRNotFound;
         };
     }
