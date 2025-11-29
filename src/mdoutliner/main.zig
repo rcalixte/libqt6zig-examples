@@ -115,6 +115,8 @@ pub const AppTab = struct {
             const content = qtextedit.ToPlainText(self, allocator);
             defer allocator.free(content);
 
+            if (content.len == 0) return;
+
             updateOutlineForContent(apptab, content);
         }
     }
