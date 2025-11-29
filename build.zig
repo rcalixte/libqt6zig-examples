@@ -194,6 +194,8 @@ pub fn build(b: *std.Build) !void {
                     continue;
                 };
                 exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = extra_path });
+                if (is_macos)
+                    exe.root_module.addFrameworkPath(std.Build.LazyPath{ .cwd_relative = extra_path });
             }
         }
 
@@ -204,7 +206,19 @@ pub fn build(b: *std.Build) !void {
             exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = "/opt/homebrew/lib" });
         }
         if (is_windows) {
-            exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = win_root ++ "/bin" });
+            const win_bin_dir = win_root ++ "/bin";
+            var ok_bin_dir = true;
+            std.fs.cwd().access(win_bin_dir, .{}) catch {
+                if (extra_paths.len == 0) {
+                    std.log.err("'{s}' either does not exist or does not have a 'bin' subdirectory and no extra paths were provided\n", .{win_root});
+                    return error.WinQtBinDirNotFound;
+                } else {
+                    ok_bin_dir = false;
+                }
+            };
+            if (ok_bin_dir) {
+                exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = win_bin_dir });
+            }
             if (!std.mem.eql(u8, exe_name, "marshalling") and !std.mem.eql(u8, exe_name, "network")) exe.subsystem = .Windows;
         }
 
