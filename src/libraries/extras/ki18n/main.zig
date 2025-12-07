@@ -15,6 +15,8 @@ const config = getAllocatorConfig();
 var gda: std.heap.DebugAllocator(config) = .init;
 const allocator = gda.allocator();
 
+var buffer: [24]u8 = undefined;
+
 var all_countries: []C.KCountry = undefined;
 var emoji_flag_label: C.QLabel = undefined;
 var currency_label: C.QLabel = undefined;
@@ -22,7 +24,8 @@ var currency_label: C.QLabel = undefined;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     all_countries = kcountry.AllCountries(allocator);
     defer {
@@ -79,13 +82,11 @@ fn onCurrentIndexChanged(_: ?*anyopaque, index: i32) callconv(.c) void {
     const country = all_countries[@intCast(index)];
     const emoji_flag = kcountry.EmojiFlag(country, allocator);
     defer allocator.free(emoji_flag);
-    const emoji_text = std.mem.concat(allocator, u8, &.{ "Emoji flag: ", emoji_flag }) catch @panic("Failed to concat emoji flag");
-    defer allocator.free(emoji_text);
+    const emoji_text = std.fmt.bufPrintZ(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch @panic("Failed to bufPrintZ emoji flag");
     qlabel.SetText(emoji_flag_label, emoji_text);
 
     const currency = kcountry.CurrencyCode(country, allocator);
     defer allocator.free(currency);
-    const currency_text = std.mem.concat(allocator, u8, &.{ "Currency code: ", currency }) catch @panic("Failed to concat currency code");
-    defer allocator.free(currency_text);
+    const currency_text = std.fmt.bufPrintZ(&buffer, "Currency code: {s}", .{currency}) catch @panic("Failed to bufPrintZ currency code");
     qlabel.SetText(currency_label, currency_text);
 }
