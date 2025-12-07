@@ -52,18 +52,17 @@ pub fn build(b: *std.Build) !void {
     const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
 
     // Find all main.zig files
-    const src_dir = try std.fs.path.join(allocator, &.{ b.build_root.path.?, "src" });
-    var dir = try std.fs.cwd().openDir(src_dir, .{ .iterate = true });
+    var dir = try b.build_root.handle.openDir("src", .{ .iterate = true });
     defer dir.close();
-    var walker = try dir.walk(b.allocator);
+    var walker = try dir.walk(allocator);
     defer walker.deinit();
 
     while (try walker.next()) |entry| {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
             if (is_windows and std.mem.containsAtLeast(u8, parent_dir, 2, "\\")) continue;
-            const qtlibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, "qtlibs" });
-            var qtlibs_file = try std.fs.cwd().openFile(qtlibs_path, .{});
+            const qtlibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "qtlibs" });
+            var qtlibs_file = try b.build_root.handle.openFile(qtlibs_path, .{});
             defer qtlibs_file.close();
             var qtlibs_file_reader = qtlibs_file.reader(&buffer);
 
@@ -78,8 +77,8 @@ pub fn build(b: *std.Build) !void {
                 if (!qtlibs_file_reader.atEnd()) return err;
             }
 
-            const syslibs_path = try std.fs.path.join(allocator, &.{ "src", parent_dir, syslibsfile });
-            const syslibs_file = std.fs.cwd().openFile(syslibs_path, .{}) catch null;
+            const syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, syslibsfile });
+            const syslibs_file = b.build_root.handle.openFile(syslibs_path, .{}) catch null;
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
 
             if (syslibs_file) |syslib_file| {
@@ -98,8 +97,8 @@ pub fn build(b: *std.Build) !void {
             }
 
             try main_files.append(allocator, .{
-                .dir = try b.allocator.dupe(u8, parent_dir),
-                .path = try std.fs.path.join(allocator, &.{ "src", entry.path }),
+                .dir = try allocator.dupe(u8, parent_dir),
+                .path = b.fmt("{s}/{s}", .{ "src", entry.path }),
                 .qt_libraries = try qtlibs_contents.toOwnedSlice(allocator),
                 .sys_libraries = try syslibs_contents.toOwnedSlice(allocator),
             });
