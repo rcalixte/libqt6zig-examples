@@ -36,6 +36,7 @@ pub fn main() !void {
     defer allocator.free(dir);
 
     const file = try std.mem.concat(allocator, u8, &.{ "file://", dir, "/src/libraries/extras/ktexteditor/main.zig" });
+    defer allocator.free(file);
     const url = qurl.New3(file);
     defer qurl.QDelete(url);
 
