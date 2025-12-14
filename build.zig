@@ -218,7 +218,7 @@ pub fn build(b: *std.Build) !void {
             if (ok_bin_dir) {
                 exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = win_bin_dir });
             }
-            if (!std.mem.eql(u8, exe_name, "marshalling") and !std.mem.eql(u8, exe_name, "network")) exe.subsystem = .Windows;
+            if (!std.mem.eql(u8, exe_name, "karchive") and !std.mem.eql(u8, exe_name, "marshalling") and !std.mem.eql(u8, exe_name, "network")) exe.subsystem = .Windows;
         }
 
         for (base_libs) |lib| {
