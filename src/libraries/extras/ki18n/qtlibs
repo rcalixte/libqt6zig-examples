@@ -2,7 +2,6 @@ kcountry
 qapplication
 qboxlayout
 qcombobox
-qcoreapplication
 qfont
 qlabel
 qwidget

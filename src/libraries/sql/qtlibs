@@ -2,10 +2,8 @@ qabstractbutton
 qabstractitemmodel
 qapplication
 qcombobox
-qcoreapplication
 qdatawidgetmapper
 qgridlayout
-qguiapplication
 qlabel
 qlineedit
 qmessagebox

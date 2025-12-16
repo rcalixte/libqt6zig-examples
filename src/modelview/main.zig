@@ -8,17 +8,16 @@ const qmodelindex = qt6.qmodelindex;
 const qtreeview = qt6.qtreeview;
 const qlistview = qt6.qlistview;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
-    defer _ = gda.deinit();
+    defer _ = gpa.deinit();
 
     const splitter = qsplitter.New2();
 

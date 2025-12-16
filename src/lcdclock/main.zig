@@ -8,10 +8,8 @@ const qlcdnumber = qt6.qlcdnumber;
 const qtime = qt6.qtime;
 const qtimer = qt6.qtimer;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var lcd: C.QLCDNumber = undefined;
 var time: C.QTime = undefined;
@@ -20,7 +18,10 @@ pub fn main() void {
     // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const widget = qwidget.New2();
     defer qwidget.QDelete(widget);

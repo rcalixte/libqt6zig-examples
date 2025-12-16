@@ -6,7 +6,6 @@ qapplication
 qboxlayout
 qcoreapplication
 qdialogbuttonbox
-qguiapplication
 qlistview
 qmainwindow
 qmenu

@@ -15,10 +15,8 @@ const qdialogbuttonbox = qt6.qdialogbuttonbox;
 const qdialogbuttonbox_enums = qt6.qdialogbuttonbox_enums;
 const qheaderview = qt6.qheaderview;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var dialog: C.QDialog = undefined;
 var treewidget: C.QTreeWidget = undefined;
@@ -27,7 +25,10 @@ var m_searchline: C.KTreeWidgetSearchLine = undefined;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     dialog = qdialog.New2();
 

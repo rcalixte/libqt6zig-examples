@@ -15,7 +15,8 @@ const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
 const qobject = qt6.qobject;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
@@ -24,10 +25,7 @@ pub fn main() !void {
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
 
-    const config = getAllocatorConfig();
-    var da: std.heap.DebugAllocator(config) = .init;
-    defer _ = da.deinit();
-    const allocator = da.allocator();
+    defer _ = gpa.deinit();
 
     var buffer: [256]u8 = undefined;
     var stdout_writer = std.fs.File.stdout().writer(&buffer);

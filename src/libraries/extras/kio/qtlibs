@@ -1,6 +1,4 @@
 kfilecustomdialog
 qapplication
-qcoreapplication
-qguiapplication
 qlabel
 qwidget

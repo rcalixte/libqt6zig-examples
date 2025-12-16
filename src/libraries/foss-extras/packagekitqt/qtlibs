@@ -2,7 +2,6 @@ daemon
 qabstractbutton
 qapplication
 qboxlayout
-qcoreapplication
 qlabel
 qpushbutton
 qwidget

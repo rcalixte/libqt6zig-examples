@@ -1,8 +1,6 @@
 qabstractitemmodel
 qapplication
 qcolor
-qcoreapplication
-qguiapplication
 qlistview
 qvariant
 qwidget

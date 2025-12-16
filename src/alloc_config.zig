@@ -1,7 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
+fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
     if (builtin.mode == .Debug) {
         return std.heap.DebugAllocatorConfig{
             .safety = true,
@@ -18,3 +18,5 @@ pub fn getAllocatorConfig() std.heap.DebugAllocatorConfig {
         };
     }
 }
+
+pub const gpa: std.heap.DebugAllocator(getAllocatorConfig()) = .init;

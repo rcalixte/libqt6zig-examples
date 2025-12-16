@@ -10,10 +10,8 @@ const qfont = qt6.qfont;
 const qcombobox = qt6.qcombobox;
 const qnamespace_enums = qt6.qnamespace_enums;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var buffer: [24]u8 = undefined;
 
@@ -26,6 +24,8 @@ pub fn main() void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     all_countries = kcountry.AllCountries(allocator);
     defer {

@@ -8,10 +8,8 @@ const qdbusmessage_enums = qt6.qdbusmessage_enums;
 const qvariant = qt6.qvariant;
 const map_constu8_qtcqvariant = std.StringHashMapUnmanaged(C.QVariant);
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var buffer: [32]u8 = undefined;
 var stdout_writer = std.fs.File.stdout().writer(&buffer);
@@ -24,6 +22,8 @@ pub fn main() void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const session_bus = qdbusconnection.SessionBus();
     defer qdbusconnection.QDelete(session_bus);

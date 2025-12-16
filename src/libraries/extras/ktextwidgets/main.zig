@@ -5,16 +5,16 @@ const krichtextedit = qt6.krichtextedit;
 const qfile = qt6.qfile;
 const qiodevicebase_enums = qt6.qiodevicebase_enums;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const textedit = krichtextedit.New3();
     defer krichtextedit.QDelete(textedit);

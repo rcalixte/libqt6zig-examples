@@ -8,16 +8,16 @@ const klineedit = qt6.klineedit;
 const kcompletion = qt6.kcompletion;
 const kcompletion_enums = qt6.kcompletion_enums;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const widget = qwidget.New2();
     defer qwidget.QDelete(widget);

@@ -7,15 +7,16 @@ const qvboxlayout = qt6.qvboxlayout;
 const qlabel = qt6.qlabel;
 const qlistwidget = qt6.qlistwidget;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const charsets = kcharsets.Charsets();
 

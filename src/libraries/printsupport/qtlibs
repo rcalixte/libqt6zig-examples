@@ -1,8 +1,6 @@
 qabstractbutton
 qapplication
-qcoreapplication
 qdialog
-qguiapplication
 qobject
 qprintdialog
 qpushbutton

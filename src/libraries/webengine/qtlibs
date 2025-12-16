@@ -1,6 +1,4 @@
 qapplication
-qcoreapplication
-qguiapplication
 qurl
 qwebengineview
 qwidget

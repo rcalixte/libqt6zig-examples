@@ -13,10 +13,8 @@ const qpalette = qt6.qpalette;
 const qpalette_enums = qt6.qpalette_enums;
 const repository_enums = qt6.repository_enums;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var buffer: [128]u8 = undefined;
 var stdout_writer = std.fs.File.stdout().writer(&buffer);
@@ -28,6 +26,8 @@ pub fn main() !void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
     defer qmainwindow.QDelete(window);

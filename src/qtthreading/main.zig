@@ -11,7 +11,8 @@ const qpushbutton = qt6.qpushbutton;
 const qvariant = qt6.qvariant;
 const threading = qt6.threading;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 // Data for each button, attached via Qt's property system
 const ButtonData = struct {
@@ -22,7 +23,8 @@ const ButtonData = struct {
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const threadcount = std.Thread.getCpuCount() catch 2;
 
@@ -33,10 +35,7 @@ pub fn main() void {
     const window = qmainwindow.New2();
     defer qmainwindow.QDelete(window);
 
-    const config = getAllocatorConfig();
-    var da: std.heap.DebugAllocator(config) = .init;
-    defer _ = da.deinit();
-    const allocator = da.allocator();
+    defer _ = gpa.deinit();
 
     qmainwindow.SetFixedSize2(window, 250, 50 * @as(i32, @intCast(threadcount)) + 1);
     qmainwindow.SetWindowTitle(window, "Qt 6 Threading Example");

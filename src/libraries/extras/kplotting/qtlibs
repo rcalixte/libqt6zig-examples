@@ -2,6 +2,4 @@ kplotobject
 kplotwidget
 qapplication
 qcolor
-qcoreapplication
-qguiapplication
 qwidget

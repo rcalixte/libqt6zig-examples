@@ -1,6 +1,5 @@
 qapplication
 qboxlayout
-qcoreapplication
 qgridlayout
 qlabel
 qlineedit

@@ -23,10 +23,8 @@ const qaction = qt6.qaction;
 const qmenubar = qt6.qmenubar;
 const qmenu = qt6.qmenu;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 const lineNumberRole = qnamespace_enums.ItemDataRole.UserRole + 1;
 
@@ -341,7 +339,7 @@ pub fn main() !void {
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
 
-    defer _ = gda.deinit();
+    defer _ = gpa.deinit();
 
     app_tab_map = AppTabMap.init(allocator);
     app_window_tab_map = AppWindowMap.init(allocator);

@@ -1,5 +1,4 @@
 qapplication
-qcoreapplication
 qmainwindow
 qopenglcontext
 qopenglextrafunctions

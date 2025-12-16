@@ -6,10 +6,8 @@ const qdnslookup_enums = qt6.qdnslookup_enums;
 const qdnshostaddressrecord = qt6.qdnshostaddressrecord;
 const qhostaddress = qt6.qhostaddress;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var buffer: [1024]u8 = undefined;
 var messages: std.ArrayList([]const u8) = .empty;
@@ -20,7 +18,7 @@ pub fn main() !void {
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
 
-    defer _ = gda.deinit();
+    defer _ = gpa.deinit();
 
     var stdout_writer = std.fs.File.stdout().writer(&buffer);
 

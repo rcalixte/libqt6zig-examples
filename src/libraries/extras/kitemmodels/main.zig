@@ -8,10 +8,8 @@ const krearrangecolumnsproxymodel = qt6.krearrangecolumnsproxymodel;
 const qtreeview = qt6.qtreeview;
 const qtimer = qt6.qtimer;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var proxy: C.KRearrangeColumnsProxyModel = undefined;
 
@@ -20,6 +18,8 @@ pub fn main() !void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     var row_0_items = [_][]const u8{ "A0", "B0", "C0", "D0" };
     var row_0 = try makeStandardItemsList(allocator, &row_0_items);

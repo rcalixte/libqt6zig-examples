@@ -10,10 +10,8 @@ const qtextbrowser = qt6.qtextbrowser;
 const qtimer = qt6.qtimer;
 const ktexttohtml = qt6.ktexttohtml;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var plainTextEditor: C.QTextEdit = undefined;
 var htmlview: C.QTextBrowser = undefined;
@@ -24,6 +22,8 @@ pub fn main() void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
     defer qmainwindow.QDelete(window);

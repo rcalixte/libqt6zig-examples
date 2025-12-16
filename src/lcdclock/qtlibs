@@ -1,8 +1,6 @@
 qapplication
 qboxlayout
-qcoreapplication
 qdatetime
-qguiapplication
 qlcdnumber
 qtimer
 qwidget

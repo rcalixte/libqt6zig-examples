@@ -10,10 +10,8 @@ const ktexteditor__document = qt6.ktexteditor__document;
 const qfont = qt6.qfont;
 const qtoolbar = qt6.qtoolbar;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var editor: C.KTextEditor__Editor = undefined;
 
@@ -22,6 +20,8 @@ pub fn main() !void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
     defer qmainwindow.QDelete(window);

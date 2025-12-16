@@ -1,8 +1,6 @@
 krichtextedit
 qapplication
-qcoreapplication
 qfile
-qguiapplication
 qiodevice
 qtextedit
 qwidget

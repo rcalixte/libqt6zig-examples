@@ -8,16 +8,16 @@ const qnamespace_enums = qt6.qnamespace_enums;
 const qlineedit = qt6.qlineedit;
 const qgridlayout = qt6.qgridlayout;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const project = attica__project.New();
     defer attica__project.QDelete(project);

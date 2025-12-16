@@ -3,10 +3,8 @@ ktreewidgetsearchlinewidget
 qabstractbutton
 qapplication
 qboxlayout
-qcoreapplication
 qdialog
 qdialogbuttonbox
-qguiapplication
 qheaderview
 qpushbutton
 qtreeview

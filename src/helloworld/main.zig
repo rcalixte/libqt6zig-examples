@@ -10,7 +10,8 @@ pub fn main() void {
     // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.QDelete(qapp);
 
     const text = "Hello world!";
     const widget = qwidget.New2();

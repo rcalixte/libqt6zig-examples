@@ -16,10 +16,8 @@ const qmenu = qt6.qmenu;
 const qlocale = qt6.qlocale;
 const qtranslator = qt6.qtranslator;
 
-const getAllocatorConfig = @import("alloc_config").getAllocatorConfig;
-const config = getAllocatorConfig();
-var gda: std.heap.DebugAllocator(config) = .init;
-const allocator = gda.allocator();
+var gpa = @import("alloc_config").gpa;
+const allocator = gpa.allocator();
 
 var label: C.QLabel = undefined;
 var window: C.QMainWindow = undefined;
@@ -35,6 +33,8 @@ pub fn main() void {
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
     defer qapplication.QDelete(qapp);
+
+    defer _ = gpa.deinit();
 
     const combo = qcombobox.New2();
     var texts = [_][]const u8{ "en", "es", "fr" };

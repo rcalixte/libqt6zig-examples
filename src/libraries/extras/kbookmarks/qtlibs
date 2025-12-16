@@ -1,7 +1,5 @@
 kbookmarkdialog
 kbookmarkmanager
 qapplication
-qcoreapplication
-qguiapplication
 qurl
 qwidget
