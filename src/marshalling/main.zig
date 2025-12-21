@@ -2,21 +2,20 @@ const std = @import("std");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 const qapplication = qt6.qapplication;
-const qvariant = qt6.qvariant;
-const qsettings = qt6.qsettings;
 const qcheckbox = qt6.qcheckbox;
 const qsize = qt6.qsize;
 const qwidget = qt6.qwidget;
 const qversionnumber = qt6.qversionnumber;
 const qinputdialog = qt6.qinputdialog;
+const qtablewidget = qt6.qtablewidget;
 const qkeysequence = qt6.qkeysequence;
-const qfile = qt6.qfile;
-const qjsonobject = qt6.qjsonobject;
 const qaction = qt6.qaction;
+const qfile = qt6.qfile;
 const qobject = qt6.qobject;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
+const c_allocator = std.heap.raw_c_allocator;
 
 pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
@@ -45,11 +44,11 @@ pub fn main() !void {
     try stdout_writer.interface.flush();
 
     // Int by reference
-    const i = qsize.New4(32, 32);
-    defer qsize.QDelete(i);
-    const r = qsize.Rheight(i);
+    const size = qsize.New4(32, 32);
+    defer qsize.QDelete(size);
+    const r = qsize.Rheight(size);
     r.?.* = 64;
-    try stdout_writer.interface.print("Height: {d}\n", .{qsize.Height(i)});
+    try stdout_writer.interface.print("Height: {d}\n", .{qsize.Height(size)});
     try stdout_writer.interface.flush();
 
     // QString
@@ -77,8 +76,20 @@ pub fn main() !void {
     qinputdialog.SetComboBoxItems(c, &items, allocator);
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
     defer allocator.free(comboItems);
-    for (comboItems, 0..) |item, _i| {
-        try stdout_writer.interface.print("ComboBoxItems[{d}]: {s}\n", .{ _i, item });
+    for (comboItems, 0..) |item, i| {
+        try stdout_writer.interface.print("ComboBoxItems[{d}]: {s}\n", .{ i, item });
+        try stdout_writer.interface.flush();
+        defer allocator.free(item);
+    }
+
+    // QStringList callback
+    const table = qtablewidget.New2();
+    defer qtablewidget.QDelete(table);
+    qtablewidget.OnMimeTypes(table, onMimeTypes);
+    const tableMimeTypes = qtablewidget.MimeTypes(table, allocator);
+    defer allocator.free(tableMimeTypes);
+    for (tableMimeTypes, 0..) |item, i| {
+        try stdout_writer.interface.print("MimeTypes[{d}]: {s}\n", .{ i, item });
         try stdout_writer.interface.flush();
         defer allocator.free(item);
     }
@@ -94,10 +105,10 @@ pub fn main() !void {
     qaction.SetShortcuts(qa, &keyarray);
     const shortcuts = qaction.Shortcuts(qa, allocator);
     defer allocator.free(shortcuts);
-    for (shortcuts, 0..) |shortcut, _i| {
+    for (shortcuts, 0..) |shortcut, i| {
         const qkey_tostring = qkeysequence.ToString(shortcut, allocator);
         defer allocator.free(qkey_tostring);
-        try stdout_writer.interface.print("Shortcuts[{d}]: {s}\n", .{ _i, qkey_tostring });
+        try stdout_writer.interface.print("Shortcuts[{d}]: {s}\n", .{ i, qkey_tostring });
         try stdout_writer.interface.flush();
     }
 
@@ -118,4 +129,14 @@ pub fn main() !void {
     defer allocator.free(value);
     try stdout_writer.interface.print("Value: {s}\n", .{value});
     try stdout_writer.interface.flush();
+}
+
+fn onMimeTypes() callconv(.c) [*][*:0]const u8 {
+    // Use of the C allocator is required here
+    const list = c_allocator.alloc([*:0]const u8, 4) catch @panic("Failed to allocate memory");
+    list[0] = "image/gif";
+    list[1] = "image/jpeg";
+    list[2] = "image/png";
+
+    return list.ptr;
 }
