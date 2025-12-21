@@ -1,0 +1,8 @@
+qapplication
+qboxlayout
+qcoreapplication
+qfile
+qlabel
+qmainwindow
+quiloader
+qwidget
