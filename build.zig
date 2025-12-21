@@ -9,6 +9,7 @@ var main_files: std.ArrayList(struct {
     path: []const u8,
     qt_libraries: []const []const u8,
     sys_libraries: []const []const u8,
+    win_gui: bool,
 }) = .empty;
 
 pub fn build(b: *std.Build) !void {
@@ -92,11 +93,21 @@ pub fn build(b: *std.Build) !void {
                 }
             }
 
+            var win_gui = true;
+
+            if (is_windows) {
+                const screenshot_file = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "screenshot.png" });
+                b.build_root.handle.access(screenshot_file, .{}) catch {
+                    win_gui = false;
+                };
+            }
+
             try main_files.append(b.allocator, .{
                 .dir = b.dupe(parent_dir),
                 .path = b.fmt("{s}/{s}", .{ "src", entry.path }),
                 .qt_libraries = try qtlibs_contents.toOwnedSlice(b.allocator),
                 .sys_libraries = try syslibs_contents.toOwnedSlice(b.allocator),
+                .win_gui = win_gui,
             });
         } else if (entry.kind == .directory) {
             const is_special_dir = for (special_dirs) |dir_name| {
@@ -214,7 +225,7 @@ pub fn build(b: *std.Build) !void {
             if (ok_bin_dir) {
                 exe.root_module.addLibraryPath(std.Build.LazyPath{ .cwd_relative = win_bin_dir });
             }
-            if (!std.mem.eql(u8, exe_name, "karchive") and !std.mem.eql(u8, exe_name, "marshalling") and !std.mem.eql(u8, exe_name, "network")) exe.subsystem = .Windows;
+            if (main.win_gui) exe.subsystem = .Windows;
         }
 
         for (base_libs) |lib| {
@@ -253,7 +264,16 @@ pub fn build(b: *std.Build) !void {
         run_all_step.dependOn(&run_cmd.step);
 
         if (is_windows) {
-            const win_libs = base_libs ++ .{ "libc++", "libunwind", "opengl32sw" };
+            const win_libs = base_libs ++ .{
+                "avcodec-61",
+                "avformat-61",
+                "avutil-59",
+                "libc++",
+                "libunwind",
+                "opengl32sw",
+                "swresample-5",
+                "swscale-8",
+            };
 
             for (win_libs) |lib| {
                 const bin_path = b.fmt("bin/{s}.dll", .{lib});
