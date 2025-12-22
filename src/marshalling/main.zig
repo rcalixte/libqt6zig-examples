@@ -131,9 +131,9 @@ pub fn main() !void {
     try stdout_writer.interface.flush();
 }
 
-fn onMimeTypes() callconv(.c) [*][*:0]const u8 {
+fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     // Use of the C allocator is required here
-    const list = c_allocator.alloc([*:0]const u8, 4) catch @panic("Failed to allocate memory");
+    const list = c_allocator.allocSentinel(?[*:0]const u8, 3, null) catch @panic("Failed to allocate memory");
     list[0] = "image/gif";
     list[1] = "image/jpeg";
     list[2] = "image/png";
