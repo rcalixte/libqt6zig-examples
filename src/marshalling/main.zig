@@ -12,6 +12,8 @@ const qkeysequence = qt6.qkeysequence;
 const qaction = qt6.qaction;
 const qfile = qt6.qfile;
 const qobject = qt6.qobject;
+const qvariant = qt6.qvariant;
+const qjsonobject = qt6.qjsonobject;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
@@ -129,6 +131,28 @@ pub fn main() !void {
     defer allocator.free(value);
     try stdout_writer.interface.print("Value: {s}\n", .{value});
     try stdout_writer.interface.flush();
+
+    // QMap
+    var input_map: std.StringHashMapUnmanaged(C.QVariant) = .empty;
+    defer input_map.deinit(allocator);
+    try input_map.put(allocator, "foo", qvariant.New24("FOO"));
+    try input_map.put(allocator, "bar", qvariant.New24("BAR"));
+    try input_map.put(allocator, "baz", qvariant.New24("BAZ"));
+    const qtobj = qjsonobject.FromVariantMap(input_map, allocator);
+    defer qjsonobject.QDelete(qtobj);
+    var output_map = qjsonobject.ToVariantMap(qtobj, allocator);
+    defer output_map.deinit(allocator);
+    var it = output_map.iterator();
+    while (it.next()) |entry| {
+        const key = entry.key_ptr.*;
+        defer allocator.free(key);
+        const val = entry.value_ptr.*;
+        defer qvariant.QDelete(val);
+        const value_str = qvariant.ToString(val, allocator);
+        defer allocator.free(value_str);
+        try stdout_writer.interface.print("QMap[{s}]: {s}\n", .{ key, value_str });
+        try stdout_writer.interface.flush();
+    }
 }
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {

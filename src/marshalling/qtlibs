@@ -4,9 +4,11 @@ qapplication
 qcheckbox
 qfile
 qinputdialog
+qjsonobject
 qkeysequence
 qobject
 qsize
 qtablewidget
+qvariant
 qversionnumber
 qwidget
