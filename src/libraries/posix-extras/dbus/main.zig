@@ -1,12 +1,13 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
+const all_types = qt6.all_types;
 const qapplication = qt6.qapplication;
 const qdbusconnection = qt6.qdbusconnection;
 const qdbusmessage = qt6.qdbusmessage;
 const qdbusmessage_enums = qt6.qdbusmessage_enums;
 const qvariant = qt6.qvariant;
-const map_constu8_qtcqvariant = std.StringHashMapUnmanaged(C.QVariant);
+const map_constu8_qtcqvariant = all_types.map_constu8_qtcqvariant;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
