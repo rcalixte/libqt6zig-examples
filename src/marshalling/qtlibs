@@ -3,6 +3,7 @@ qaction
 qapplication
 qcheckbox
 qfile
+qhttpheaders
 qinputdialog
 qjsonobject
 qkeysequence

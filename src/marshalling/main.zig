@@ -1,6 +1,7 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
+const all_types = qt6.all_types;
 const qapplication = qt6.qapplication;
 const qcheckbox = qt6.qcheckbox;
 const qsize = qt6.qsize;
@@ -18,6 +19,8 @@ const qjsonobject = qt6.qjsonobject;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 const c_allocator = std.heap.raw_c_allocator;
+
+const map_u8_sliceu8 = all_types.map_u8_sliceu8;
 
 pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
@@ -132,7 +135,7 @@ pub fn main() !void {
     try stdout_writer.interface.print("Value: {s}\n", .{value});
     try stdout_writer.interface.flush();
 
-    // QMap
+    // QMap<QString, QVariant>
     var input_map: std.StringHashMapUnmanaged(C.QVariant) = .empty;
     defer input_map.deinit(allocator);
     try input_map.put(allocator, "foo", qvariant.New24("FOO"));
@@ -151,6 +154,45 @@ pub fn main() !void {
         const value_str = qvariant.ToString(val, allocator);
         defer allocator.free(value_str);
         try stdout_writer.interface.print("QMap[{s}]: {s}\n", .{ key, value_str });
+        try stdout_writer.interface.flush();
+    }
+
+    // QMultiMap<QString, QString>
+    var multi_map: map_u8_sliceu8 = .empty;
+    const map_value = try allocator.alloc([]u8, 3);
+    defer allocator.free(map_value);
+    var val0 = "text/html".*;
+    var val1 = "application/xhtml+xml".*;
+    var val2 = "application/xml;".*;
+    map_value[0] = &val0;
+    map_value[1] = &val1;
+    map_value[2] = &val2;
+    const key = "Accept";
+    try multi_map.put(allocator, key, map_value);
+    defer multi_map.deinit(allocator);
+    const qheaders = qt6.qhttpheaders.FromMultiMap(multi_map, allocator);
+    defer qt6.qhttpheaders.QDelete(qheaders);
+    var headers = qt6.qhttpheaders.ToMultiMap(qheaders, allocator);
+    defer headers.deinit(allocator);
+    var value_it = headers.iterator();
+    while (value_it.next()) |entry| {
+        const _key = entry.key_ptr.*;
+        defer allocator.free(_key);
+        try stdout_writer.interface.print("HTTP Header: {s}: ", .{_key});
+        try stdout_writer.interface.flush();
+        const value_list = entry.value_ptr.*;
+        defer allocator.free(value_list);
+        for (0..value_list.len) |j| {
+            const value_string = value_list[j];
+            defer allocator.free(value_string);
+            try stdout_writer.interface.print("{s}", .{value_string});
+            try stdout_writer.interface.flush();
+            if (j < value_list.len - 1) {
+                _ = try stdout_writer.interface.write(",");
+                try stdout_writer.interface.flush();
+            }
+        }
+        _ = try stdout_writer.interface.write("\n");
         try stdout_writer.interface.flush();
     }
 }
