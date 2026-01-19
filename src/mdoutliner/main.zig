@@ -28,8 +28,8 @@ const allocator = gpa.allocator();
 
 const lineNumberRole = qnamespace_enums.ItemDataRole.UserRole + 1;
 
-const AppTabMap = std.AutoHashMap(?*anyopaque, *AppTab);
-const AppWindowMap = std.AutoHashMap(?*anyopaque, *AppWindow);
+const AppTabMap = std.AutoHashMapUnmanaged(?*anyopaque, *AppTab);
+const AppWindowMap = std.AutoHashMapUnmanaged(?*anyopaque, *AppWindow);
 
 var app_tab_map: AppTabMap = undefined;
 var app_window_tab_map: AppWindowMap = undefined;
@@ -145,8 +145,8 @@ pub fn NewAppTab() !*AppTab {
     qlistwidget.OnCurrentItemChanged(ret.outline, AppTab.handleJumpToBookmark);
 
     ret.textArea = qtextedit.New(ret.tab);
-    try app_tab_map.put(ret.textArea, ret);
-    try app_tab_map.put(ret.outline, ret);
+    try app_tab_map.put(allocator, ret.textArea, ret);
+    try app_tab_map.put(allocator, ret.outline, ret);
 
     qtextedit.OnTextChanged(ret.textArea, AppTab.handleTextChanged);
     qsplitter.AddWidget(panes, ret.textArea);
@@ -327,7 +327,7 @@ pub fn NewAppWindow() !*AppWindow {
     const sampleContent = @embedFile("README.md");
     AppWindow.createTabWithContents(ret, "README.md", sampleContent);
 
-    try app_window_tab_map.put(ret.tabs, ret);
+    try app_window_tab_map.put(allocator, ret.tabs, ret);
     main_window = ret;
 
     return ret;
@@ -341,8 +341,8 @@ pub fn main() !void {
 
     defer _ = gpa.deinit();
 
-    app_tab_map = AppTabMap.init(allocator);
-    app_window_tab_map = AppWindowMap.init(allocator);
+    app_tab_map = .empty;
+    app_window_tab_map = .empty;
 
     defer {
         // Clean up all remaining tabs
@@ -360,8 +360,8 @@ pub fn main() !void {
                 allocator.destroy(apptab);
             }
         }
-        app_tab_map.deinit();
-        app_window_tab_map.deinit();
+        app_tab_map.deinit(allocator);
+        app_window_tab_map.deinit(allocator);
     }
 
     const app = try NewAppWindow();
