@@ -20,6 +20,7 @@ var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 const c_allocator = std.heap.raw_c_allocator;
 
+const map_constu8_qtcqvariant = all_types.map_constu8_qtcqvariant;
 const map_u8_sliceu8 = all_types.map_u8_sliceu8;
 
 pub fn main() !void {
@@ -136,7 +137,7 @@ pub fn main() !void {
     try stdout_writer.interface.flush();
 
     // QMap<QString, QVariant>
-    var input_map: std.StringHashMapUnmanaged(C.QVariant) = .empty;
+    var input_map: map_constu8_qtcqvariant = .empty;
     defer input_map.deinit(allocator);
     try input_map.put(allocator, "foo", qvariant.New24("FOO"));
     try input_map.put(allocator, "bar", qvariant.New24("BAR"));
