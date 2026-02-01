@@ -18,7 +18,7 @@ const qjsonobject = qt6.qjsonobject;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
-const c_allocator = std.heap.raw_c_allocator;
+const c_allocator = std.heap.c_allocator;
 
 const map_constu8_qtcqvariant = all_types.map_constu8_qtcqvariant;
 const map_u8_sliceu8 = all_types.map_u8_sliceu8;
