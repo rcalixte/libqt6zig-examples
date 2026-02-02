@@ -1,0 +1,13 @@
+qabstractbutton
+qapplication
+qboxlayout
+qdialog
+qhostaddress
+qlineedit
+qobject
+qpushbutton
+qtextedit
+qurl
+qwebsocket
+qwebsocketserver
+qwidget
