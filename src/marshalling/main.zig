@@ -78,7 +78,7 @@ pub fn main() !void {
     // QStringList
     const c = qinputdialog.New2();
     defer qinputdialog.QDelete(c);
-    var items = [_][]const u8{ "foo", "bar", "baz", "quux" };
+    const items = [_][]const u8{ "foo", "bar", "baz", "quux" };
     qinputdialog.SetComboBoxItems(c, &items, allocator);
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
     defer allocator.free(comboItems);
