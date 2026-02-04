@@ -32,7 +32,7 @@ pub fn main() void {
     const message = qdbusmessage.CreateMethodCall(bus_name, bus_path, bus_name, "Notify");
     defer qdbusmessage.QDelete(message);
 
-    const actions: [][]const u8 = &.{};
+    const actions: []const []const u8 = &.{};
     const hints: map_constu8_qtcqvariant = .empty;
 
     var arguments = [_]C.QVariant{
