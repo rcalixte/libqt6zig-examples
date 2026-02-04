@@ -37,7 +37,7 @@ pub fn main() void {
     defer _ = gpa.deinit();
 
     const combo = qcombobox.New2();
-    var texts = [_][]const u8{ "en", "es", "fr" };
+    const texts = [_][]const u8{ "en", "es", "fr" };
 
     qcombobox.AddItems(combo, &texts, allocator);
     qcombobox.OnCurrentTextChanged(combo, onCurrentTextChanged);
