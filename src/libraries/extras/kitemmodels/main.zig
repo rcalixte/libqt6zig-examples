@@ -21,19 +21,19 @@ pub fn main() !void {
 
     defer _ = gpa.deinit();
 
-    var row_0_items = [_][]const u8{ "A0", "B0", "C0", "D0" };
+    const row_0_items = [_][]const u8{ "A0", "B0", "C0", "D0" };
     var row_0 = try makeStandardItemsList(allocator, &row_0_items);
     defer row_0.deinit(allocator);
 
-    var row_1_items = [_][]const u8{ "A1", "B1", "C1", "D1" };
+    const row_1_items = [_][]const u8{ "A1", "B1", "C1", "D1" };
     var row_1 = try makeStandardItemsList(allocator, &row_1_items);
     defer row_1.deinit(allocator);
 
-    var row_2_items = [_][]const u8{ "A2", "B2", "C2", "D2" };
+    const row_2_items = [_][]const u8{ "A2", "B2", "C2", "D2" };
     var row_2 = try makeStandardItemsList(allocator, &row_2_items);
     defer row_2.deinit(allocator);
 
-    var labels = [_][]const u8{ "H1", "H2", "H3", "H4" };
+    const labels = [_][]const u8{ "H1", "H2", "H3", "H4" };
 
     const source = qstandarditemmodel.New();
     defer qstandarditemmodel.QDelete(source);
@@ -68,7 +68,7 @@ pub fn main() !void {
     _ = qapplication.Exec();
 }
 
-fn makeStandardItemsList(alloc: std.mem.Allocator, labels: [][]const u8) !std.ArrayList(C.QStandardItem) {
+fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(C.QStandardItem) {
     var row: std.ArrayList(C.QStandardItem) = try .initCapacity(alloc, labels.len);
     for (labels) |label| {
         try row.append(alloc, qstandarditem.New2(label));
