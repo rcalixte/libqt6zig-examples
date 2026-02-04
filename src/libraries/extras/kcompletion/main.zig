@@ -37,7 +37,7 @@ pub fn main() void {
     kcompletion.SetSoundsEnabled(completion, false);
     klineedit.SetCompletionObject(lineedit, completion, true);
 
-    var items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
+    const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
     kcompletion.SetItems(completion, &items, allocator);
 
     qvboxlayout.AddStretch(vboxlayout);
