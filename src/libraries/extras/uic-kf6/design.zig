@@ -59,7 +59,7 @@ pub const MainWindowUi = struct {
         defer allocator.free(keditlistwidget_items1);
         const keditlistwidget_items2 = qt6.qcoreapplication.Translate("MainWindow", "Item 3", allocator);
         defer allocator.free(keditlistwidget_items2);
-        var keditlistwidget_items = [_][]const u8{ keditlistwidget_items0, keditlistwidget_items1, keditlistwidget_items2 };
+        const keditlistwidget_items = [_][]const u8{ keditlistwidget_items0, keditlistwidget_items1, keditlistwidget_items2 };
         qt6.keditlistwidget.SetItems(ui.keditlistwidget, &keditlistwidget_items, allocator);
         const text4 = qt6.qcoreapplication.Translate("MainWindow", "Tab 1", allocator);
         defer allocator.free(text4);
