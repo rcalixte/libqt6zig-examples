@@ -37,28 +37,28 @@ pub fn main() void {
 
     treewidget = qtreewidget.New(dialog);
     qtreewidget.SetColumnCount(treewidget, 4);
-    var labels = [_][]const u8{ "Item", "Price", "HIDDEN COLUMN", "Source" };
+    const labels = [_][]const u8{ "Item", "Price", "HIDDEN COLUMN", "Source" };
     qtreewidget.SetHeaderLabels(treewidget, &labels, allocator);
     qtreewidget.HideColumn(treewidget, 2);
 
     const searchwidget = ktreewidgetsearchlinewidget.New3(dialog, treewidget);
     m_searchline = ktreewidgetsearchlinewidget.SearchLine(searchwidget);
 
-    var red_s = [_][]const u8{"Red"};
+    const red_s = [_][]const u8{"Red"};
     const red = qtreewidgetitem.New4(treewidget, &red_s, allocator);
     qtreewidgetitem.SetWhatsThis(red, 0, "This item is red");
     qtreewidgetitem.SetWhatsThis(red, 1, "This item is pricey");
     qtreewidget.ExpandItem(treewidget, red);
 
-    var blue_s = [_][]const u8{"Blue"};
+    const blue_s = [_][]const u8{"Blue"};
     const blue = qtreewidgetitem.New4(treewidget, &blue_s, allocator);
     qtreewidget.ExpandItem(treewidget, blue);
 
-    var green_s = [_][]const u8{"Green"};
+    const green_s = [_][]const u8{"Green"};
     const green = qtreewidgetitem.New4(treewidget, &green_s, allocator);
     qtreewidget.ExpandItem(treewidget, green);
 
-    var yellow_s = [_][]const u8{"Yellow"};
+    const yellow_s = [_][]const u8{"Yellow"};
     const yellow = qtreewidgetitem.New4(treewidget, &yellow_s, allocator);
     qtreewidget.ExpandItem(treewidget, yellow);
 
@@ -102,35 +102,35 @@ pub fn main() void {
 }
 
 fn create2ndLevel(item: C.QTreeWidgetItem) void {
-    var beans_s = [_][]const u8{"Beans"};
+    const beans_s = [_][]const u8{"Beans"};
     const beans = qtreewidgetitem.New7(item, &beans_s, allocator);
     qtreewidget.ExpandItem(treewidget, beans);
     create3rdLevel(beans);
 
-    var grapes_s = [_][]const u8{"Grapes"};
+    const grapes_s = [_][]const u8{"Grapes"};
     const grapes = qtreewidgetitem.New7(item, &grapes_s, allocator);
     qtreewidget.ExpandItem(treewidget, grapes);
     create3rdLevel(grapes);
 
-    var plums_s = [_][]const u8{"Plums"};
+    const plums_s = [_][]const u8{"Plums"};
     const plums = qtreewidgetitem.New7(item, &plums_s, allocator);
     qtreewidget.ExpandItem(treewidget, plums);
     create3rdLevel(plums);
 
-    var bananas_s = [_][]const u8{"Bananas"};
+    const bananas_s = [_][]const u8{"Bananas"};
     const bananas = qtreewidgetitem.New7(item, &bananas_s, allocator);
     qtreewidget.ExpandItem(treewidget, bananas);
     create3rdLevel(bananas);
 }
 
 fn create3rdLevel(item: C.QTreeWidgetItem) void {
-    var growing = [_][]const u8{ "Growing", "$2.00", "", "Farmer" };
+    const growing = [_][]const u8{ "Growing", "$2.00", "", "Farmer" };
     _ = qtreewidgetitem.New7(item, &growing, allocator);
-    var ripe = [_][]const u8{ "Ripe", "$8.00", "", "Market" };
+    const ripe = [_][]const u8{ "Ripe", "$8.00", "", "Market" };
     _ = qtreewidgetitem.New7(item, &ripe, allocator);
-    var decaying = [_][]const u8{ "Decaying", "$0.50", "", "Ground" };
+    const decaying = [_][]const u8{ "Decaying", "$0.50", "", "Ground" };
     _ = qtreewidgetitem.New7(item, &decaying, allocator);
-    var pickled = [_][]const u8{ "Pickled", "$4.00", "", "Shop" };
+    const pickled = [_][]const u8{ "Pickled", "$4.00", "", "Shop" };
     _ = qtreewidgetitem.New7(item, &pickled, allocator);
 }
 
