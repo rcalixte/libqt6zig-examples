@@ -21,7 +21,8 @@ pub fn main() !void {
     if (kzip.Open(archive, qiodevicebase_enums.OpenModeFlag.WriteOnly)) {
         defer _ = kzip.Close(archive);
 
-        _ = kzip.WriteFile(archive, "world", "The whole world inside a hello");
+        var data = "The whole world inside a hello".*;
+        _ = kzip.WriteFile(archive, "world", &data);
         try stdout_writer.interface.print("Successfully wrote to '{s}'\n", .{ZIP_FILE});
         try stdout_writer.interface.flush();
     } else {
