@@ -20,6 +20,7 @@ pub fn main() void {
     defer _ = gpa.deinit();
 
     const splitter = qsplitter.New2();
+    defer qsplitter.QDelete(splitter);
 
     const dir = qdir.CurrentPath(allocator);
     defer allocator.free(dir);
