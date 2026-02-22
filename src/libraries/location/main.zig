@@ -8,7 +8,7 @@ const qplace = qt6.qplace;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var listwidget: C.QListWidget = undefined;
+var listwidget: C.QListWidget = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
