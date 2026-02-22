@@ -7,7 +7,7 @@ const qdbusconnection = qt6.qdbusconnection;
 const qdbusmessage = qt6.qdbusmessage;
 const qdbusmessage_enums = qt6.qdbusmessage_enums;
 const qvariant = qt6.qvariant;
-const map_constu8_qtcqvariant = all_types.map_constu8_qtcqvariant;
+const arraymap_constu8_qtcqvariant = all_types.arraymap_constu8_qtcqvariant;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
@@ -33,7 +33,7 @@ pub fn main() void {
     defer qdbusmessage.QDelete(message);
 
     const actions: []const []const u8 = &.{};
-    const hints: map_constu8_qtcqvariant = .empty;
+    const hints: arraymap_constu8_qtcqvariant = .empty;
 
     var arguments = [_]C.QVariant{
         qvariant.New24("Qt 6 D-Bus Example"),
