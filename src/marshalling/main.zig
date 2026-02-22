@@ -20,8 +20,8 @@ var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 const c_allocator = std.heap.c_allocator;
 
-const map_constu8_qtcqvariant = all_types.map_constu8_qtcqvariant;
-const map_u8_sliceu8 = all_types.map_u8_sliceu8;
+const arraymap_constu8_qtcqvariant = all_types.arraymap_constu8_qtcqvariant;
+const arraymap_u8_sliceu8 = all_types.arraymap_u8_sliceu8;
 
 pub fn main() !void {
     // Initialize Qt application, allocator, and stdout
@@ -127,7 +127,7 @@ pub fn main() !void {
     try stdout_writer.interface.print("QByteArray: {s}\n", .{f_output});
     try stdout_writer.interface.flush();
 
-    // QAnyStringView parameter
+    // QAnyStringView
     const object = qobject.New();
     defer qobject.QDelete(object);
     qobject.SetObjectName(object, "QAnyStringView Name");
@@ -137,7 +137,7 @@ pub fn main() !void {
     try stdout_writer.interface.flush();
 
     // QMap<QString, QVariant>
-    var input_map: map_constu8_qtcqvariant = .empty;
+    var input_map: arraymap_constu8_qtcqvariant = .empty;
     defer input_map.deinit(allocator);
     try input_map.put(allocator, "foo", qvariant.New24("FOO"));
     try input_map.put(allocator, "bar", qvariant.New24("BAR"));
@@ -159,7 +159,7 @@ pub fn main() !void {
     }
 
     // QMultiMap<QString, QString>
-    var multi_map: map_u8_sliceu8 = .empty;
+    var multi_map: arraymap_u8_sliceu8 = .empty;
     const map_value = try allocator.alloc([]u8, 3);
     defer allocator.free(map_value);
     var val0 = "text/html".*;
