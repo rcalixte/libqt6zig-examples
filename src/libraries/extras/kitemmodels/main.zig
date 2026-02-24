@@ -11,13 +11,13 @@ const qtimer = qt6.qtimer;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var proxy: C.KRearrangeColumnsProxyModel = undefined;
+var proxy: C.KRearrangeColumnsProxyModel = null;
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
@@ -36,7 +36,7 @@ pub fn main() !void {
     const labels = [_][]const u8{ "H1", "H2", "H3", "H4" };
 
     const source = qstandarditemmodel.New();
-    defer qstandarditemmodel.QDelete(source);
+    defer qstandarditemmodel.Delete(source);
 
     qstandarditemmodel.InsertRow(source, 0, row_0.items);
     qstandarditemmodel.InsertRow(source, 1, row_1.items);
@@ -44,14 +44,14 @@ pub fn main() !void {
     qstandarditemmodel.SetHorizontalHeaderLabels(source, &labels, allocator);
 
     proxy = krearrangecolumnsproxymodel.New();
-    defer krearrangecolumnsproxymodel.QDelete(proxy);
+    defer krearrangecolumnsproxymodel.Delete(proxy);
 
     var columns = [_]i32{ 2, 3, 1, 0 };
     krearrangecolumnsproxymodel.SetSourceColumns(proxy, &columns);
     krearrangecolumnsproxymodel.SetSourceModel(proxy, source);
 
     const treeview = qtreeview.New2();
-    defer qtreeview.QDelete(treeview);
+    defer qtreeview.Delete(treeview);
 
     qtreeview.SetWindowTitle(treeview, "Qt 6 KItemModels Example");
     qtreeview.SetMinimumSize2(treeview, 410, 100);
@@ -60,7 +60,7 @@ pub fn main() !void {
     qtreeview.Show(treeview);
 
     const timer = qtimer.New();
-    defer qtimer.QDelete(timer);
+    defer qtimer.Delete(timer);
 
     qtimer.Start(timer, 1000);
     qtimer.OnTimeout(timer, timerCallback);

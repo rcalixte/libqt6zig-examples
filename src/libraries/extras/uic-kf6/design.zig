@@ -51,7 +51,7 @@ pub const MainWindowUi = struct {
         const text3 = qt6.qcoreapplication.Translate("MainWindow", "Ctrl+Q", allocator);
         defer allocator.free(text3);
         const actionE_xitShortcut = qt6.qkeysequence.New2(text3);
-        defer qt6.qkeysequence.QDelete(actionE_xitShortcut);
+        defer qt6.qkeysequence.Delete(actionE_xitShortcut);
         qt6.qaction.SetShortcut(ui.actionE_xit, actionE_xitShortcut);
         const keditlistwidget_items0 = qt6.qcoreapplication.Translate("MainWindow", "Item 1", allocator);
         defer allocator.free(keditlistwidget_items0);
@@ -179,7 +179,7 @@ pub fn NewMainWindowUi(allocator: std.mem.Allocator) !*MainWindowUi {
     qt6.kled.SetMaximumSize2(ui.kled, 50, 50);
     qt6.kled.SetShape(ui.kled, qt6.kled_enums.Shape.Circular);
     const kled_color0 = qt6.qcolor.New5(236, 145, 92);
-    defer qt6.qcolor.QDelete(kled_color0);
+    defer qt6.qcolor.Delete(kled_color0);
     qt6.kled.SetColor(ui.kled, kled_color0);
 
     qt6.qvboxlayout.AddWidget(ui.verticalLayout_3, ui.kled);

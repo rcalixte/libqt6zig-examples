@@ -7,10 +7,10 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const button = kiconbutton.New2();
-    defer kiconbutton.QDelete(button);
+    defer kiconbutton.Delete(button);
 
     kiconbutton.SetWindowTitle(button, "Qt 6 KIconThemes Example");
     kiconbutton.SetText(button, "Click to open the chooser dialog");

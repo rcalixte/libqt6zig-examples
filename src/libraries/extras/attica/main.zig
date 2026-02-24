@@ -15,12 +15,12 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const project = attica__project.New();
-    defer attica__project.QDelete(project);
+    defer attica__project.Delete(project);
 
     attica__project.SetDescription(project, "Qt 6 for Zig");
     attica__project.SetName(project, "libqt6zig");
@@ -29,7 +29,7 @@ pub fn main() void {
     attica__project.SetLicense(project, "MIT");
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 Example for Attica");
     qwidget.SetMinimumSize2(widget, 350, 250);

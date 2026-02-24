@@ -6,10 +6,11 @@ const qtermwidget = qt6.qtermwidget;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const term = qtermwidget.New3();
-    defer qtermwidget.QDelete(term);
+    defer qtermwidget.Delete(term);
 
     qtermwidget.SetWindowTitle(term, "Qt 6 QTermWidget Example");
     qtermwidget.SetMinimumSize2(term, 640, 480);

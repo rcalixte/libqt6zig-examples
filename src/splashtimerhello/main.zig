@@ -12,36 +12,33 @@ const qvariant = qt6.qvariant;
 var counter: usize = 0;
 
 pub fn main() void {
-    // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const pixmap = qpixmap.New4("assets/libqt6zig-examples.png");
-    defer qpixmap.QDelete(pixmap);
+    defer qpixmap.Delete(pixmap);
 
     const splash = qsplashscreen.New4(pixmap, qnamespace_enums.WindowType.WindowStaysOnTopHint);
-    defer qsplashscreen.QDelete(splash);
+    defer qsplashscreen.Delete(splash);
 
     qsplashscreen.OnMousePressEvent(splash, onMousePressEvent);
 
     const text = "Hello world!";
     const widget = qwidget.New2();
-    if (widget == null) @panic("Failed to create widget");
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Hello world");
 
-    // We don't need to free the button, it's a child of the widget
     const button = qpushbutton.New5(text, widget);
     qpushbutton.SetFixedWidth(button, 320);
-
     qpushbutton.OnClicked(button, button_callback);
 
     qsplashscreen.Show(splash);
 
     const timer = qtimer.New();
-    defer qtimer.QDelete(timer);
+    defer qtimer.Delete(timer);
 
     const splash_qv = qvariant.New7(@intFromPtr(splash));
     _ = qtimer.SetProperty(timer, "splash", splash_qv);

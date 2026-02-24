@@ -7,10 +7,11 @@ const qprintdialog = qt6.qprintdialog;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const button = qpushbutton.New3("QPrintSupport sample");
-    defer qpushbutton.QDelete(button);
+    defer qpushbutton.Delete(button);
 
     qpushbutton.SetFixedWidth(button, 320);
     qpushbutton.OnPressed(button, onPressed);

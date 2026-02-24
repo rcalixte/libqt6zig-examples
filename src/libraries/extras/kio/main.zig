@@ -8,10 +8,10 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const dialog = kfilecustomdialog.New2();
-    defer kfilecustomdialog.QDelete(dialog);
+    defer kfilecustomdialog.Delete(dialog);
 
     kfilecustomdialog.SetWindowTitle(dialog, "Qt 6 KIO Example");
 

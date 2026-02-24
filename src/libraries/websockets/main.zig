@@ -82,7 +82,7 @@ pub const ClientDialog = struct {
         defer alloc.free(ws);
 
         const url = qurl.New3(ws);
-        defer qurl.QDelete(url);
+        defer qurl.Delete(url);
 
         qwebsocket.Open(self.socket, url);
     }
@@ -149,8 +149,8 @@ pub const ClientDialog = struct {
     fn onClientCloseEvent(_: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
         for (clientDialogs) |client| {
             qwebsocket.Close(client.socket);
-            qwebsocket.QDelete(client.socket);
-            qdialog.QBaseCloseEvent(client.dialog, event);
+            qwebsocket.Delete(client.socket);
+            qdialog.SuperCloseEvent(client.dialog, event);
         }
     }
 
@@ -168,15 +168,15 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const server = qwebsocketserver.New("Example Qt WebSockets Server", qwebsocketserver_enums.SslMode.NonSecureMode);
-    defer qwebsocketserver.QDelete(server);
+    defer qwebsocketserver.Delete(server);
 
     const localhost = qhostaddress.New7(qhostaddress_enums.SpecialAddress.LocalHostIPv6);
-    defer qhostaddress.QDelete(localhost);
+    defer qhostaddress.Delete(localhost);
 
     if (!qwebsocketserver.Listen2(server, localhost, LOCAL_PORT)) {
         const errStr = qwebsocketserver.ErrorString(server, allocator);

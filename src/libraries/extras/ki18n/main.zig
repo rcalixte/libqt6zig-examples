@@ -16,27 +16,27 @@ const allocator = gpa.allocator();
 var buffer: [24]u8 = undefined;
 
 var all_countries: []C.KCountry = undefined;
-var emoji_flag_label: C.QLabel = undefined;
-var currency_label: C.QLabel = undefined;
+var emoji_flag_label: C.QLabel = null;
+var currency_label: C.QLabel = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     all_countries = kcountry.AllCountries(allocator);
     defer {
         for (all_countries) |country| {
-            kcountry.QDelete(country);
+            kcountry.Delete(country);
         }
         allocator.free(all_countries);
     }
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 KCountry Example");
     qwidget.SetFixedSize2(widget, 400, 250);
@@ -47,7 +47,7 @@ pub fn main() void {
     const country_combo = qcombobox.New2();
     emoji_flag_label = qlabel.New2();
     const font = qfont.New2("Noto Color Emoji");
-    defer qfont.QDelete(font);
+    defer qfont.Delete(font);
     const style_sheet = "font-size: 28px;";
     qlabel.SetFont(emoji_flag_label, font);
     qlabel.SetStyleSheet(emoji_flag_label, style_sheet);

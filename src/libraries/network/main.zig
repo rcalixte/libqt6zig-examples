@@ -16,7 +16,7 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
@@ -62,7 +62,7 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
 
     for (results) |result| {
         const value = qdnshostaddressrecord.Value(result);
-        defer qhostaddress.QDelete(value);
+        defer qhostaddress.Delete(value);
 
         const record = qhostaddress.ToString(value, allocator);
         defer allocator.free(record);

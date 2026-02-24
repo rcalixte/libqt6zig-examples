@@ -12,7 +12,8 @@ const qcolor = qt6.qcolor;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(@intCast(argc), argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const model = qabstractlistmodel.New();
 
@@ -21,7 +22,7 @@ pub fn main() void {
     qabstractlistmodel.OnData(model, onData);
 
     const listview = qlistview.New2();
-    defer qlistview.QDelete(listview);
+    defer qlistview.Delete(listview);
 
     qlistview.SetModel(listview, model);
     qlistview.Show(listview);
@@ -41,20 +42,20 @@ fn onData(_: ?*anyopaque, index: ?*anyopaque, role: i32) callconv(.c) C.QVariant
     switch (role) {
         qnamespace_enums.ItemDataRole.ForegroundRole => if (@mod(qmodelindex.Row(index), 2) == 0) {
             const color = qcolor.New5(0, 0, 0);
-            defer qcolor.QDelete(color);
+            defer qcolor.Delete(color);
             return qcolor.ToQVariant(color);
         } else {
             const color = qcolor.New5(255, 0, 0);
-            defer qcolor.QDelete(color);
+            defer qcolor.Delete(color);
             return qcolor.ToQVariant(color);
         },
         qnamespace_enums.ItemDataRole.BackgroundRole => if (@mod(qmodelindex.Row(index), 2) == 0) {
             const color = qcolor.New5(255, 255, 255);
-            defer qcolor.QDelete(color);
+            defer qcolor.Delete(color);
             return qcolor.ToQVariant(color);
         } else {
             const color = qcolor.New5(80, 80, 80);
-            defer qcolor.QDelete(color);
+            defer qcolor.Delete(color);
             return qcolor.ToQVariant(color);
         },
         qnamespace_enums.ItemDataRole.DisplayRole => {

@@ -13,20 +13,20 @@ const ktexttohtml = qt6.ktexttohtml;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var plainTextEditor: C.QTextEdit = undefined;
-var htmlview: C.QTextBrowser = undefined;
-var timer: C.QTimer = undefined;
+var plainTextEditor: C.QTextEdit = null;
+var htmlview: C.QTextBrowser = null;
+var timer: C.QTimer = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     const widget = qwidget.New2();
     const layout = qhboxlayout.New2();

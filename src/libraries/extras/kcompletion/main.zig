@@ -15,12 +15,12 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 KCompletion Example");
     qwidget.SetMinimumSize2(widget, 300, 200);

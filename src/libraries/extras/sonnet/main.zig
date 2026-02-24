@@ -9,15 +9,18 @@ const sonnet__spellcheckdecorator = qt6.sonnet__spellcheckdecorator;
 const sonnet__highlighter = qt6.sonnet__highlighter;
 const qvboxlayout = qt6.qvboxlayout;
 
-var highlighter1: C.Sonnet__Highlighter = undefined;
-var highlighter2: C.Sonnet__Highlighter = undefined;
+var highlighter1: C.Sonnet__Highlighter = null;
+var highlighter2: C.Sonnet__Highlighter = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
+    defer qwidget.Delete(widget);
+
     qwidget.SetWindowTitle(widget, "Qt 6 Sonnet Example");
 
     const comboBox = sonnet__dictionarycombobox.New2();

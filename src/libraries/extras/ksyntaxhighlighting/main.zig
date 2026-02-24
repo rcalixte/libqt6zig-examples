@@ -25,12 +25,12 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     qmainwindow.SetWindowTitle(window, "Qt 6 KSyntaxHighlighting Example");
     qmainwindow.SetMinimumSize2(window, 1550, 750);
@@ -46,7 +46,7 @@ pub fn main() !void {
     const plaintextedit = qplaintextedit.New2();
 
     const font = qfont.New6("DejaVu Sans Mono", 13);
-    defer qfont.QDelete(font);
+    defer qfont.Delete(font);
 
     qplaintextedit.SetFont(plaintextedit, font);
 
@@ -62,7 +62,7 @@ pub fn main() !void {
 
     const document = qplaintextedit.Document(plaintextedit);
     const highlighter = ksyntaxhighlighting__syntaxhighlighter.New2(document);
-    defer ksyntaxhighlighting__syntaxhighlighter.QDelete(highlighter);
+    defer ksyntaxhighlighting__syntaxhighlighter.Delete(highlighter);
 
     const repository = ksyntaxhighlighting__repository.New();
 

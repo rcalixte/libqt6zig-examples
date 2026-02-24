@@ -9,16 +9,16 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const manager = kbookmarkmanager.New("assets/example.xml");
-    defer kbookmarkmanager.QDelete(manager);
+    defer kbookmarkmanager.Delete(manager);
 
     const dialog = kbookmarkdialog.New(manager);
-    defer kbookmarkdialog.QDelete(dialog);
+    defer kbookmarkdialog.Delete(dialog);
 
     const url = qurl.New3("https://github.com/rcalixte/libqt6zig-examples");
-    defer qurl.QDelete(url);
+    defer qurl.Delete(url);
 
     _ = kbookmarkdialog.AddBookmark(dialog, "Qt 6 examples for Zig", url, "www");
 }

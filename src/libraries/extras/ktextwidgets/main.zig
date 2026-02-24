@@ -12,12 +12,12 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const textedit = krichtextedit.New3();
-    defer krichtextedit.QDelete(textedit);
+    defer krichtextedit.Delete(textedit);
 
     krichtextedit.SetWindowTitle(textedit, "Qt 6 KTextWidgets Example");
     krichtextedit.SetMinimumSize2(textedit, 900, 850);

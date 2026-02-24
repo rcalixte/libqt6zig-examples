@@ -24,7 +24,7 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const threadcount = std.Thread.getCpuCount() catch 2;
 
@@ -33,7 +33,7 @@ pub fn main() void {
     // allocated with memory visible to Zig, we need to be mindful of
     // memory leaks.
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     defer _ = gpa.deinit();
 
@@ -86,7 +86,7 @@ pub fn main() void {
     // Create a QVariant to store the pointer and use Qt's property system
     // to store it on the button
     const variant = qvariant.New7(@intFromPtr(&button_data));
-    defer qvariant.QDelete(variant);
+    defer qvariant.Delete(variant);
     _ = qpushbutton.SetProperty(button, "buttonData", variant);
 
     qpushbutton.OnClicked(button, onClicked);

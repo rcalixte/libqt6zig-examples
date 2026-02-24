@@ -13,18 +13,18 @@ const qtoolbar = qt6.qtoolbar;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var editor: C.KTextEditor__Editor = undefined;
+var editor: C.KTextEditor__Editor = null;
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     qmainwindow.SetWindowTitle(window, "Qt 6 KTextEditor Example");
     qmainwindow.SetMinimumSize2(window, 1300, 1150);
@@ -38,7 +38,7 @@ pub fn main() !void {
     const file = try std.mem.concat(allocator, u8, &.{ "file://", dir, "/src/libraries/extras/ktexteditor/main.zig" });
     defer allocator.free(file);
     const url = qurl.New3(file);
-    defer qurl.QDelete(url);
+    defer qurl.Delete(url);
 
     _ = ktexteditor__document.OpenUrl(doc, url);
     ktexteditor__document.SetModifiedOnDiskWarning(doc, true);

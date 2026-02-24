@@ -14,19 +14,19 @@ const qformlayout = qt6.qformlayout;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var coord: C.QGeoCoordinate = undefined;
-var label: C.QLabel = undefined;
+var coord: C.QGeoCoordinate = null;
+var label: C.QLabel = null;
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     qmainwindow.SetWindowTitle(window, "Qt 6 Positioning Example");
     qmainwindow.Resize(window, 300, 120);
@@ -48,7 +48,7 @@ pub fn main() !void {
     qdoublespinbox.OnValueChanged(lon, onValueChanged);
 
     coord = qgeocoordinate.New2(qdoublespinbox.Value(lat), qdoublespinbox.Value(lon));
-    defer qgeocoordinate.QDelete(coord);
+    defer qgeocoordinate.Delete(coord);
 
     const geotext = qgeocoordinate.ToString1(
         coord,

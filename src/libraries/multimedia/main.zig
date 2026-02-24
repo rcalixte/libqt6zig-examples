@@ -12,12 +12,12 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     var stdout_writer = std.fs.File.stdout().writer(&buffer);
 
     const player = qmediaplayer.New();
-    defer qmediaplayer.QDelete(player);
+    defer qmediaplayer.Delete(player);
 
     if (qmediaplayer.Error(player) != qmediaplayer_enums.Error.NoError) {
         try stdout_writer.interface.writeAll("Failed to create player.\n");
@@ -26,11 +26,11 @@ pub fn main() !void {
     }
 
     const output = qaudiooutput.New();
-    defer qaudiooutput.QDelete(output);
+    defer qaudiooutput.Delete(output);
 
     qmediaplayer.SetAudioOutput(player, output);
     const url = qurl.New3("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
-    defer qurl.QDelete(url);
+    defer qurl.Delete(url);
     qmediaplayer.SetSource(player, url);
     qaudiooutput.SetVolume(output, 50);
 

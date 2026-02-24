@@ -9,17 +9,17 @@ const qnamespace_enums = qt6.qnamespace_enums;
 const qmouseevent = qt6.qmouseevent;
 const qkeyevent = qt6.qkeyevent;
 
-var label: C.QLabel = undefined;
+var label: C.QLabel = null;
 var buffer: [64]u8 = undefined;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetFixedWidth(widget, 400);
     qwidget.SetFixedHeight(widget, 100);

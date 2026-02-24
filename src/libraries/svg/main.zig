@@ -7,10 +7,10 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const svg = qsvgwidget.New3("assets/libqt6zig-examples.svg");
-    defer qsvgwidget.QDelete(svg);
+    defer qsvgwidget.Delete(svg);
 
     qsvgwidget.Show(svg);
 

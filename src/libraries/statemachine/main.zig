@@ -35,10 +35,10 @@ pub const LightWidget = struct {
         qwidget.OnPaintEvent(self.widget, onPaintEvent);
 
         const onVariant = qvariant.New7(@intFromPtr(&self.on));
-        defer qvariant.QDelete(onVariant);
+        defer qvariant.Delete(onVariant);
 
         const colorVariant = qvariant.New4(self.color);
-        defer qvariant.QDelete(colorVariant);
+        defer qvariant.Delete(colorVariant);
 
         _ = qwidget.SetProperty(self.widget, "on", onVariant);
         _ = qwidget.SetProperty(self.widget, "color", colorVariant);
@@ -80,10 +80,10 @@ pub const LightWidget = struct {
         const colorValue = qvariant.ToInt(colorVariant);
 
         const painter = qstylepainter.New(self);
-        defer qstylepainter.QDelete(painter);
+        defer qstylepainter.Delete(painter);
 
         const brush = qbrush.New4(colorValue);
-        defer qbrush.QDelete(brush);
+        defer qbrush.Delete(brush);
 
         qstylepainter.SetRenderHint(painter, qpainter_enums.RenderHint.Antialiasing);
         qstylepainter.SetBrush(painter, brush);
@@ -119,10 +119,10 @@ pub const TrafficWidget = struct {
         qvboxlayout.AddWidget(layout, self.green.widget);
 
         const palette = qpalette.New();
-        defer qpalette.QDelete(palette);
+        defer qpalette.Delete(palette);
 
         const color = qcolor.New4(qnamespace_enums.GlobalColor.Black);
-        defer qcolor.QDelete(color);
+        defer qcolor.Delete(color);
 
         qpalette.SetColor2(palette, qpalette_enums.ColorRole.Window, color);
         qwidget.SetPalette(self.widget, palette);
@@ -156,12 +156,12 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const trafficLight = qwidget.New2();
-    defer qwidget.QDelete(trafficLight);
+    defer qwidget.Delete(trafficLight);
 
     qwidget.SetWindowTitle(trafficLight, "Qt 6 State Machine Example");
     qwidget.Resize(trafficLight, 380, 800);
@@ -204,10 +204,10 @@ pub fn createLightState(light: *LightWidget, duration: i32) C.QState {
     qtimer.SetSingleShot(timer, true);
 
     const lightVariant = qvariant.New7(@intFromPtr(light));
-    defer qvariant.QDelete(lightVariant);
+    defer qvariant.Delete(lightVariant);
 
     const timerVariant = qvariant.New7(@intFromPtr(timer));
-    defer qvariant.QDelete(timerVariant);
+    defer qvariant.Delete(timerVariant);
 
     _ = qstate.SetProperty(timing, "light", lightVariant);
     _ = qstate.SetProperty(timing, "timer", timerVariant);

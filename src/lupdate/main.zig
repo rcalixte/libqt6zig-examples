@@ -19,20 +19,20 @@ const qtranslator = qt6.qtranslator;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var label: C.QLabel = undefined;
-var window: C.QMainWindow = undefined;
-var upButton: C.QPushButton = undefined;
-var downButton: C.QPushButton = undefined;
-var leftButton: C.QPushButton = undefined;
-var rightButton: C.QPushButton = undefined;
-var exitAction: C.QAction = undefined;
-var fileMenu: C.QMenu = undefined;
+var label: C.QLabel = null;
+var window: C.QMainWindow = null;
+var upButton: C.QPushButton = null;
+var downButton: C.QPushButton = null;
+var leftButton: C.QPushButton = null;
+var rightButton: C.QPushButton = null;
+var exitAction: C.QAction = null;
+var fileMenu: C.QMenu = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
@@ -46,7 +46,7 @@ pub fn main() void {
     qlabel.SetBuddy(label, combo);
 
     window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     qmainwindow.SetWindowTitle(window, "Qt 6 Translation Example");
     qmainwindow.SetMinimumSize2(window, 460, 270);
@@ -79,7 +79,7 @@ pub fn main() void {
     exitAction = qaction.New5("E&xit", window);
 
     const exitKey = qkeysequence.New2("Ctrl+Q");
-    defer qkeysequence.QDelete(exitKey);
+    defer qkeysequence.Delete(exitKey);
 
     qaction.SetShortcut(exitAction, exitKey);
     qaction.OnTriggered(exitAction, onTriggered);
@@ -98,10 +98,10 @@ fn onTriggered(_: ?*anyopaque) callconv(.c) void {
 
 fn onCurrentTextChanged(_: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
     const locale = qlocale.New2(std.mem.span(text));
-    defer qlocale.QDelete(locale);
+    defer qlocale.Delete(locale);
 
     const translator = qtranslator.New();
-    defer qtranslator.QDelete(translator);
+    defer qtranslator.Delete(translator);
 
     if (qtranslator.Load42(translator, locale, "lupdate", "_", "src/lupdate")) {
         _ = qapplication.InstallTranslator(translator);
@@ -142,7 +142,7 @@ fn retranslate() void {
     defer allocator.free(quitBind);
 
     const exitKey = qkeysequence.New2(quitBind);
-    defer qkeysequence.QDelete(exitKey);
+    defer qkeysequence.Delete(exitKey);
 
     qaction.SetShortcut(exitAction, exitKey);
 }

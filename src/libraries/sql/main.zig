@@ -21,21 +21,22 @@ const qstyleditemdelegate = qt6.qstyleditemdelegate;
 const qgridlayout = qt6.qgridlayout;
 const qmodelindex = qt6.qmodelindex;
 
-var mapper: C.QDataWidgetMapper = undefined;
-var nextButton: C.QPushButton = undefined;
-var previousButton: C.QPushButton = undefined;
-var model: C.QSqlRelationalTableModel = undefined;
+var mapper: C.QDataWidgetMapper = null;
+var nextButton: C.QPushButton = null;
+var previousButton: C.QPushButton = null;
+var model: C.QSqlRelationalTableModel = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     const db = qsqldatabase.AddDatabase("QSQLITE");
-    defer qsqldatabase.QDelete(db);
+    defer qsqldatabase.Delete(db);
 
     qsqldatabase.SetDatabaseName(db, ":memory:");
     if (!qsqldatabase.Open(db)) {
@@ -49,7 +50,7 @@ pub fn main() void {
     }
 
     const query = qsqlquery.New2();
-    defer qsqlquery.QDelete(query);
+    defer qsqlquery.Delete(query);
 
     // Setup the main table
     _ = qsqlquery.Exec(
@@ -101,7 +102,7 @@ pub fn main() void {
 
     const typeIndex = qsqlrelationaltablemodel.FieldIndex(model, "typeid");
     const relation = qsqlrelation.New2("addresstype", "id", "description");
-    defer qsqlrelation.QDelete(relation);
+    defer qsqlrelation.Delete(relation);
     qsqlrelationaltablemodel.SetRelation(model, typeIndex, relation);
 
     _ = qsqlrelationaltablemodel.Select(model);
@@ -166,6 +167,6 @@ fn toNext(_: ?*anyopaque) callconv(.c) void {
 fn updateButtons(_: ?*anyopaque, index: i32) callconv(.c) void {
     qpushbutton.SetEnabled(previousButton, index > 0);
     const modelIndex = qmodelindex.New3();
-    defer qmodelindex.QDelete(modelIndex);
+    defer qmodelindex.Delete(modelIndex);
     qpushbutton.SetEnabled(nextButton, index < qsqlrelationaltablemodel.RowCount(model, modelIndex) - 1);
 }

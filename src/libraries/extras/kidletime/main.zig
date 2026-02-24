@@ -8,16 +8,16 @@ const qlabel = qt6.qlabel;
 const qnamespace_enums = qt6.qnamespace_enums;
 const kidletime = qt6.kidletime;
 
-var label: C.QLabel = undefined;
+var label: C.QLabel = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 KIdleTime Example");
     qwidget.SetFixedSize2(widget, 550, 150);

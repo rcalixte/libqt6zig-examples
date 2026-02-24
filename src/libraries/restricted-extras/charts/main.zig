@@ -10,10 +10,10 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const series = qlineseries.New();
-    defer qlineseries.QDelete(series);
+    defer qlineseries.Delete(series);
 
     qlineseries.SetName(series, "Sine Wave");
 

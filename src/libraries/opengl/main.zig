@@ -7,16 +7,16 @@ const qopenglwidget = qt6.qopenglwidget;
 const qopenglcontext = qt6.qopenglcontext;
 const qopenglextrafunctions = qt6.qopenglextrafunctions;
 
-var glfuncs: C.QOpenGLExtraFunctions = undefined;
+var glfuncs: C.QOpenGLExtraFunctions = null;
 
 pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
 
     qmainwindow.SetWindowTitle(window, "Qt 6 OpenGL Example");
     qmainwindow.SetMinimumSize2(window, 400, 400);

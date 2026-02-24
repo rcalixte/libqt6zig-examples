@@ -8,11 +8,10 @@ var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
 pub fn main() !void {
-    // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 

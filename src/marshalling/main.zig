@@ -28,7 +28,7 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
@@ -37,21 +37,21 @@ pub fn main() !void {
 
     // Bool
     const b = qcheckbox.New2();
-    defer qcheckbox.QDelete(b);
+    defer qcheckbox.Delete(b);
     qcheckbox.SetChecked(b, true);
     try stdout_writer.interface.print("Checked: {any}\n", .{qcheckbox.IsChecked(b)});
     try stdout_writer.interface.flush();
 
     // Int
     const s = qsize.New3();
-    defer qsize.QDelete(s);
+    defer qsize.Delete(s);
     qsize.SetWidth(s, 128);
     try stdout_writer.interface.print("Width: {d}\n", .{qsize.Width(s)});
     try stdout_writer.interface.flush();
 
     // Int by reference
     const size = qsize.New4(32, 32);
-    defer qsize.QDelete(size);
+    defer qsize.Delete(size);
     const r = qsize.Rheight(size);
     r.?.* = 64;
     try stdout_writer.interface.print("Height: {d}\n", .{qsize.Height(size)});
@@ -59,7 +59,7 @@ pub fn main() !void {
 
     // QString
     const w = qwidget.New2();
-    defer qwidget.QDelete(w);
+    defer qwidget.Delete(w);
     qwidget.SetToolTip(w, "Sample text");
     const tooltip = qwidget.ToolTip(w, allocator);
     defer allocator.free(tooltip);
@@ -71,13 +71,13 @@ pub fn main() !void {
     const li = qversionnumber.New2(&seq);
     const segs = qversionnumber.Segments(li, allocator);
     defer allocator.free(segs);
-    defer qversionnumber.QDelete(li);
+    defer qversionnumber.Delete(li);
     try stdout_writer.interface.print("Segments: {any}\n", .{segs});
     try stdout_writer.interface.flush();
 
     // QStringList
     const c = qinputdialog.New2();
-    defer qinputdialog.QDelete(c);
+    defer qinputdialog.Delete(c);
     const items = [_][]const u8{ "foo", "bar", "baz", "quux" };
     qinputdialog.SetComboBoxItems(c, &items, allocator);
     const comboItems = qinputdialog.ComboBoxItems(c, allocator);
@@ -90,7 +90,7 @@ pub fn main() !void {
 
     // QStringList callback
     const table = qtablewidget.New2();
-    defer qtablewidget.QDelete(table);
+    defer qtablewidget.Delete(table);
     qtablewidget.OnMimeTypes(table, onMimeTypes);
     const tableMimeTypes = qtablewidget.MimeTypes(table, allocator);
     defer allocator.free(tableMimeTypes);
@@ -107,7 +107,7 @@ pub fn main() !void {
         qkeysequence.FromString("F3"),
     };
     const qa = qaction.New();
-    defer qaction.QDelete(qa);
+    defer qaction.Delete(qa);
     qaction.SetShortcuts(qa, &keyarray);
     const shortcuts = qaction.Shortcuts(qa, allocator);
     defer allocator.free(shortcuts);
@@ -129,7 +129,7 @@ pub fn main() !void {
 
     // QAnyStringView
     const object = qobject.New();
-    defer qobject.QDelete(object);
+    defer qobject.Delete(object);
     qobject.SetObjectName(object, "QAnyStringView Name");
     const value = qobject.ObjectName(object, allocator);
     defer allocator.free(value);
@@ -143,7 +143,7 @@ pub fn main() !void {
     try input_map.put(allocator, "bar", qvariant.New24("BAR"));
     try input_map.put(allocator, "baz", qvariant.New24("BAZ"));
     const qtobj = qjsonobject.FromVariantMap(input_map, allocator);
-    defer qjsonobject.QDelete(qtobj);
+    defer qjsonobject.Delete(qtobj);
     var output_map = qjsonobject.ToVariantMap(qtobj, allocator);
     defer output_map.deinit(allocator);
     var it = output_map.iterator();
@@ -151,7 +151,7 @@ pub fn main() !void {
         const key = entry.key_ptr.*;
         defer allocator.free(key);
         const val = entry.value_ptr.*;
-        defer qvariant.QDelete(val);
+        defer qvariant.Delete(val);
         const value_str = qvariant.ToString(val, allocator);
         defer allocator.free(value_str);
         try stdout_writer.interface.print("QMap[{s}]: {s}\n", .{ key, value_str });
@@ -172,7 +172,7 @@ pub fn main() !void {
     try multi_map.put(allocator, key, map_value);
     defer multi_map.deinit(allocator);
     const qheaders = qt6.qhttpheaders.FromMultiMap(multi_map, allocator);
-    defer qt6.qhttpheaders.QDelete(qheaders);
+    defer qt6.qhttpheaders.Delete(qheaders);
     var headers = qt6.qhttpheaders.ToMultiMap(qheaders, allocator);
     defer headers.deinit(allocator);
     var value_it = headers.iterator();

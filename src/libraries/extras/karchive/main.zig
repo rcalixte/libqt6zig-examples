@@ -11,10 +11,10 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qcoreapplication.New(argc, argv);
-    defer qcoreapplication.QDelete(qapp);
+    defer qcoreapplication.Delete(qapp);
 
     const archive = kzip.New(ZIP_FILE);
-    defer kzip.QDelete(archive);
+    defer kzip.Delete(archive);
 
     var stdout_writer = std.fs.File.stdout().writer(&buffer);
 

@@ -11,16 +11,16 @@ const packagekit__daemon = qt6.packagekit__daemon;
 const packagekit__transaction = qt6.packagekit__transaction;
 const transaction_enums = qt6.transaction_1_enums;
 
-var status_label: C.QLabel = undefined;
+var status_label: C.QLabel = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 PackageKit Example");
     qwidget.Resize(widget, 300, 200);

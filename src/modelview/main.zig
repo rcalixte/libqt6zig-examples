@@ -15,20 +15,20 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const splitter = qsplitter.New2();
-    defer qsplitter.QDelete(splitter);
+    defer qsplitter.Delete(splitter);
 
     const dir = qdir.CurrentPath(allocator);
     defer allocator.free(dir);
 
     const model = qfilesystemmodel.New();
-    defer qfilesystemmodel.QDelete(model);
+    defer qfilesystemmodel.Delete(model);
     const modelindex = qfilesystemmodel.SetRootPath(model, dir);
-    defer qmodelindex.QDelete(modelindex);
+    defer qmodelindex.Delete(modelindex);
 
     const tree = qtreeview.New(splitter);
     qtreeview.SetModel(tree, model);

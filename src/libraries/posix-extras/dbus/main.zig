@@ -22,15 +22,15 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const session_bus = qdbusconnection.SessionBus();
-    defer qdbusconnection.QDelete(session_bus);
+    defer qdbusconnection.Delete(session_bus);
 
     const message = qdbusmessage.CreateMethodCall(bus_name, bus_path, bus_name, "Notify");
-    defer qdbusmessage.QDelete(message);
+    defer qdbusmessage.Delete(message);
 
     const actions: []const []const u8 = &.{};
     const hints: arraymap_constu8_qtcqvariant = .empty;
@@ -49,7 +49,7 @@ pub fn main() void {
     qdbusmessage.SetArguments(message, &arguments);
 
     const reply = qdbusconnection.Call(session_bus, message);
-    defer qdbusmessage.QDelete(reply);
+    defer qdbusmessage.Delete(reply);
 
     if (qdbusmessage.Type(reply) != qdbusmessage_enums.MessageType.ReplyMessage) {
         stdout_writer.interface.writeAll("Failed to send message\n") catch @panic("Failed to print to stdout");

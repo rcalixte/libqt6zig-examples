@@ -11,12 +11,12 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const text = "Hello world!";
     const widget = qwidget.New2();
     if (widget == null) @panic("Failed to create widget");
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     // We don't need to free the button, it's a child of the widget
     const button = qpushbutton.New5(text, widget);

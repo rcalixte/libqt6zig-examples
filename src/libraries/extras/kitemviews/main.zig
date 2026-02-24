@@ -18,15 +18,15 @@ const qheaderview = qt6.qheaderview;
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
 
-var dialog: C.QDialog = undefined;
-var treewidget: C.QTreeWidget = undefined;
-var m_searchline: C.KTreeWidgetSearchLine = undefined;
+var dialog: C.QDialog = null;
+var treewidget: C.QTreeWidget = null;
+var m_searchline: C.KTreeWidgetSearchLine = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
@@ -151,7 +151,7 @@ fn onRejected(_: ?*anyopaque) callconv(.c) void {
 }
 
 fn showEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
-    qdialog.QBaseShowEvent(self, event);
+    qdialog.SuperShowEvent(self, event);
 
     const headerview = qtreewidget.Header(treewidget);
     for (0..@intCast(qheaderview.Count(headerview))) |i| {

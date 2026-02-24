@@ -36,40 +36,40 @@ pub fn main() !void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     const listwidget = qlistwidget.New2();
-    defer qlistwidget.QDelete(listwidget);
+    defer qlistwidget.Delete(listwidget);
 
     qlistwidget.SetWindowTitle(listwidget, "Qt 6 KFileMetaData Example");
     qlistwidget.Resize(listwidget, 500, 250);
     qlistwidget.SetSpacing(listwidget, 5);
 
     const size = qsize.New4(200, 200);
-    defer qsize.QDelete(size);
+    defer qsize.Delete(size);
 
     qlistwidget.SetIconSize(listwidget, size);
     qlistwidget.SetViewMode(listwidget, qlistview_enums.ViewMode.IconMode);
 
     const icon = qicon.New4(filename);
-    defer qicon.QDelete(icon);
+    defer qicon.Delete(icon);
 
     const item = qlistwidgetitem.New3(icon, "Image Properties");
-    defer qlistwidgetitem.QDelete(item);
+    defer qlistwidgetitem.Delete(item);
 
     qlistwidget.AddItem2(listwidget, item);
 
     const object = qobject.New();
-    defer qobject.QDelete(object);
+    defer qobject.Delete(object);
 
     const pngextractor = kfilemetadata__extractorplugin.New(object);
     kfilemetadata__extractorplugin.OnMimetypes(pngextractor, onMimeTypes);
     kfilemetadata__extractorplugin.OnExtract(pngextractor, onExtract);
 
     const result = kfilemetadata__simpleextractionresult.New(filename);
-    defer kfilemetadata__simpleextractionresult.QDelete(result);
+    defer kfilemetadata__simpleextractionresult.Delete(result);
     kfilemetadata__extractorplugin.Extract(pngextractor, result);
 
     var properties = kfilemetadata__simpleextractionresult.Properties(result, allocator);
@@ -82,12 +82,12 @@ pub fn main() !void {
             const value_str = qvariant.ToString(entry.value_ptr.*[j], allocator);
             defer {
                 allocator.free(value_str);
-                qvariant.QDelete(entry.value_ptr.*[j]);
+                qvariant.Delete(entry.value_ptr.*[j]);
                 allocator.free(entry.value_ptr.*);
             }
 
             const info = kfilemetadata__propertyinfo.New2(key);
-            defer kfilemetadata__propertyinfo.QDelete(info);
+            defer kfilemetadata__propertyinfo.Delete(info);
 
             const name = kfilemetadata__propertyinfo.DisplayName(info, allocator);
             defer allocator.free(name);
@@ -116,7 +116,7 @@ fn onExtract(_: ?*anyopaque, result: ?*anyopaque) callconv(.c) void {
 
     var format = "png".*;
     const reader = qimagereader.New5(filename, &format);
-    defer qimagereader.QDelete(reader);
+    defer qimagereader.Delete(reader);
 
     if (!qimagereader.CanRead(reader)) {
         stdout_writer.interface.print("Unable to read input image: '{s}'\n", .{filename}) catch @panic("onExtract stdout error during read");
@@ -139,7 +139,7 @@ fn onExtract(_: ?*anyopaque, result: ?*anyopaque) callconv(.c) void {
         if (value.len == 0) continue;
 
         const variant = qt6.qvariant.New24(value);
-        defer qt6.qvariant.QDelete(variant);
+        defer qt6.qvariant.Delete(variant);
 
         kfilemetadata__extractionresult.Add(result, mapping.property, variant);
     }

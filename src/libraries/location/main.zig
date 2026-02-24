@@ -14,31 +14,31 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     defer _ = gpa.deinit();
 
     listwidget = qlistwidget.New2();
-    defer qlistwidget.QDelete(listwidget);
+    defer qlistwidget.Delete(listwidget);
 
     qlistwidget.SetWindowTitle(listwidget, "Qt 6 Location Example");
     qlistwidget.Resize(listwidget, 400, 250);
     qlistwidget.SetSpacing(listwidget, 5);
 
     const place1 = qplace.New();
-    defer qplace.QDelete(place1);
+    defer qplace.Delete(place1);
 
     qplace.SetName(place1, "Eiffel Tower");
     qplace.SetPlaceId(place1, "Champ de Mars, Paris, France");
 
     const place2 = qplace.New();
-    defer qplace.QDelete(place2);
+    defer qplace.Delete(place2);
 
     qplace.SetName(place2, "Space Needle");
     qplace.SetPlaceId(place2, "Seattle, Washington, USA");
 
     const place3 = qplace.New();
-    defer qplace.QDelete(place3);
+    defer qplace.Delete(place3);
 
     qplace.SetName(place3, "Statue of Liberty");
     qplace.SetPlaceId(place3, "New York, USA");

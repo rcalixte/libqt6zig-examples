@@ -12,9 +12,11 @@ const qgridlayout = qt6.qgridlayout;
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
-    _ = qapplication.New(argc, argv);
+    const qapp = qapplication.New(argc, argv);
+    defer qapplication.Delete(qapp);
 
     const wizard = qwizard.New2();
+    defer qwizard.Delete(wizard);
 
     const introPage = createIntroPage();
     _ = qwizard.AddPage(wizard, introPage);

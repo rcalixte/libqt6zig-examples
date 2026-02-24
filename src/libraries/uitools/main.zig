@@ -16,20 +16,20 @@ pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 UI Tools Example");
 
     const layout = qvboxlayout.New(widget);
 
     const loader = quiloader.New();
-    defer quiloader.QDelete(loader);
+    defer quiloader.Delete(loader);
 
     const file = qfile.New2(FORMFILE);
-    defer qfile.QDelete(file);
+    defer qfile.Delete(file);
 
     if (qfile.Open(file, qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
         defer qfile.Close(file);

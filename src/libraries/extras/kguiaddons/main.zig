@@ -10,16 +10,16 @@ const kdatevalidator = qt6.kdatevalidator;
 const qvboxlayout = qt6.qvboxlayout;
 const qvalidator_enums = qt6.qvalidator_enums;
 
-var label: C.QLabel = undefined;
+var label: C.QLabel = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 KGuiAddons Example");
     qwidget.SetMinimumSize2(widget, 380, 180);

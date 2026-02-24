@@ -13,16 +13,16 @@ const qmenu = qt6.qmenu;
 const kcolorschememenu = qt6.kcolorschememenu;
 const qmenubar = qt6.qmenubar;
 
-var manager: C.KColorSchemeManager = undefined;
+var manager: C.KColorSchemeManager = null;
 
 pub fn main() void {
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     const window = qmainwindow.New2();
-    defer qmainwindow.QDelete(window);
+    defer qmainwindow.Delete(window);
     qmainwindow.SetWindowTitle(window, "Qt 6 KConfigWidgets");
     qmainwindow.SetMinimumSize2(window, 400, 450);
     manager = kcolorschememanager.Instance();

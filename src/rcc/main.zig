@@ -9,11 +9,10 @@ const qicon = qt6.qicon;
 const qsize = qt6.qsize;
 
 pub fn main() !void {
-    // Initialize Qt application
     const argc = std.os.argv.len;
     const argv = std.os.argv.ptr;
     const qapp = qapplication.New(argc, argv);
-    defer qapplication.QDelete(qapp);
+    defer qapplication.Delete(qapp);
 
     var buffer: [64]u8 = undefined;
     var stdout_writer = std.fs.File.stdout().writer(&buffer);
@@ -32,7 +31,7 @@ pub fn main() !void {
     }
 
     const widget = qwidget.New2();
-    defer qwidget.QDelete(widget);
+    defer qwidget.Delete(widget);
 
     qwidget.SetMinimumSize2(widget, 650, 150);
 
@@ -41,28 +40,28 @@ pub fn main() !void {
     const radio1 = qradiobutton.New(widget);
     qradiobutton.SetToolTip(radio1, "Qt");
     const icon1 = qicon.New4(":/images/qt.png");
-    defer qicon.QDelete(icon1);
+    defer qicon.Delete(icon1);
     qradiobutton.SetIcon(radio1, icon1);
     const size1 = qsize.New4(50, 50);
-    defer qsize.QDelete(size1);
+    defer qsize.Delete(size1);
     qradiobutton.SetIconSize(radio1, size1);
 
     const radio2 = qradiobutton.New(widget);
     qradiobutton.SetToolTip(radio2, "Zig");
     const icon2 = qicon.New4(":/images/zig.png");
-    defer qicon.QDelete(icon2);
+    defer qicon.Delete(icon2);
     qradiobutton.SetIcon(radio2, icon2);
     const size2 = qsize.New4(50, 50);
-    defer qsize.QDelete(size2);
+    defer qsize.Delete(size2);
     qradiobutton.SetIconSize(radio2, size2);
 
     const radio3 = qradiobutton.New(widget);
     qradiobutton.SetToolTip(radio3, "libqt6zig");
     const icon3 = qicon.New4(":/images/libqt6zig.png");
-    defer qicon.QDelete(icon3);
+    defer qicon.Delete(icon3);
     qradiobutton.SetIcon(radio3, icon3);
     const size3 = qsize.New4(120, 40);
-    defer qsize.QDelete(size3);
+    defer qsize.Delete(size3);
     qradiobutton.SetIconSize(radio3, size3);
 
     qhboxlayout.AddStretch(hbox);
