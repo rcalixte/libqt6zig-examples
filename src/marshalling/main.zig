@@ -15,6 +15,8 @@ const qfile = qt6.qfile;
 const qobject = qt6.qobject;
 const qvariant = qt6.qvariant;
 const qjsonobject = qt6.qjsonobject;
+const qhttpheaders = qt6.qhttpheaders;
+const qeasingcurve = qt6.qeasingcurve;
 
 var gpa = @import("alloc_config").gpa;
 const allocator = gpa.allocator();
@@ -171,9 +173,9 @@ pub fn main() !void {
     const key = "Accept";
     try multi_map.put(allocator, key, map_value);
     defer multi_map.deinit(allocator);
-    const qheaders = qt6.qhttpheaders.FromMultiMap(multi_map, allocator);
-    defer qt6.qhttpheaders.Delete(qheaders);
-    var headers = qt6.qhttpheaders.ToMultiMap(qheaders, allocator);
+    const qheaders = qhttpheaders.FromMultiMap(multi_map, allocator);
+    defer qhttpheaders.Delete(qheaders);
+    var headers = qhttpheaders.ToMultiMap(qheaders, allocator);
     defer headers.deinit(allocator);
     var value_it = headers.iterator();
     while (value_it.next()) |entry| {
@@ -196,6 +198,16 @@ pub fn main() !void {
         _ = try stdout_writer.interface.write("\n");
         try stdout_writer.interface.flush();
     }
+
+    // Qt function pointer
+    const easing = qeasingcurve.New();
+    defer qeasingcurve.Delete(easing);
+    qeasingcurve.SetCustomType(easing, easingFunction);
+    const easingFunc = qeasingcurve.CustomType(easing) orelse @panic("Failed to get easing function");
+    for (0..3) |i| {
+        try stdout_writer.interface.print("Easing function value: {d}\n", .{easingFunc(@floatFromInt(i))});
+        try stdout_writer.interface.flush();
+    }
 }
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
@@ -206,4 +218,8 @@ fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     list[2] = "image/png";
 
     return list.ptr;
+}
+
+fn easingFunction(f: f64) callconv(.c) f64 {
+    return f * f;
 }

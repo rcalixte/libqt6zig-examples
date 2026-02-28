@@ -2,6 +2,7 @@ qabstractbutton
 qaction
 qapplication
 qcheckbox
+qeasingcurve
 qfile
 qhttpheaders
 qinputdialog
