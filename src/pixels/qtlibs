@@ -1,0 +1,16 @@
+qapplication
+qcolor
+qcoreapplication
+qevent
+qgraphicsitem
+qgraphicsscene
+qgraphicssceneevent
+qgraphicsview
+qguiapplication
+qimage
+qmainwindow
+qpixmap
+qpoint
+qrect
+qstatusbar
+qwidget
