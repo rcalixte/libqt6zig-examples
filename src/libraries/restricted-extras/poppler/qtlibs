@@ -1,0 +1,11 @@
+poppler_qt6
+qapplication
+qboxlayout
+qimage
+qlabel
+qlayout
+qpainter
+qpixmap
+qscrollarea
+qsize
+qwidget
