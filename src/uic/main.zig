@@ -15,8 +15,8 @@ pub fn main() !void {
 
     defer _ = gpa.deinit();
 
-    const uic = try ui.NewMainWindowUi(allocator);
-    defer allocator.destroy(uic);
+    const uic = try ui.create(allocator);
+    defer uic.destroy(allocator);
 
     qmainwindow.Show(uic.MainWindow);
 
