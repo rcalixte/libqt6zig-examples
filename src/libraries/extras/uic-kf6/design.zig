@@ -37,8 +37,8 @@ pub const MainWindowUi = struct {
     action_New: C.QAction,
     actionE_xit: C.QAction,
 
-    // RetranslateUi reapplies all text translations
-    pub fn RetranslateUi(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
+    /// Reapplies all text translations
+    pub fn retranslate(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
         const text0 = qt6.qcoreapplication.Translate("MainWindow", "MainWindow", allocator);
         defer allocator.free(text0);
         qt6.qmainwindow.SetWindowTitle(ui.MainWindow, text0);
@@ -92,10 +92,16 @@ pub const MainWindowUi = struct {
         defer allocator.free(text13);
         qt6.qdockwidget.SetWindowTitle(ui.dockWidget, text13);
     }
+
+    /// Destroys all the Qt objects for MainWindowUi and frees the allocated memory
+    pub fn destroy(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
+        qt6.qmainwindow.Delete(ui.MainWindow);
+        allocator.destroy(ui);
+    }
 };
 
-// NewMainWindowUi creates all the Qt objects for MainWindowUi
-pub fn NewMainWindowUi(allocator: std.mem.Allocator) !*MainWindowUi {
+/// Creates all the Qt objects for MainWindowUi
+pub fn create(allocator: std.mem.Allocator) !*MainWindowUi {
     var ui = try allocator.create(MainWindowUi);
 
     ui.MainWindow = qt6.qmainwindow.New2();
@@ -224,7 +230,7 @@ pub fn NewMainWindowUi(allocator: std.mem.Allocator) !*MainWindowUi {
     _ = qt6.qmenu.AddSeparator(ui.menu_File);
     qt6.qmenu.AddAction(ui.menu_File, ui.actionE_xit);
 
-    ui.RetranslateUi(allocator);
+    ui.retranslate(allocator);
 
     qt6.qtabwidget.SetCurrentIndex(ui.tabWidget, 0);
 
