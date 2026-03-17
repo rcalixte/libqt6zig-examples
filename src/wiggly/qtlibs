@@ -1,0 +1,14 @@
+qapplication
+qbasictimer
+qboxlayout
+qcolor
+qcoreevent
+qdialog
+qfont
+qfontmetrics
+qlayout
+qlineedit
+qobject
+qpainter
+qstylepainter
+qwidget
