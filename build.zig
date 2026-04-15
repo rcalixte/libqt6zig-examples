@@ -13,21 +13,17 @@ var main_files: std.ArrayList(struct {
 }) = .empty;
 
 pub fn build(b: *std.Build) !void {
+    const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
     const extra_paths = b.option([]const []const u8, "extra-paths", "Extra library header and include search paths") orelse &.{};
-
-    var optimize = b.standardOptimizeOption(.{});
-    if (optimize == .Debug) optimize = .ReleaseFast;
 
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
 
-    const line_trim = if (is_windows) "\r\n" else "\n";
-
     var qt_dir: []const u8 = "";
     if (is_windows) {
         qt_dir = b.option([]const u8, "QTDIR", "The directory where Qt is installed") orelse win_root;
-        std.fs.cwd().access(qt_dir, .{}) catch {
+        std.Io.Dir.cwd().access(b.graph.io, qt_dir, .{}) catch {
             std.log.err("QTDIR '{s}' does not exist\n", .{qt_dir});
             return error.QTDIRNotFound;
         };
@@ -49,47 +45,47 @@ pub fn build(b: *std.Build) !void {
     const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
 
     // Find all main.zig files
-    var dir = try b.build_root.handle.openDir("src", .{ .iterate = true });
-    defer dir.close();
+    var dir = try b.build_root.handle.openDir(b.graph.io, "src", .{ .iterate = true });
+    defer dir.close(b.graph.io);
+
     var walker = try dir.walk(b.allocator);
     defer walker.deinit();
 
-    while (try walker.next()) |entry| {
+    var ok = true;
+
+    while (try walker.next(b.graph.io)) |entry|
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
+            if (!ok) continue;
             const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
             if (is_windows and std.mem.containsAtLeast(u8, parent_dir, 2, "\\")) continue;
             const qtlibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "qtlibs" });
-            var qtlibs_file = try b.build_root.handle.openFile(qtlibs_path, .{});
-            defer qtlibs_file.close();
-            var qtlibs_file_reader = qtlibs_file.reader(&buffer);
+            var qtlibs_file = try b.build_root.handle.openFile(b.graph.io, qtlibs_path, .{});
+            defer qtlibs_file.close(b.graph.io);
 
+            var contents = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, qtlibs_path, b.allocator, .unlimited);
             var qtlibs_contents: std.ArrayList([]const u8) = .empty;
-            while (qtlibs_file_reader.interface.takeDelimiterInclusive('\n')) |line| {
+
+            var it = std.mem.tokenizeAny(u8, contents, "\r\n");
+            while (it.next()) |line| {
                 if (std.mem.startsWith(u8, line, "#"))
                     continue;
-
-                const lib_name = std.mem.trimRight(u8, line, line_trim);
-                try qtlibs_contents.append(b.allocator, b.dupe(lib_name));
-            } else |err| {
-                if (!qtlibs_file_reader.atEnd()) return err;
+                try qtlibs_contents.append(b.allocator, line);
             }
 
             const syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, syslibsfile });
-            const syslibs_file = b.build_root.handle.openFile(syslibs_path, .{}) catch null;
+            const syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
 
             if (syslibs_file) |syslib_file| {
-                defer syslib_file.close();
-                var syslibs_file_reader = syslib_file.reader(&buffer);
+                defer syslib_file.close(b.graph.io);
 
-                while (syslibs_file_reader.interface.takeDelimiterInclusive('\n')) |line| {
+                contents = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, syslibs_path, b.allocator, .unlimited);
+
+                it = std.mem.tokenizeAny(u8, contents, "\r\n");
+                while (it.next()) |line| {
                     if (std.mem.startsWith(u8, line, "#"))
                         continue;
-
-                    const lib_name = std.mem.trimRight(u8, line, line_trim);
-                    try syslibs_contents.append(b.allocator, b.dupe(lib_name));
-                } else |err| {
-                    if (!syslibs_file_reader.atEnd()) return err;
+                    try syslibs_contents.append(b.allocator, line);
                 }
             }
 
@@ -97,7 +93,7 @@ pub fn build(b: *std.Build) !void {
 
             if (is_windows) {
                 const screenshot_file = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "screenshot.png" });
-                b.build_root.handle.access(screenshot_file, .{}) catch {
+                b.build_root.handle.access(b.graph.io, screenshot_file, .{}) catch {
                     win_gui = false;
                 };
             }
@@ -110,11 +106,9 @@ pub fn build(b: *std.Build) !void {
                 .win_gui = win_gui,
             });
         } else if (entry.kind == .directory) {
-            const is_special_dir = for (special_dirs) |dir_name| {
-                if (std.mem.containsAtLeast(u8, entry.path, 1, dir_name)) break true;
-            } else false;
-
-            if (!is_special_dir) continue;
+            for (special_dirs) |dir_name| {
+                if (std.mem.containsAtLeast(u8, entry.path, 1, dir_name)) break;
+            } else continue;
 
             var path_it = std.mem.splitScalar(u8, entry.path, '/');
             _ = path_it.first();
@@ -124,8 +118,6 @@ pub fn build(b: *std.Build) !void {
                 if (path_it.peek() == null) break name;
             } else continue;
 
-            const option_name = b.fmt("enable-{s}", .{name});
-            const option_description = b.fmt("Enable {s} library example", .{name});
             var is_supported = true;
             if (is_windows and (std.mem.startsWith(u8, prefix, "foss-") or std.mem.startsWith(u8, prefix, "posix-"))) {
                 is_supported = false;
@@ -138,20 +130,25 @@ pub fn build(b: *std.Build) !void {
             }
 
             var is_enabled = true;
-            if ((host_os == .macos or host_os == .windows) and (std.mem.eql(u8, prefix, "extras") or std.mem.eql(u8, prefix, "restricted-extras"))) {
+            if ((host_os == .macos or host_os == .windows) and (std.mem.eql(u8, prefix, "extras") or std.mem.eql(u8, prefix, "restricted-extras")))
                 is_enabled = false;
-            }
             if (host_os == .macos and std.mem.startsWith(u8, prefix, "posix-"))
                 is_enabled = false;
-            const option_value = b.option(bool, option_name, option_description);
-            const result_value = (if (option_value == null) is_enabled else option_value.?) and is_supported;
 
-            if (!result_value) {
-                const path = b.fmt("/{s}", .{name});
-                try disabled_paths.append(b.allocator, path);
-            }
-        }
-    }
+            const option_value = opt: switch (is_supported) {
+                true => {
+                    const option_name = b.fmt("enable-{s}", .{name});
+                    const option_description = b.fmt("Enable {s} example", .{name});
+                    break :opt b.option(bool, option_name, option_description);
+                },
+                false => null,
+            };
+
+            ok = is_supported and if (option_value) |option| option else is_enabled;
+
+            if (!ok)
+                try disabled_paths.append(b.allocator, b.fmt("/{s}", .{name}));
+        };
 
     std.debug.assert(main_files.items.len != 0);
 
@@ -161,22 +158,15 @@ pub fn build(b: *std.Build) !void {
         .@"extra-paths" = extra_paths,
     });
 
-    // Create a module for the centralized custom allocator configuration
-    const alloc_config = b.addModule("alloc_config", .{
-        .root_source_file = b.path("src/alloc_config.zig"),
-    });
-
     const run_all_step = b.step("run", "Build and run all of the examples");
 
     // Create an executable for each main.zig
     main_loop: for (main_files.items) |main| {
         const exe_name = std.fs.path.basename(main.dir);
 
-        for (disabled_paths.items) |disabled_path| {
-            if (std.mem.containsAtLeast(u8, main.dir, 1, disabled_path)) {
+        for (disabled_paths.items) |disabled_path|
+            if (std.mem.containsAtLeast(u8, main.dir, 1, disabled_path))
                 continue :main_loop;
-            }
-        }
 
         const exe = b.addExecutable(.{
             .name = exe_name,
@@ -184,26 +174,25 @@ pub fn build(b: *std.Build) !void {
                 .root_source_file = b.path(main.path),
                 .target = target,
                 .optimize = optimize,
+                .link_libc = true,
             }),
         });
 
         exe.root_module.addImport("libqt6zig", qt6zig.module("libqt6zig"));
-        exe.root_module.addImport("alloc_config", alloc_config);
 
         // Link Qt system libraries
         const sub_paths = [_][]const u8{ "/bin", "/lib", "" };
 
-        for (extra_paths) |path| {
+        for (extra_paths) |path|
             for (sub_paths) |sub_path| {
                 const extra_path = b.fmt("{s}{s}", .{ path, sub_path });
-                std.fs.cwd().access(extra_path, .{}) catch {
+                std.Io.Dir.cwd().access(b.graph.io, extra_path, .{}) catch {
                     continue;
                 };
                 exe.root_module.addLibraryPath(.{ .cwd_relative = extra_path });
                 if (is_macos)
                     exe.root_module.addFrameworkPath(.{ .cwd_relative = extra_path });
-            }
-        }
+            };
 
         if (is_bsd_host)
             exe.root_module.addLibraryPath(.{ .cwd_relative = "/usr/local/lib/qt6" });
@@ -214,41 +203,34 @@ pub fn build(b: *std.Build) !void {
         if (is_windows) {
             const win_bin_dir = win_root ++ "/bin";
             var ok_bin_dir = true;
-            std.fs.cwd().access(win_bin_dir, .{}) catch {
+            std.Io.Dir.cwd().access(b.graph.io, win_bin_dir, .{}) catch {
                 if (extra_paths.len == 0) {
                     std.log.err("'{s}' either does not exist or does not have a 'bin' subdirectory and no extra paths were provided\n", .{win_root});
                     return error.WinQtBinDirNotFound;
-                } else {
-                    ok_bin_dir = false;
-                }
+                } else ok_bin_dir = false;
             };
-            if (ok_bin_dir) {
+            if (ok_bin_dir)
                 exe.root_module.addLibraryPath(.{ .cwd_relative = win_bin_dir });
-            }
-            if (main.win_gui) exe.subsystem = .Windows;
+
+            if (main.win_gui) exe.subsystem = .windows;
         }
 
-        for (base_libs) |lib| {
-            if (is_macos) {
-                exe.root_module.linkFramework(lib, .{});
-            } else {
+        for (base_libs) |lib|
+            if (is_macos)
+                exe.root_module.linkFramework(lib, .{})
+            else
                 exe.root_module.linkSystemLibrary(lib, .{});
-            }
-        }
 
-        for (main.sys_libraries) |lib| {
-            if (is_macos and !std.mem.eql(u8, exe_name, "qscintilla")) {
-                exe.root_module.linkFramework(lib, .{});
-            } else {
+        for (main.sys_libraries) |lib|
+            if (is_macos and !std.mem.eql(u8, exe_name, "qscintilla"))
+                exe.root_module.linkFramework(lib, .{})
+            else
                 exe.root_module.linkSystemLibrary(lib, .{});
-            }
-        }
 
-        if (is_linux_host) {
+        if (host_os == .linux) {
             exe.root_module.link_libcpp = false;
 
-            const result = try std.process.Child.run(.{
-                .allocator = b.allocator,
+            const result = try std.process.run(b.allocator, b.graph.io, .{
                 .argv = &.{ "gcc", "--print-file-name=libstdc++.so.6" },
             });
             exe.root_module.addObjectFile(.{
@@ -259,9 +241,8 @@ pub fn build(b: *std.Build) !void {
         }
 
         // Link libqt6zig static libraries
-        for (main.qt_libraries) |lib| {
+        for (main.qt_libraries) |lib|
             exe.root_module.linkLibrary(qt6zig.artifact(lib));
-        }
 
         // Install the executable
         b.installArtifact(exe);
@@ -292,7 +273,7 @@ pub fn build(b: *std.Build) !void {
             for (win_libs) |lib| {
                 const bin_path = b.fmt("bin/{s}.dll", .{lib});
                 const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
-                std.fs.cwd().access(dll_path, .{}) catch {
+                std.Io.Dir.cwd().access(b.graph.io, dll_path, .{}) catch {
                     continue;
                 };
                 const install_win_dll = b.addInstallFile(.{ .cwd_relative = dll_path }, bin_path);
@@ -302,7 +283,7 @@ pub fn build(b: *std.Build) !void {
             for (main.sys_libraries) |lib| {
                 const bin_path = b.fmt("bin/{s}.dll", .{lib});
                 const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
-                std.fs.cwd().access(dll_path, .{}) catch {
+                std.Io.Dir.cwd().access(b.graph.io, dll_path, .{}) catch {
                     continue;
                 };
                 const install_win_dll = b.addInstallFile(.{ .cwd_relative = dll_path }, bin_path);
@@ -310,7 +291,7 @@ pub fn build(b: *std.Build) !void {
             }
 
             const plugins_path = b.fmt("{s}/plugins", .{qt_dir});
-            std.fs.cwd().access(plugins_path, .{}) catch {
+            std.Io.Dir.cwd().access(b.graph.io, plugins_path, .{}) catch {
                 continue;
             };
             const install_plugins = b.addInstallDirectory(.{
@@ -325,11 +306,6 @@ pub fn build(b: *std.Build) !void {
 
 const is_bsd_host = switch (host_os) {
     .dragonfly, .freebsd, .netbsd, .openbsd => true,
-    else => false,
-};
-
-const is_linux_host = switch (host_os) {
-    .linux => true,
     else => false,
 };
 
