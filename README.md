@@ -4,7 +4,7 @@
 <img alt="libqt6zig-examples" src="assets/libqt6zig-examples.png" height="128px;" />
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/rcalixte/libqt6zig-examples/blob/master/LICENSE)
-[![Static Badge](https://img.shields.io/badge/v0.15%20(stable)-fdc009?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
+[![Static Badge](https://img.shields.io/badge/v0.16%20(stable)-fdc009?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
 </div>
 
 ---
@@ -53,7 +53,7 @@ zig build run
 Examples in special subdirectories have per-example options that can be used to explicitly enable or disable them:
 
 ```bash
-zig build -Denable-charts=true -Denable-qscintilla=false
+zig build -Denable-charts -Denable-qscintilla=false
 ```
 
 In the event that one or more extra library include paths are needed e.g. a locally compiled extra library in a non-standard path, the `extra-paths` option supports this use case:
@@ -109,7 +109,7 @@ The examples compile a subset of the entire main library and then build the samp
 
 ### Q2. What build modes are supported by the examples?
 
-Currently, only `ReleaseFast`, `ReleaseSafe`, and `ReleaseSmall` are supported. The `Debug` build mode is not supported. This may change in the future. The default build mode is `ReleaseFast`. To change the build mode:
+Currently, `Debug`, `ReleaseFast`, `ReleaseSafe`, and `ReleaseSmall` are supported. The default build mode is `Debug`. To change the build mode:
 
 ```bash
 zig build -Doptimize=ReleaseSafe
