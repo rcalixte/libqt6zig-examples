@@ -12,10 +12,11 @@ const qvalidator_enums = qt6.qvalidator_enums;
 
 var label: C.QLabel = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
@@ -51,15 +52,9 @@ fn onTextChanged(self: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
     const ret = kdatevalidator.Validate(qlineedit.Validator(self), std.mem.span(text), &pos);
 
     switch (ret) {
-        qvalidator_enums.State.Acceptable => {
-            qlabel.SetText(label, "Validation result: Acceptable");
-        },
-        qvalidator_enums.State.Intermediate => {
-            qlabel.SetText(label, "Validation result: Intermediate");
-        },
-        qvalidator_enums.State.Invalid => {
-            qlabel.SetText(label, "Validation result: Invalid");
-        },
+        qvalidator_enums.State.Acceptable => qlabel.SetText(label, "Validation result: Acceptable"),
+        qvalidator_enums.State.Intermediate => qlabel.SetText(label, "Validation result: Intermediate"),
+        qvalidator_enums.State.Invalid => qlabel.SetText(label, "Validation result: Invalid"),
         else => unreachable,
     }
 }

@@ -7,25 +7,20 @@ const qvboxlayout = qt6.qvboxlayout;
 const qlabel = qt6.qlabel;
 const qlistwidget = qt6.qlistwidget;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const charsets = kcharsets.Charsets();
 
-    const names = kcharsets.AvailableEncodingNames(charsets, allocator);
+    const names = kcharsets.AvailableEncodingNames(charsets, init.gpa);
     defer {
-        for (names) |name| {
-            allocator.free(name);
-        }
-        allocator.free(names);
+        for (names) |name|
+            init.gpa.free(name);
+        init.gpa.free(names);
     }
 
     const widget = qwidget.New2();
@@ -34,12 +29,11 @@ pub fn main() void {
     qwidget.SetWindowTitle(widget, "Qt 6 KCharsets");
     qwidget.SetMinimumSize2(widget, 300, 400);
 
-    // Ownership of these widgets will be transferred to the widget via the layout
     const vboxlayout = qvboxlayout.New2();
     const label = qlabel.New3("Available Encodings:");
     const listwidget = qlistwidget.New2();
 
-    qlistwidget.AddItems(listwidget, names, allocator);
+    qlistwidget.AddItems(listwidget, names, init.gpa);
 
     qvboxlayout.AddWidget(vboxlayout, label);
     qvboxlayout.AddWidget(vboxlayout, listwidget);

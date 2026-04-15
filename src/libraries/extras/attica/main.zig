@@ -8,16 +8,12 @@ const qnamespace_enums = qt6.qnamespace_enums;
 const qlineedit = qt6.qlineedit;
 const qgridlayout = qt6.qgridlayout;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const project = attica__project.New();
     defer attica__project.Delete(project);
@@ -36,51 +32,51 @@ pub fn main() void {
 
     const desc = qlabel.New3("Description:");
     qlabel.SetTextInteractionFlags(desc, qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const descText = attica__project.Description(project, allocator);
-    defer allocator.free(descText);
-    const descEdit = qlineedit.New3(descText);
-    qlineedit.SetReadOnly(descEdit, true);
+    const desc_text = attica__project.Description(project, init.gpa);
+    defer init.gpa.free(desc_text);
+    const desc_edit = qlineedit.New3(desc_text);
+    qlineedit.SetReadOnly(desc_edit, true);
 
     const name = qlabel.New3("Name:");
     qlabel.SetTextInteractionFlags(name, qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const nameText = attica__project.Name(project, allocator);
-    defer allocator.free(nameText);
-    const nameEdit = qlineedit.New3(nameText);
-    qlineedit.SetReadOnly(nameEdit, true);
+    const name_text = attica__project.Name(project, init.gpa);
+    defer init.gpa.free(name_text);
+    const name_edit = qlineedit.New3(name_text);
+    qlineedit.SetReadOnly(name_edit, true);
 
     const version = qlabel.New3("Version:");
     qlabel.SetTextInteractionFlags(version, qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const versionText = attica__project.Version(project, allocator);
-    defer allocator.free(versionText);
-    const versionEdit = qlineedit.New3(versionText);
-    qlineedit.SetReadOnly(versionEdit, true);
+    const version_text = attica__project.Version(project, init.gpa);
+    defer init.gpa.free(version_text);
+    const version_edit = qlineedit.New3(version_text);
+    qlineedit.SetReadOnly(version_edit, true);
 
     const url = qlabel.New3("URL:");
     qlabel.SetTextInteractionFlags(url, qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const urlText = attica__project.Url(project, allocator);
-    defer allocator.free(urlText);
-    const urlEdit = qlineedit.New3(urlText);
-    qlineedit.SetReadOnly(urlEdit, true);
+    const url_text = attica__project.Url(project, init.gpa);
+    defer init.gpa.free(url_text);
+    const url_edit = qlineedit.New3(url_text);
+    qlineedit.SetReadOnly(url_edit, true);
 
     const lic = qlabel.New3("License:");
     qlabel.SetTextInteractionFlags(lic, qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const licText = attica__project.License(project, allocator);
-    defer allocator.free(licText);
-    const licEdit = qlineedit.New3(licText);
-    qlineedit.SetReadOnly(licEdit, true);
+    const lic_text = attica__project.License(project, init.gpa);
+    defer init.gpa.free(lic_text);
+    const lic_edit = qlineedit.New3(lic_text);
+    qlineedit.SetReadOnly(lic_edit, true);
 
     const layout = qgridlayout.New2();
 
     qgridlayout.AddWidget2(layout, desc, 0, 0);
-    qgridlayout.AddWidget2(layout, descEdit, 0, 1);
+    qgridlayout.AddWidget2(layout, desc_edit, 0, 1);
     qgridlayout.AddWidget2(layout, name, 1, 0);
-    qgridlayout.AddWidget2(layout, nameEdit, 1, 1);
+    qgridlayout.AddWidget2(layout, name_edit, 1, 1);
     qgridlayout.AddWidget2(layout, version, 2, 0);
-    qgridlayout.AddWidget2(layout, versionEdit, 2, 1);
+    qgridlayout.AddWidget2(layout, version_edit, 2, 1);
     qgridlayout.AddWidget2(layout, url, 3, 0);
-    qgridlayout.AddWidget2(layout, urlEdit, 3, 1);
+    qgridlayout.AddWidget2(layout, url_edit, 3, 1);
     qgridlayout.AddWidget2(layout, lic, 4, 0);
-    qgridlayout.AddWidget2(layout, licEdit, 4, 1);
+    qgridlayout.AddWidget2(layout, lic_edit, 4, 1);
 
     qwidget.SetLayout(widget, layout);
     qwidget.Show(widget);

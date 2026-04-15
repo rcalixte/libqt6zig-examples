@@ -14,9 +14,6 @@ const qdialog = qt6.qdialog;
 const qvboxlayout = qt6.qvboxlayout;
 const qlineedit = qt6.qlineedit;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
 var wiggly: *WigglyWidget = undefined;
 
 const wiggly_text = "Hello Wiggly Text";
@@ -31,7 +28,7 @@ const sine_table = [_]i32{
 pub const WigglyWidget = struct {
     timer: C.QBasicTimer,
     buffer: [max_len:0]u8,
-    text: [:0]u8,
+    text: []u8,
     step: usize,
     widget: C.QWidget,
 
@@ -39,7 +36,7 @@ pub const WigglyWidget = struct {
         var self = try alloc.create(WigglyWidget);
 
         self.step = 0;
-        self.text = try std.fmt.bufPrintZ(&self.buffer, "{s}", .{text});
+        self.text = try std.fmt.bufPrint(&self.buffer, "{s}", .{text});
 
         self.widget = qwidget.New2();
         qwidget.SetBackgroundRole(self.widget, qpalette_enums.ColorRole.Midlight);
@@ -106,13 +103,12 @@ pub const WigglyWidget = struct {
     }
 };
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const dialog = qdialog.New2();
     defer qdialog.Delete(dialog);
@@ -120,8 +116,8 @@ pub fn main() !void {
     qdialog.SetWindowTitle(dialog, "Qt 6 Wiggly Text Example");
     qdialog.Resize(dialog, 500, 180);
 
-    wiggly = try WigglyWidget.init(allocator, wiggly_text);
-    defer wiggly.deinit(allocator);
+    wiggly = try WigglyWidget.init(init.gpa, wiggly_text);
+    defer wiggly.deinit(init.gpa);
 
     const line_edit = qlineedit.New2();
     qlineedit.SetText(line_edit, wiggly_text);
@@ -138,11 +134,11 @@ pub fn main() !void {
 }
 
 fn onTextChanged(_: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
-    wiggly.text = std.fmt.bufPrintZ(
+    wiggly.text = std.fmt.bufPrint(
         &wiggly.buffer,
         "{s}",
         .{std.mem.span(text)},
-    ) catch @panic("Failed to bufPrintZ");
+    ) catch @panic("Failed to bufPrint");
 
     qwidget.Update(wiggly.widget);
 }

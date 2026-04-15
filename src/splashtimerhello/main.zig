@@ -10,11 +10,13 @@ const qtimer = qt6.qtimer;
 const qvariant = qt6.qvariant;
 
 var counter: usize = 0;
+var buffer: [64]u8 = undefined;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const pixmap = qpixmap.New4("assets/libqt6zig-examples.png");
@@ -25,15 +27,14 @@ pub fn main() void {
 
     qsplashscreen.OnMousePressEvent(splash, onMousePressEvent);
 
-    const text = "Hello world!";
     const widget = qwidget.New2();
     defer qwidget.Delete(widget);
 
     qwidget.SetWindowTitle(widget, "Hello world");
 
-    const button = qpushbutton.New5(text, widget);
+    const button = qpushbutton.New5("Hello world!", widget);
     qpushbutton.SetFixedWidth(button, 320);
-    qpushbutton.OnClicked(button, button_callback);
+    qpushbutton.OnClicked(button, onClicked);
 
     qsplashscreen.Show(splash);
 
@@ -54,11 +55,13 @@ pub fn main() void {
     std.debug.print("OK!\n", .{});
 }
 
-fn button_callback(self: ?*anyopaque) callconv(.c) void {
+fn onClicked(self: ?*anyopaque) callconv(.c) void {
     counter += 1;
-    var buffer: [64]u8 = undefined;
-    const text = "You have clicked the button {d} time(s)";
-    const formatted = std.fmt.bufPrintZ(&buffer, text, .{counter}) catch @panic("Failed to bufPrintZ");
+    const formatted = std.fmt.bufPrint(
+        &buffer,
+        "You have clicked the button {d} time(s)",
+        .{counter},
+    ) catch @panic("Failed to bufPrint");
     qpushbutton.SetText(self, formatted);
 }
 

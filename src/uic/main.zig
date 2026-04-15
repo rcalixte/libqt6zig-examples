@@ -4,19 +4,16 @@ const ui = @import("design.zig");
 const qapplication = qt6.qapplication;
 const qmainwindow = qt6.qmainwindow;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
-
-    const uic = try ui.create(allocator);
-    defer uic.destroy(allocator);
+    const uic = try ui.create(init.gpa);
+    defer uic.destroy(init.gpa);
 
     qmainwindow.Show(uic.MainWindow);
 

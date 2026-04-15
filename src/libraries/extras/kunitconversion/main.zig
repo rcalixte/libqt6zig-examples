@@ -15,8 +15,7 @@ const qlabel = qt6.qlabel;
 const qnamespace_enums = qt6.qnamespace_enums;
 const kunitconversion__value = qt6.kunitconversion__value;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var buffer: [128]u8 = undefined;
 
@@ -25,18 +24,19 @@ var to: C.QComboBox = null;
 var input: C.QLineEdit = null;
 var result: C.QLabel = null;
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const widget = qwidget.New2();
     defer qwidget.Delete(widget);
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KunitConversion Example");
+    qwidget.SetWindowTitle(widget, "Qt 6 KUnitConversion Example");
     qwidget.SetFixedSize2(widget, 450, 300);
 
     const layout = qvboxlayout.New(widget);
@@ -129,5 +129,5 @@ fn onTextChanged(_: ?*anyopaque, _: [*:0]const u8) callconv(.c) void {
     const converted_text = kunitconversion__value.ToString(converted_value, allocator);
     defer allocator.free(converted_text);
 
-    qlabel.SetText(result, std.fmt.bufPrintZ(&buffer, "### Result: {s}", .{converted_text}) catch @panic("Failed to bufPrintz"));
+    qlabel.SetText(result, std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch @panic("Failed to bufPrint"));
 }

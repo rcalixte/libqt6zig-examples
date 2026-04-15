@@ -6,10 +6,11 @@ const qchart = qt6.qchart;
 const qchartview = qt6.qchartview;
 const qpainter_enums = qt6.qpainter_enums;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const series = qlineseries.New();
@@ -22,7 +23,7 @@ pub fn main() void {
 
     var i: i32 = -500;
     while (i <= 500) : (i += 1) {
-        x = @as(f64, @floatFromInt(i)) / 10000;
+        x = @as(f64, i) / 10000;
         y = @sin(1 / x) * x;
         if (std.math.isNan(y)) y = 0;
         qlineseries.Append(series, x, y);

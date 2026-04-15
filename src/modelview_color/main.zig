@@ -9,10 +9,11 @@ const qmodelindex = qt6.qmodelindex;
 const qvariant = qt6.qvariant;
 const qcolor = qt6.qcolor;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const model = qabstractlistmodel.New();
@@ -60,7 +61,7 @@ fn onData(_: ?*anyopaque, index: ?*anyopaque, role: i32) callconv(.c) C.QVariant
         },
         qnamespace_enums.ItemDataRole.DisplayRole => {
             var buf: [16]u8 = undefined;
-            const str = std.fmt.bufPrintZ(&buf, "this is row {d}", .{qmodelindex.Row(index)}) catch @panic("failed to bufPrintZ");
+            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{qmodelindex.Row(index)}) catch @panic("failed to bufPrint");
             return qvariant.New24(str);
         },
         else => return qvariant.New(),

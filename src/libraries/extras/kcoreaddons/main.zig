@@ -10,20 +10,20 @@ const qtextbrowser = qt6.qtextbrowser;
 const qtimer = qt6.qtimer;
 const ktexttohtml = qt6.ktexttohtml;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
-var plainTextEditor: C.QTextEdit = null;
+var edit: C.QTextEdit = null;
 var htmlview: C.QTextBrowser = null;
 var timer: C.QTimer = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const window = qmainwindow.New2();
     defer qmainwindow.Delete(window);
@@ -35,10 +35,10 @@ pub fn main() void {
     qmainwindow.SetCentralWidget(window, widget);
     qwidget.SetLayout(widget, layout);
 
-    plainTextEditor = qtextedit.New2();
-    qtextedit.SetAcceptRichText(plainTextEditor, false);
+    edit = qtextedit.New2();
+    qtextedit.SetAcceptRichText(edit, false);
 
-    qhboxlayout.AddWidget(layout, plainTextEditor);
+    qhboxlayout.AddWidget(layout, edit);
 
     htmlview = qtextbrowser.New2();
     qhboxlayout.AddWidget(layout, htmlview);
@@ -47,7 +47,7 @@ pub fn main() void {
     qtimer.SetSingleShot(timer, true);
     qtimer.SetInterval(timer, 1000);
     qtimer.OnTimeout(timer, onTimeout);
-    qtextedit.OnTextChanged(plainTextEditor, onTextChanged);
+    qtextedit.OnTextChanged(edit, onTextChanged);
 
     qmainwindow.Show(window);
 
@@ -55,7 +55,7 @@ pub fn main() void {
 }
 
 fn onTimeout(_: ?*anyopaque) callconv(.c) void {
-    const plaintext = qtextedit.ToPlainText(plainTextEditor, allocator);
+    const plaintext = qtextedit.ToPlainText(edit, allocator);
     defer allocator.free(plaintext);
     const html = ktexttohtml.ConvertToHtml(plaintext, &0, 4096, 255, allocator);
     defer allocator.free(html);

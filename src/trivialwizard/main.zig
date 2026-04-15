@@ -9,23 +9,24 @@ const qvboxlayout = qt6.qvboxlayout;
 const qlineedit = qt6.qlineedit;
 const qgridlayout = qt6.qgridlayout;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const wizard = qwizard.New2();
     defer qwizard.Delete(wizard);
 
-    const introPage = createIntroPage();
-    _ = qwizard.AddPage(wizard, introPage);
+    const intro_page = createIntroPage();
+    _ = qwizard.AddPage(wizard, intro_page);
 
-    const registrationPage = createRegistrationPage();
-    _ = qwizard.AddPage(wizard, registrationPage);
+    const registration_page = createRegistrationPage();
+    _ = qwizard.AddPage(wizard, registration_page);
 
-    const conclusionPage = createConclusionPage();
-    _ = qwizard.AddPage(wizard, conclusionPage);
+    const conclusion_page = createConclusionPage();
+    _ = qwizard.AddPage(wizard, conclusion_page);
 
     qwizard.SetWindowTitle(wizard, "TrivialWizard");
     qwizard.Show(wizard);
@@ -57,18 +58,18 @@ pub fn createRegistrationPage() C.QWizardPage {
     qwizardpage.SetSubTitle(page, subtitle);
 
     const name = "Name:";
-    const nameLabel = qlabel.New5(name, page);
-    const nameLineEdit = qlineedit.New(page);
+    const name_label = qlabel.New5(name, page);
+    const name_edit = qlineedit.New(page);
 
     const email = "Email address:";
-    const emailLabel = qlabel.New5(email, page);
-    const emailLineEdit = qlineedit.New(page);
+    const email_label = qlabel.New5(email, page);
+    const email_edit = qlineedit.New(page);
 
     const layout = qgridlayout.New(page);
-    qgridlayout.AddWidget2(layout, nameLabel, 0, 0);
-    qgridlayout.AddWidget2(layout, nameLineEdit, 0, 1);
-    qgridlayout.AddWidget2(layout, emailLabel, 1, 0);
-    qgridlayout.AddWidget2(layout, emailLineEdit, 1, 1);
+    qgridlayout.AddWidget2(layout, name_label, 0, 0);
+    qgridlayout.AddWidget2(layout, name_edit, 0, 1);
+    qgridlayout.AddWidget2(layout, email_label, 1, 0);
+    qgridlayout.AddWidget2(layout, email_edit, 1, 1);
     qwizardpage.SetLayout(page, layout);
 
     return page;

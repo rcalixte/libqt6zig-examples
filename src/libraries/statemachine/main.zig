@@ -18,9 +18,6 @@ const qobject = qt6.qobject;
 const qfinalstate = qt6.qfinalstate;
 const qstatemachine = qt6.qstatemachine;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
 pub const LightWidget = struct {
     color: i32,
     on: bool,
@@ -34,14 +31,14 @@ pub const LightWidget = struct {
         self.widget = qwidget.New2();
         qwidget.OnPaintEvent(self.widget, onPaintEvent);
 
-        const onVariant = qvariant.New7(@intFromPtr(&self.on));
-        defer qvariant.Delete(onVariant);
+        const on_variant = qvariant.New7(@intFromPtr(&self.on));
+        defer qvariant.Delete(on_variant);
 
-        const colorVariant = qvariant.New4(self.color);
-        defer qvariant.Delete(colorVariant);
+        const color_variant = qvariant.New4(self.color);
+        defer qvariant.Delete(color_variant);
 
-        _ = qwidget.SetProperty(self.widget, "on", onVariant);
-        _ = qwidget.SetProperty(self.widget, "color", colorVariant);
+        _ = qwidget.SetProperty(self.widget, "on", on_variant);
+        _ = qwidget.SetProperty(self.widget, "color", color_variant);
 
         return self;
     }
@@ -70,19 +67,19 @@ pub const LightWidget = struct {
     }
 
     fn onPaintEvent(self: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
-        const onVariant = qwidget.Property(self, "on");
-        const onValue = qvariant.ToLongLong(onVariant);
+        const on_variant = qwidget.Property(self, "on");
+        const onValue = qvariant.ToLongLong(on_variant);
         const on = @as(*bool, @ptrFromInt(@as(usize, @intCast(onValue))));
 
         if (!on.*) return;
 
-        const colorVariant = qwidget.Property(self, "color");
-        const colorValue = qvariant.ToInt(colorVariant);
+        const color_variant = qwidget.Property(self, "color");
+        const color_value = qvariant.ToInt(color_variant);
 
         const painter = qstylepainter.New(self);
         defer qstylepainter.Delete(painter);
 
-        const brush = qbrush.New4(colorValue);
+        const brush = qbrush.New4(color_value);
         defer qbrush.Delete(brush);
 
         qstylepainter.SetRenderHint(painter, qpainter_enums.RenderHint.Antialiasing);
@@ -152,93 +149,92 @@ pub const TrafficWidget = struct {
     }
 };
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    const traffic_light = qwidget.New2();
+    defer qwidget.Delete(traffic_light);
 
-    const trafficLight = qwidget.New2();
-    defer qwidget.Delete(trafficLight);
+    qwidget.SetWindowTitle(traffic_light, "Qt 6 State Machine Example");
+    qwidget.Resize(traffic_light, 380, 800);
+    qwidget.SetMinimumHeight(traffic_light, 450);
+    qwidget.SetMinimumWidth(traffic_light, 200);
 
-    qwidget.SetWindowTitle(trafficLight, "Qt 6 State Machine Example");
-    qwidget.Resize(trafficLight, 380, 800);
-    qwidget.SetMinimumHeight(trafficLight, 450);
-    qwidget.SetMinimumWidth(trafficLight, 200);
+    const layout = qvboxlayout.New(traffic_light);
+    const traffic_widget = try TrafficWidget.init(init.gpa);
+    defer traffic_widget.deinit(init.gpa);
 
-    const layout = qvboxlayout.New(trafficLight);
-    const trafficWidget = try TrafficWidget.init(allocator);
-    defer trafficWidget.deinit(allocator);
-
-    qvboxlayout.AddWidget(layout, trafficWidget.widget);
+    qvboxlayout.AddWidget(layout, traffic_widget.widget);
     qvboxlayout.SetContentsMargins(layout, 0, 0, 0, 0);
 
-    const redGoingGreen = createLightState(trafficWidget.redLight(), 3000);
-    const greenGoingYellow = createLightState(trafficWidget.greenLight(), 3000);
-    const yellowGoingRed = createLightState(trafficWidget.yellowLight(), 1000);
+    const red_going_green = createLightState(traffic_widget.redLight(), 3000);
+    const green_going_yellow = createLightState(traffic_widget.greenLight(), 3000);
+    const yellow_going_red = createLightState(traffic_widget.yellowLight(), 1000);
 
-    _ = qstate.AddTransition2(redGoingGreen, redGoingGreen, "finished()", greenGoingYellow);
-    _ = qstate.AddTransition2(greenGoingYellow, greenGoingYellow, "finished()", yellowGoingRed);
-    _ = qstate.AddTransition2(yellowGoingRed, yellowGoingRed, "finished()", redGoingGreen);
+    _ = qstate.AddTransition2(red_going_green, red_going_green, "finished()", green_going_yellow);
+    _ = qstate.AddTransition2(green_going_yellow, green_going_yellow, "finished()", yellow_going_red);
+    _ = qstate.AddTransition2(yellow_going_red, yellow_going_red, "finished()", red_going_green);
 
-    const machine = qstatemachine.New3(trafficLight);
-    qstatemachine.AddState(machine, redGoingGreen);
-    qstatemachine.AddState(machine, greenGoingYellow);
-    qstatemachine.AddState(machine, yellowGoingRed);
-    qstatemachine.SetInitialState(machine, redGoingGreen);
+    const machine = qstatemachine.New3(traffic_light);
+    qstatemachine.AddState(machine, red_going_green);
+    qstatemachine.AddState(machine, green_going_yellow);
+    qstatemachine.AddState(machine, yellow_going_red);
+    qstatemachine.SetInitialState(machine, red_going_green);
     qstatemachine.Start(machine);
 
-    qwidget.Show(trafficLight);
+    qwidget.Show(traffic_light);
 
     _ = qapplication.Exec();
 }
 
 pub fn createLightState(light: *LightWidget, duration: i32) C.QState {
-    const lightState = qstate.New();
-    const timing = qstate.New3(lightState);
+    const light_state = qstate.New();
+    const timing = qstate.New3(light_state);
 
-    const timer = qtimer.New2(lightState);
+    const timer = qtimer.New2(light_state);
     qtimer.SetInterval(timer, duration);
     qtimer.SetSingleShot(timer, true);
 
-    const lightVariant = qvariant.New7(@intFromPtr(light));
-    defer qvariant.Delete(lightVariant);
+    const light_variant = qvariant.New7(@intFromPtr(light));
+    defer qvariant.Delete(light_variant);
 
-    const timerVariant = qvariant.New7(@intFromPtr(timer));
-    defer qvariant.Delete(timerVariant);
+    const timer_variant = qvariant.New7(@intFromPtr(timer));
+    defer qvariant.Delete(timer_variant);
 
-    _ = qstate.SetProperty(timing, "light", lightVariant);
-    _ = qstate.SetProperty(timing, "timer", timerVariant);
+    _ = qstate.SetProperty(timing, "light", light_variant);
+    _ = qstate.SetProperty(timing, "timer", timer_variant);
     qstate.OnEntered(timing, onEntered);
     qstate.OnExited(timing, onExited);
 
-    const done = qfinalstate.New2(lightState);
+    const done = qfinalstate.New2(light_state);
     _ = qstate.AddTransition2(timing, timer, "timeout()", done);
 
-    qstate.SetInitialState(lightState, timing);
+    qstate.SetInitialState(light_state, timing);
 
-    return lightState;
+    return light_state;
 }
 
 fn onEntered(self: ?*anyopaque) callconv(.c) void {
-    const lightVariant = qstate.Property(self, "light");
-    const lightValue = qvariant.ToULongLong(lightVariant);
-    const light = @as(*LightWidget, @ptrFromInt(@as(usize, @intCast(lightValue))));
+    const light_variant = qstate.Property(self, "light");
+    const light_value = qvariant.ToULongLong(light_variant);
+    const light = @as(*LightWidget, @ptrFromInt(@as(usize, @intCast(light_value))));
 
-    const timerVariant = qstate.Property(self, "timer");
-    const timerValue = qvariant.ToULongLong(timerVariant);
-    const timer = @as(C.QTimer, @ptrFromInt(@as(usize, @intCast(timerValue))));
+    const timer_variant = qstate.Property(self, "timer");
+    const timer_value = qvariant.ToULongLong(timer_variant);
+    const timer = @as(C.QTimer, @ptrFromInt(@as(usize, @intCast(timer_value))));
 
     light.turnOn();
     qtimer.Start2(timer);
 }
 
 fn onExited(self: ?*anyopaque) callconv(.c) void {
-    const lightVariant = qstate.Property(self, "light");
-    const lightValue = qvariant.ToULongLong(lightVariant);
-    const light = @as(*LightWidget, @ptrFromInt(@as(usize, @intCast(lightValue))));
+    const light_variant = qstate.Property(self, "light");
+    const light_value = qvariant.ToULongLong(light_variant);
+    const light = @as(*LightWidget, @ptrFromInt(@as(usize, @intCast(light_value))));
 
     light.turnOff();
 }

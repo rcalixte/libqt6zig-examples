@@ -7,10 +7,11 @@ const kplotobject_enums = qt6.kplotobject_enums;
 const qcolor = qt6.qcolor;
 const qnamespace_enums = qt6.qnamespace_enums;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const kplot = kplotwidget.New2();

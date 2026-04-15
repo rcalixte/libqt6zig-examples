@@ -1,45 +1,32 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
+const qcoreapplication = qt6.qcoreapplication;
 const qdnslookup = qt6.qdnslookup;
 const qdnslookup_enums = qt6.qdnslookup_enums;
 const qdnshostaddressrecord = qt6.qdnshostaddressrecord;
 const qhostaddress = qt6.qhostaddress;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
+var io: std.Io = undefined;
 
-var buffer: [1024]u8 = undefined;
-var messages: std.ArrayList([]const u8) = .empty;
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qcoreapplication.New(&argc, argv, init.arena.allocator());
+    defer qcoreapplication.Delete(qapp);
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
-    defer qapplication.Delete(qapp);
+    allocator = init.gpa;
+    io = init.io;
 
-    defer _ = gpa.deinit();
-
-    var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
-    try stdout_writer.interface.writeAll("Looking up DNS info, please wait...");
-    try stdout_writer.interface.flush();
+    try std.Io.File.stdout().writeStreamingAll(init.io, "Looking up DNS info, please wait...");
 
     const dns = qdnslookup.New2(qdnslookup_enums.Type.A, "google.com");
 
     qdnslookup.OnFinished(dns, onFinished);
     qdnslookup.Lookup(dns);
 
-    _ = qapplication.Exec();
-
-    defer messages.deinit(allocator);
-
-    for (messages.items) |message| {
-        defer allocator.free(message);
-
-        try stdout_writer.interface.writeAll(message);
-        try stdout_writer.interface.flush();
-    }
+    _ = qcoreapplication.Exec();
 }
 
 fn onFinished(dns: ?*anyopaque) callconv(.c) void {
@@ -50,15 +37,19 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
         defer allocator.free(dns_error);
 
         const errorStr = std.fmt.allocPrint(allocator, "DNS lookup failed: {s}\n", .{dns_error}) catch @panic("Failed to allocPrint error(s)");
-        messages.append(allocator, errorStr) catch @panic("Failed to append error(s)");
+        defer allocator.free(errorStr);
+
+        std.Io.File.stdout().writeStreamingAll(io, errorStr) catch @panic("Failed to write error(s)");
         return;
     }
 
     const results = qdnslookup.HostAddressRecords(dns, allocator);
     defer allocator.free(results);
 
-    const resultsStr = std.fmt.allocPrint(allocator, "Found {d} results.\n", .{results.len}) catch @panic("Failed to allocPrint results");
-    messages.append(allocator, resultsStr) catch @panic("Failed to append results");
+    const results_str = std.fmt.allocPrint(allocator, "Found {d} results.\n", .{results.len}) catch @panic("Failed to allocPrint results");
+    defer allocator.free(results_str);
+
+    std.Io.File.stdout().writeStreamingAll(io, results_str) catch @panic("Failed to write results");
 
     for (results) |result| {
         const value = qdnshostaddressrecord.Value(result);
@@ -67,9 +58,11 @@ fn onFinished(dns: ?*anyopaque) callconv(.c) void {
         const record = qhostaddress.ToString(value, allocator);
         defer allocator.free(record);
 
-        const recordStr = std.fmt.allocPrint(allocator, "- {s}\n", .{record}) catch @panic("Failed to allocPrint record(s)");
-        messages.append(allocator, recordStr) catch @panic("Failed to append record(s)");
+        const record_str = std.fmt.allocPrint(allocator, "- {s}\n", .{record}) catch @panic("Failed to allocPrint record(s)");
+        defer allocator.free(record_str);
+
+        std.Io.File.stdout().writeStreamingAll(io, record_str) catch @panic("Failed to write record(s)");
     }
 
-    qapplication.Exit();
+    qcoreapplication.Exit();
 }

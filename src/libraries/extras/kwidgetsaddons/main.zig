@@ -5,41 +5,34 @@ const kguiitem = qt6.kguiitem;
 const kmessagebox = qt6.kmessagebox;
 const kmessagebox_enums = qt6.kmessagebox_enums;
 
-var buffer: [32]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    const primaryAction = kguiitem.New7(
+    const primary_item = kguiitem.New7(
         "Hello",
         "view-filter",
         "This is a tooltip",
         "This is a WhatsThis help text.",
     );
 
-    const secondaryAction = kguiitem.New2("Bye");
+    const secondary_item = kguiitem.New2("Bye");
 
     const res = kmessagebox.QuestionTwoActions(
         null,
         "Description to tell you to click<br />on <b>either</b> button",
         "Qt 6 KMessageBox Example",
-        primaryAction,
-        secondaryAction,
+        primary_item,
+        secondary_item,
         "",
         kmessagebox_enums.Option.Notify,
     );
 
     switch (res) {
-        kmessagebox_enums.ButtonCode.PrimaryAction => {
-            try stdout_writer.interface.writeAll("You clicked Hello\n");
-        },
-        else => {
-            try stdout_writer.interface.writeAll("You clicked Bye\n");
-        },
+        kmessagebox_enums.ButtonCode.PrimaryAction => try std.Io.File.stdout().writeStreamingAll(init.io, "You clicked Hello\n"),
+        else => try std.Io.File.stdout().writeStreamingAll(init.io, "You clicked Bye\n"),
     }
-    try stdout_writer.interface.flush();
 }

@@ -18,27 +18,27 @@ const kfilemetadata__extractionresult = qt6.kfilemetadata__extractionresult;
 const types_enums = qt6.types_enums;
 const extractionresult_enums = qt6.extractionresult_enums;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-const c_allocator = std.heap.c_allocator;
+var allocator: std.mem.Allocator = undefined;
+var io: std.Io = undefined;
 
-var buffer: [64]u8 = undefined;
 const filename = "assets/Qt.png";
 
-const textMapping = [_]struct {
+const text_mapping = [_]struct {
     key: []const u8,
     property: i32,
 }{
     .{ .key = "Comment", .property = properties_enums.Property.Comment },
 };
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
+    io = init.io;
 
     const listwidget = qlistwidget.New2();
     defer qlistwidget.Delete(listwidget);
@@ -105,34 +105,30 @@ pub fn main() !void {
 }
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
-    const list = c_allocator.allocSentinel(?[*:0]const u8, 1, null) catch @panic("Failed to allocate memory");
+    const list = std.heap.c_allocator.allocSentinel(?[*:0]const u8, 1, null) catch @panic("Failed to allocate memory");
     list[0] = "image/png";
 
     return list.ptr;
 }
 
 fn onExtract(_: ?*anyopaque, result: ?*anyopaque) callconv(.c) void {
-    var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
     var format = "png".*;
     const reader = qimagereader.New5(filename, &format);
     defer qimagereader.Delete(reader);
 
     if (!qimagereader.CanRead(reader)) {
-        stdout_writer.interface.print("Unable to read input image: '{s}'\n", .{filename}) catch @panic("onExtract stdout error during read");
-        stdout_writer.interface.flush() catch @panic("onExtract flush stdout error during read");
+        std.Io.File.stdout().writeStreamingAll(io, "Unable to read input image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during read");
         return;
     }
 
     kfilemetadata__extractionresult.AddType(result, types_enums.Type.Image);
 
     if ((kfilemetadata__extractionresult.InputFlags(result) & extractionresult_enums.Flag.ExtractMetaData) == 0) {
-        stdout_writer.interface.print("Unable to extract metadata from image: '{s}'\n", .{filename}) catch @panic("onExtract stdout error during extraction");
-        stdout_writer.interface.flush() catch @panic("onExtract flush stdout error during extraction");
+        std.Io.File.stdout().writeStreamingAll(io, "Unable to extract metadata from image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during extraction");
         return;
     }
 
-    for (textMapping) |mapping| {
+    for (text_mapping) |mapping| {
         const value = qimagereader.Text(reader, mapping.key, allocator);
         defer allocator.free(value);
 

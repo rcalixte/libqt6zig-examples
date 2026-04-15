@@ -8,26 +8,23 @@ const qradiobutton = qt6.qradiobutton;
 const qicon = qt6.qicon;
 const qsize = qt6.qsize;
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    var buffer: [64]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
     var ok = rcc.init();
-    if (!ok) {
-        try stdout_writer.interface.writeAll("Resource initialization failed!\n");
-        try stdout_writer.interface.flush();
-    }
+    if (!ok)
+        try std.Io.File.stdout().writeStreamingAll(init.io, "Resource initialization failed!\n");
     defer {
         ok = rcc.deinit();
-        if (!ok) {
-            stdout_writer.interface.writeAll("Resource deinitialization failed!\n") catch @panic("Failed to stdout deinit\n");
-            stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
-        }
+        if (!ok)
+            std.Io.File.stdout().writeStreamingAll(
+                init.io,
+                "Resource deinitialization failed!\n",
+            ) catch @panic("Failed to stdout deinit\n");
     }
 
     const widget = qwidget.New2();
@@ -37,7 +34,7 @@ pub fn main() !void {
 
     const hbox = qhboxlayout.New(widget);
 
-    const radio1 = qradiobutton.New(widget);
+    const radio1 = qradiobutton.New2();
     qradiobutton.SetToolTip(radio1, "Qt");
     const icon1 = qicon.New4(":/images/qt.png");
     defer qicon.Delete(icon1);
@@ -46,7 +43,7 @@ pub fn main() !void {
     defer qsize.Delete(size1);
     qradiobutton.SetIconSize(radio1, size1);
 
-    const radio2 = qradiobutton.New(widget);
+    const radio2 = qradiobutton.New2();
     qradiobutton.SetToolTip(radio2, "Zig");
     const icon2 = qicon.New4(":/images/zig.png");
     defer qicon.Delete(icon2);
@@ -55,7 +52,7 @@ pub fn main() !void {
     defer qsize.Delete(size2);
     qradiobutton.SetIconSize(radio2, size2);
 
-    const radio3 = qradiobutton.New(widget);
+    const radio3 = qradiobutton.New2();
     qradiobutton.SetToolTip(radio3, "libqt6zig");
     const icon3 = qicon.New4(":/images/libqt6zig.png");
     defer qicon.Delete(icon3);

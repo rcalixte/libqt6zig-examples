@@ -7,6 +7,7 @@ const std = @import("std");
 const qt6 = @import("libqt6zig");
 const C = qt6.C;
 
+/// The type definition for MainWindowUi containing all of the Qt objects
 pub const MainWindowUi = struct {
     MainWindow: C.QMainWindow,
     centralwidget: C.QWidget,

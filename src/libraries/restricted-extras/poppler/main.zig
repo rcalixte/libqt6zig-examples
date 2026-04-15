@@ -14,32 +14,27 @@ const qpainter = qt6.qpainter;
 const qlabel = qt6.qlabel;
 const qpixmap = qt6.qpixmap;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+const file_path = "assets/example.pdf";
+const dpi = 150.0;
 
-const FILENAME = "assets/example.pdf";
-const DPI = 150.0;
-
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
-
-    const document = poppler__document.Load(FILENAME);
+    const document = poppler__document.Load(file_path);
     defer poppler__document.Delete(document);
 
     if (document == null or poppler__document.IsLocked(document)) {
-        if (document != null) {
+        if (document != null)
             poppler__document.Delete(document);
-        }
-        std.log.err("Failed to load document: {s}", .{FILENAME});
+        std.log.err("Failed to load document: {s}", .{file_path});
         return;
     }
 
-    const numPages = poppler__document.NumPages(document);
+    const num_pages = poppler__document.NumPages(document);
 
     const widget = qwidget.New2();
     defer qwidget.Delete(widget);
@@ -49,19 +44,19 @@ pub fn main() !void {
 
     const layout = qvboxlayout.New(widget);
 
-    const scrollArea = qscrollarea.New(widget);
-    qscrollarea.SetWidgetResizable(scrollArea, true);
+    const scroll_area = qscrollarea.New(widget);
+    qscrollarea.SetWidgetResizable(scroll_area, true);
 
     const container = qwidget.New2();
 
-    const pageLayout = qvboxlayout.New(container);
-    _ = qvboxlayout.SetAlignment(pageLayout, container, qnamespace_enums.AlignmentFlag.AlignHCenter);
+    const page_layout = qvboxlayout.New(container);
+    _ = qvboxlayout.SetAlignment(page_layout, container, qnamespace_enums.AlignmentFlag.AlignHCenter);
 
-    qscrollarea.SetWidget(scrollArea, container);
-    qvboxlayout.AddWidget(layout, scrollArea);
+    qscrollarea.SetWidget(scroll_area, container);
+    qvboxlayout.AddWidget(layout, scroll_area);
 
     var i: usize = 0;
-    while (i < numPages) : (i += 1) {
+    while (i < num_pages) : (i += 1) {
         const page = poppler__document.Page(document, @intCast(i));
         defer poppler__page.Delete(page);
 
@@ -70,7 +65,7 @@ pub fn main() !void {
             return;
         }
 
-        var image = poppler__page.RenderToImage22(page, DPI, DPI);
+        var image = poppler__page.RenderToImage22(page, dpi, dpi);
         defer qimage.Delete(image);
 
         if (qimage.HasAlphaChannel(image)) {
@@ -98,7 +93,7 @@ pub fn main() !void {
         qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
         qlabel.SetStyleSheet(label, "border: 1px solid #ccc; background-color: white;");
 
-        qvboxlayout.AddWidget(pageLayout, label);
+        qvboxlayout.AddWidget(page_layout, label);
     }
 
     qwidget.Show(widget);

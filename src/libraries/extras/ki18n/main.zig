@@ -10,8 +10,7 @@ const qfont = qt6.qfont;
 const qcombobox = qt6.qcombobox;
 const qnamespace_enums = qt6.qnamespace_enums;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var buffer: [24]u8 = undefined;
 
@@ -19,19 +18,19 @@ var all_countries: []C.KCountry = undefined;
 var emoji_flag_label: C.QLabel = null;
 var currency_label: C.QLabel = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     all_countries = kcountry.AllCountries(allocator);
     defer {
-        for (all_countries) |country| {
+        for (all_countries) |country|
             kcountry.Delete(country);
-        }
         allocator.free(all_countries);
     }
 
@@ -82,11 +81,11 @@ fn onCurrentIndexChanged(_: ?*anyopaque, index: i32) callconv(.c) void {
     const country = all_countries[@intCast(index)];
     const emoji_flag = kcountry.EmojiFlag(country, allocator);
     defer allocator.free(emoji_flag);
-    const emoji_text = std.fmt.bufPrintZ(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch @panic("Failed to bufPrintZ emoji flag");
+    const emoji_text = std.fmt.bufPrint(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch @panic("Failed to bufPrint emoji flag");
     qlabel.SetText(emoji_flag_label, emoji_text);
 
     const currency = kcountry.CurrencyCode(country, allocator);
     defer allocator.free(currency);
-    const currency_text = std.fmt.bufPrintZ(&buffer, "Currency code: {s}", .{currency}) catch @panic("Failed to bufPrintZ currency code");
+    const currency_text = std.fmt.bufPrint(&buffer, "Currency code: {s}", .{currency}) catch @panic("Failed to bufPrint currency code");
     qlabel.SetText(currency_label, currency_text);
 }

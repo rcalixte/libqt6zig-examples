@@ -2,6 +2,7 @@ dictionarycombobox
 highlighter
 qapplication
 qboxlayout
+qobject
 qtextedit
 qwidget
 spellcheckdecorator

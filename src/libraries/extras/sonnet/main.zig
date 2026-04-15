@@ -12,18 +12,19 @@ const qvboxlayout = qt6.qvboxlayout;
 var highlighter1: C.Sonnet__Highlighter = null;
 var highlighter2: C.Sonnet__Highlighter = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    defer qwidget.DeleteLater(widget);
 
     qwidget.SetWindowTitle(widget, "Qt 6 Sonnet Example");
 
-    const comboBox = sonnet__dictionarycombobox.New2();
+    const combo = sonnet__dictionarycombobox.New2();
     const textedit1 = qtextedit.New2();
     qtextedit.SetText(
         textedit1,
@@ -43,10 +44,10 @@ pub fn main() void {
 
     sonnet__highlighter.SetCurrentLanguage(highlighter2, "en_US");
 
-    sonnet__dictionarycombobox.OnDictionaryChanged(comboBox, onDictionaryChanged);
+    sonnet__dictionarycombobox.OnDictionaryChanged(combo, onDictionaryChanged);
 
     const layout = qvboxlayout.New(widget);
-    qvboxlayout.AddWidget(layout, comboBox);
+    qvboxlayout.AddWidget(layout, combo);
     qvboxlayout.AddWidget(layout, textedit1);
     qvboxlayout.AddWidget(layout, textedit2);
 

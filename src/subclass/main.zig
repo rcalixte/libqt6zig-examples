@@ -8,19 +8,20 @@ const qbrush = qt6.qbrush;
 const qkeyevent = qt6.qkeyevent;
 
 var buffer: [32]u8 = undefined;
-var currentColor: u2 = 0;
+var current_color: u2 = 0;
 
-const useColors = [_]i32{
+const colors = [_]i32{
     qnamespace_enums.GlobalColor.Black,
     qnamespace_enums.GlobalColor.Red,
     qnamespace_enums.GlobalColor.Green,
     qnamespace_enums.GlobalColor.Blue,
 };
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     qapplication.SetApplicationDisplayName("Right-click to change the color");
@@ -49,7 +50,7 @@ fn onPaintEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
     const painter = qstylepainter.New(self);
     defer qstylepainter.Delete(painter);
 
-    const brush = qbrush.New12(useColors[currentColor], qnamespace_enums.BrushStyle.SolidPattern);
+    const brush = qbrush.New12(colors[current_color], qnamespace_enums.BrushStyle.SolidPattern);
     defer qbrush.Delete(brush);
 
     qstylepainter.SetBrush(painter, brush);
@@ -59,14 +60,17 @@ fn onPaintEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
 fn onContextMenuEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
     qgroupbox.SuperContextMenuEvent(self, ev);
 
-    currentColor +%= 1;
+    current_color +%= 1;
     qgroupbox.Update(self);
 }
 
 fn onKeyPressEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
     qgroupbox.SuperKeyPressEvent(self, ev);
 
-    const text = "Keypress {d}";
-    const title = std.fmt.bufPrintZ(&buffer, text, .{qkeyevent.Key(ev)}) catch @panic("Buffer full");
+    const title = std.fmt.bufPrint(
+        &buffer,
+        "Keypress {d}",
+        .{qkeyevent.Key(ev)},
+    ) catch @panic("Buffer full");
     qgroupbox.SetTitle(self, title);
 }

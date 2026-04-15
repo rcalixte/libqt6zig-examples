@@ -8,22 +8,18 @@ const qmodelindex = qt6.qmodelindex;
 const qtreeview = qt6.qtreeview;
 const qlistview = qt6.qlistview;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const splitter = qsplitter.New2();
     defer qsplitter.Delete(splitter);
 
-    const dir = qdir.CurrentPath(allocator);
-    defer allocator.free(dir);
+    const dir = qdir.CurrentPath(init.gpa);
+    defer init.gpa.free(dir);
 
     const model = qfilesystemmodel.New();
     defer qfilesystemmodel.Delete(model);

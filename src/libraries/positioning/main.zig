@@ -11,19 +11,19 @@ const qlabel = qt6.qlabel;
 const qnamespace_enums = qt6.qnamespace_enums;
 const qformlayout = qt6.qformlayout;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var coord: C.QGeoCoordinate = null;
 var label: C.QLabel = null;
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const window = qmainwindow.New2();
     defer qmainwindow.Delete(window);
@@ -81,11 +81,10 @@ fn onValueChanged(self: ?*anyopaque, value: f64) callconv(.c) void {
     const name = qdoublespinbox.ObjectName(self, allocator);
     defer allocator.free(name);
 
-    if (std.mem.eql(u8, name, "lat")) {
-        qgeocoordinate.SetLatitude(coord, value);
-    } else if (std.mem.eql(u8, name, "lon")) {
+    if (std.mem.eql(u8, name, "lat"))
+        qgeocoordinate.SetLatitude(coord, value)
+    else if (std.mem.eql(u8, name, "lon"))
         qgeocoordinate.SetLongitude(coord, value);
-    }
 
     const geotext = qgeocoordinate.ToString1(
         coord,

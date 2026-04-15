@@ -15,8 +15,7 @@ const qbluetoothdevicediscoveryagent_enums = qt6.qbluetoothdevicediscoveryagent_
 const qbluetoothdeviceinfo = qt6.qbluetoothdeviceinfo;
 const qbluetoothaddress = qt6.qbluetoothaddress;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var buffer: [256]u8 = undefined;
 
@@ -26,13 +25,14 @@ var list: C.QListWidget = null;
 var status: C.QLabel = null;
 var agent: C.QBluetoothDeviceDiscoveryAgent = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const widget = qwidget.New2();
     defer qwidget.Delete(widget);
@@ -86,9 +86,8 @@ fn onToggled(_: ?*anyopaque, checked: bool) callconv(.c) void {
     qpushbutton.SetEnabled(button, checked);
     qlistwidget.SetEnabled(list, checked);
 
-    if (!checked and qbluetoothdevicediscoveryagent.IsActive(agent)) {
+    if (!checked and qbluetoothdevicediscoveryagent.IsActive(agent))
         qbluetoothdevicediscoveryagent.Stop(agent);
-    }
 
     const text = switch (checked) {
         true => "Bluetooth enabled.",
@@ -98,9 +97,8 @@ fn onToggled(_: ?*anyopaque, checked: bool) callconv(.c) void {
 }
 
 fn onClicked(self: ?*anyopaque) callconv(.c) void {
-    if (qbluetoothdevicediscoveryagent.IsActive(agent)) {
+    if (qbluetoothdevicediscoveryagent.IsActive(agent))
         return;
-    }
 
     qlistwidget.Clear(list);
     qlabel.SetText(status, "Scanning...");
@@ -122,7 +120,7 @@ fn onDeviceDiscovered(_: ?*anyopaque, info: ?*anyopaque) callconv(.c) void {
 
     const title = switch (name.len) {
         0 => "Unknown",
-        else => std.fmt.bufPrintZ(&buffer, "{s} ({s})", .{ name, address_str }) catch @panic("Failed to bufPrintZ"),
+        else => std.fmt.bufPrint(&buffer, "{s} ({s})", .{ name, address_str }) catch @panic("Failed to bufPrint"),
     };
 
     qlistwidget.AddItem(list, title);
@@ -132,7 +130,7 @@ fn onFinished(_: ?*anyopaque) callconv(.c) void {
     qpushbutton.SetEnabled(button, qcheckbox.IsChecked(toggle));
 
     const text = "Scan complete - {d} device(s) found.";
-    const formatted = std.fmt.bufPrintZ(&buffer, text, .{qlistwidget.Count(list)}) catch @panic("Failed to bufPrintZ");
+    const formatted = std.fmt.bufPrint(&buffer, text, .{qlistwidget.Count(list)}) catch @panic("Failed to bufPrint");
     qlabel.SetText(status, formatted);
 }
 

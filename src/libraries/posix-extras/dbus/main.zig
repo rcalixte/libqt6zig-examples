@@ -9,22 +9,15 @@ const qdbusmessage_enums = qt6.qdbusmessage_enums;
 const qvariant = qt6.qvariant;
 const arraymap_constu8_qtcqvariant = all_types.arraymap_constu8_qtcqvariant;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-var buffer: [32]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
 const bus_name = "org.freedesktop.Notifications";
 const bus_path = "/org/freedesktop/Notifications";
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const session_bus = qdbusconnection.SessionBus();
     defer qdbusconnection.Delete(session_bus);
@@ -41,8 +34,8 @@ pub fn main() void {
         qvariant.New24("dialog-information"),
         qvariant.New24("Qt 6 D-Bus Example"),
         qvariant.New24("This is a test notification sent via D-Bus."),
-        qvariant.New25(actions, allocator),
-        qvariant.New22(hints, allocator),
+        qvariant.New25(actions, init.gpa),
+        qvariant.New22(hints, init.gpa),
         qvariant.New4(-1),
     };
 
@@ -52,8 +45,7 @@ pub fn main() void {
     defer qdbusmessage.Delete(reply);
 
     if (qdbusmessage.Type(reply) != qdbusmessage_enums.MessageType.ReplyMessage) {
-        stdout_writer.interface.writeAll("Failed to send message\n") catch @panic("Failed to print to stdout");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+        std.Io.File.stdout().writeStreamingAll(init.io, "Failed to send message\n") catch @panic("Failed to print to stdout");
 
         qapplication.Quit();
     }

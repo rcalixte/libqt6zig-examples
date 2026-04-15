@@ -8,16 +8,12 @@ const klineedit = qt6.klineedit;
 const kcompletion = qt6.kcompletion;
 const kcompletion_enums = qt6.kcompletion_enums;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const widget = qwidget.New2();
     defer qwidget.Delete(widget);
@@ -38,7 +34,7 @@ pub fn main() void {
     klineedit.SetCompletionObject(lineedit, completion, true);
 
     const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
-    kcompletion.SetItems(completion, &items, allocator);
+    kcompletion.SetItems(completion, &items, init.gpa);
 
     qvboxlayout.AddStretch(vboxlayout);
     qvboxlayout.AddWidget(vboxlayout, label);

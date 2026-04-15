@@ -13,10 +13,11 @@ const transaction_enums = qt6.transaction_1_enums;
 
 var status_label: C.QLabel = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
@@ -52,9 +53,8 @@ fn checkForUpdates(_: ?*anyopaque) callconv(.c) void {
 }
 
 fn transactionFinished(_: ?*anyopaque, status: i32, _: u32) callconv(.c) void {
-    if (status == transaction_enums.Exit.ExitSuccess) {
-        qlabel.SetText(status_label, "✅ Update check successful!");
-    } else {
+    if (status == transaction_enums.Exit.ExitSuccess)
+        qlabel.SetText(status_label, "✅ Update check successful!")
+    else
         qlabel.SetText(status_label, "❌ Update check failed!");
-    }
 }

@@ -15,20 +15,20 @@ const qdialogbuttonbox = qt6.qdialogbuttonbox;
 const qdialogbuttonbox_enums = qt6.qdialogbuttonbox_enums;
 const qheaderview = qt6.qheaderview;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var dialog: C.QDialog = null;
 var treewidget: C.QTreeWidget = null;
 var m_searchline: C.KTreeWidgetSearchLine = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     dialog = qdialog.New2();
 
@@ -154,9 +154,7 @@ fn showEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
     qdialog.SuperShowEvent(self, event);
 
     const headerview = qtreewidget.Header(treewidget);
-    for (0..@intCast(qheaderview.Count(headerview))) |i| {
-        if (!qheaderview.IsSectionHidden(headerview, @intCast(i))) {
+    for (0..@intCast(qheaderview.Count(headerview))) |i|
+        if (!qheaderview.IsSectionHidden(headerview, @intCast(i)))
             qtreewidget.ResizeColumnToContents(treewidget, @intCast(i));
-        }
-    }
 }

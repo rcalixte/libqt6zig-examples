@@ -16,18 +16,17 @@ const qhostaddress_enums = qt6.qhostaddress_enums;
 const qwebsocket = qt6.qwebsocket;
 const qwidget = qt6.qwidget;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
-const LOCAL_PORT: u16 = 12345;
-const numClients: usize = 3;
-const maxClients: usize = 10;
-const offsetX: i32 = 200;
+const local_port: u16 = 12345;
+const num_clients: usize = 3;
+const max_clients: usize = 10;
+const offset_x: i32 = 200;
 
 var buf: [4]u8 = undefined;
-var clients = [_]C.QWebSocket{null} ** maxClients;
-var clientNum: usize = 0;
-var clientDialogs = [_]*ClientDialog{undefined} ** numClients;
+var clients = [_]C.QWebSocket{null} ** max_clients;
+var client_num: usize = 0;
+var client_dialogs = [_]*ClientDialog{undefined} ** num_clients;
 
 pub const ClientDialog = struct {
     name: []const u8,
@@ -37,9 +36,9 @@ pub const ClientDialog = struct {
     input: C.QLineEdit,
     button: C.QPushButton,
 
-    pub fn init(alloc: std.mem.Allocator, name: []const u8, numStr: []const u8) !*ClientDialog {
+    pub fn init(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
         var self = try alloc.create(ClientDialog);
-        self.name = try std.fmt.allocPrint(alloc, "{s}", .{numStr});
+        self.name = try std.fmt.allocPrint(alloc, "{s}", .{num_str});
 
         self.dialog = qdialog.New2();
         qdialog.SetWindowTitle(self.dialog, name);
@@ -78,7 +77,7 @@ pub const ClientDialog = struct {
 
     pub fn connectToServer(self: *ClientDialog, alloc: std.mem.Allocator) void {
         qtextedit.Append(self.messages, "Connecting...");
-        const ws = std.fmt.allocPrint(alloc, "ws://localhost:{d}", .{LOCAL_PORT}) catch @panic("Failed to allocPrint");
+        const ws = std.fmt.allocPrint(alloc, "ws://localhost:{d}", .{local_port}) catch @panic("Failed to allocPrint");
         defer alloc.free(ws);
 
         const url = qurl.New3(ws);
@@ -92,17 +91,17 @@ pub const ClientDialog = struct {
         defer alloc.free(message);
         if (message.len == 0) return;
 
-        const trimmedText = std.mem.trim(u8, message, &std.ascii.whitespace);
-        if (trimmedText.len == 0) return;
+        const trimmed_text = std.mem.trim(u8, message, &std.ascii.whitespace);
+        if (trimmed_text.len == 0) return;
 
-        const outMessage = std.mem.concat(alloc, u8, &.{ "(", self.name, "): ", trimmedText }) catch @panic("Failed to concat");
-        defer alloc.free(outMessage);
+        const out_message = std.mem.concat(alloc, u8, &.{ "(", self.name, "): ", trimmed_text }) catch @panic("Failed to concat");
+        defer alloc.free(out_message);
 
-        _ = qwebsocket.SendTextMessage(self.socket, outMessage);
+        _ = qwebsocket.SendTextMessage(self.socket, out_message);
 
-        const selfEntry = std.mem.concat(alloc, u8, &.{ ">> ", trimmedText }) catch @panic("Failed to concat");
-        defer alloc.free(selfEntry);
-        qtextedit.Append(self.messages, selfEntry);
+        const self_entry = std.mem.concat(alloc, u8, &.{ ">> ", trimmed_text }) catch @panic("Failed to concat");
+        defer alloc.free(self_entry);
+        qtextedit.Append(self.messages, self_entry);
         qlineedit.Clear(self.input);
     }
 
@@ -113,41 +112,38 @@ pub const ClientDialog = struct {
     }
 
     fn onClientConnected(self: ?*anyopaque) callconv(.c) void {
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client|
             if (self == @as(?*anyopaque, client.socket)) {
                 qtextedit.Append(client.messages, "Connected!");
                 qlineedit.SetEnabled(client.input, true);
                 qpushbutton.SetEnabled(client.button, true);
                 qlineedit.SetFocus(client.input);
                 return;
-            }
-        }
+            };
     }
 
     fn onClientMessageReceived(self: ?*anyopaque, message: [*:0]const u8) callconv(.c) void {
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client|
             if (self == @as(?*anyopaque, client.socket)) {
                 qtextedit.Append(client.messages, std.mem.span(message));
                 return;
-            }
-        }
+            };
     }
 
     fn onClientErrorOccurred(self: ?*anyopaque, _: i32) callconv(.c) void {
-        const errStr = qwebsocket.ErrorString(self, allocator);
-        defer allocator.free(errStr);
+        const err_str = qwebsocket.ErrorString(self, allocator);
+        defer allocator.free(err_str);
 
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client|
             if (self == @as(?*anyopaque, client.socket)) {
                 qtextedit.Append(client.messages, "= Error =");
-                qtextedit.Append(client.messages, errStr);
+                qtextedit.Append(client.messages, err_str);
                 return;
-            }
-        }
+            };
     }
 
     fn onClientCloseEvent(_: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client| {
             qwebsocket.Close(client.socket);
             qwebsocket.Delete(client.socket);
             qdialog.SuperCloseEvent(client.dialog, event);
@@ -155,22 +151,22 @@ pub const ClientDialog = struct {
     }
 
     fn onSendClicked(self: ?*anyopaque) callconv(.c) void {
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client|
             if (self == @as(?*anyopaque, client.button)) {
                 client.sendMessage(allocator);
                 return;
-            }
-        }
+            };
     }
 };
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const server = qwebsocketserver.New("Example Qt WebSockets Server", qwebsocketserver_enums.SslMode.NonSecureMode);
     defer qwebsocketserver.Delete(server);
@@ -178,38 +174,36 @@ pub fn main() !void {
     const localhost = qhostaddress.New7(qhostaddress_enums.SpecialAddress.LocalHostIPv6);
     defer qhostaddress.Delete(localhost);
 
-    if (!qwebsocketserver.Listen2(server, localhost, LOCAL_PORT)) {
-        const errStr = qwebsocketserver.ErrorString(server, allocator);
-        defer allocator.free(errStr);
-        std.log.err("Failed to listen on port {d}: {s}\n", .{ LOCAL_PORT, errStr });
+    if (!qwebsocketserver.Listen2(server, localhost, local_port)) {
+        const err_str = qwebsocketserver.ErrorString(server, allocator);
+        defer allocator.free(err_str);
+        std.log.err("Failed to listen on port {d}: {s}\n", .{ local_port, err_str });
         return;
     }
 
-    for (0..numClients) |i| {
-        const numStr = try std.fmt.bufPrintZ(&buf, "{d}", .{i + 1});
-        const name = try std.mem.concat(allocator, u8, &.{ "Qt 6 WebSockets Example Client #", numStr });
+    for (0..num_clients) |i| {
+        const num_str = try std.fmt.bufPrint(&buf, "{d}", .{i + 1});
+        const name = try std.mem.concat(allocator, u8, &.{ "Qt 6 WebSockets Example Client #", num_str });
         defer allocator.free(name);
 
-        clientDialogs[i] = try ClientDialog.init(allocator, name, numStr);
+        client_dialogs[i] = try ClientDialog.init(allocator, name, num_str);
 
-        clientDialogs[i].connectToServer(allocator);
+        client_dialogs[i].connectToServer(allocator);
 
-        qdialog.Show(clientDialogs[i].dialog);
-        const width = qdialog.Width(clientDialogs[i].dialog);
+        qdialog.Show(client_dialogs[i].dialog);
+        const width = qdialog.Width(client_dialogs[i].dialog);
         const mult: i32 = @intCast(i);
-        const y = qdialog.Y(clientDialogs[i].dialog);
-        qdialog.Move(clientDialogs[i].dialog, offsetX + (width + 10) * mult, y);
+        const y = qdialog.Y(client_dialogs[i].dialog);
+        qdialog.Move(client_dialogs[i].dialog, offset_x + (width + 10) * mult, y);
     }
 
     defer {
-        for (0..maxClients) |i| {
-            if (clients[i] != null) {
+        for (0..max_clients) |i| {
+            if (clients[i] != null)
                 clients[i] = null;
-            }
         }
-        for (clientDialogs) |client| {
+        for (client_dialogs) |client|
             client.deinit(allocator);
-        }
     }
 
     qwebsocketserver.OnNewConnection(server, onNewConnection);
@@ -219,13 +213,13 @@ pub fn main() !void {
 
 fn onNewConnection(self: ?*anyopaque) callconv(.c) void {
     const client = qwebsocketserver.NextPendingConnection(self);
-    if (clientNum >= clients.len) {
+    if (client_num >= clients.len) {
         qwebsocket.Close(client);
         return;
     }
 
-    clients[clientNum] = client;
-    clientNum += 1;
+    clients[client_num] = client;
+    client_num += 1;
 
     qwebsocket.OnTextMessageReceived(client, onServerMessageReceived);
     qwebsocket.OnDisconnected(client, onServerDisconnected);

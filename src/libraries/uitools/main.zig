@@ -9,13 +9,14 @@ const qfile = qt6.qfile;
 const qiodevicebase_enums = qt6.qiodevicebase_enums;
 const qlabel = qt6.qlabel;
 
-const FORMFILE = "src/libraries/uitools/design.ui";
+const form_path = "src/libraries/uitools/design.ui";
 
-pub fn main() void {
+pub fn main(init: std.process.Init) !void {
     qapplication.SetAttribute(qnamespace_enums.ApplicationAttribute.AA_ShareOpenGLContexts);
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
     const widget = qwidget.New2();
@@ -28,7 +29,7 @@ pub fn main() void {
     const loader = quiloader.New();
     defer quiloader.Delete(loader);
 
-    const file = qfile.New2(FORMFILE);
+    const file = qfile.New2(form_path);
     defer qfile.Delete(file);
 
     if (qfile.Open(file, qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
@@ -39,7 +40,7 @@ pub fn main() void {
         qvboxlayout.AddWidget(layout, form);
         qwidget.Resize(widget, 1000, 550);
     } else {
-        const label = qlabel.New5("### Failed to open form file: " ++ FORMFILE, widget);
+        const label = qlabel.New5("### Failed to open form file: " ++ form_path, widget);
         qlabel.SetTextFormat(label, qnamespace_enums.TextFormat.MarkdownText);
         qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
         qvboxlayout.AddWidget(layout, label);

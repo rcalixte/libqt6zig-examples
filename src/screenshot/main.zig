@@ -30,8 +30,7 @@ const qimagewriter = qt6.qimagewriter;
 const qdialog_enums = qt6.qdialog_enums;
 const qmessagebox = qt6.qmessagebox;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var screenshot: C.QWidget = null;
 var screenshot_label: C.QLabel = null;
@@ -42,13 +41,12 @@ var original_pixmap: C.QPixmap = null;
 
 const format = "png";
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     screenshot = qwidget.New2();
     defer qwidget.Delete(screenshot);

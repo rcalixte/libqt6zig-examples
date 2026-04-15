@@ -8,30 +8,26 @@ const krearrangecolumnsproxymodel = qt6.krearrangecolumnsproxymodel;
 const qtreeview = qt6.qtreeview;
 const qtimer = qt6.qtimer;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
 var proxy: C.KRearrangeColumnsProxyModel = null;
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
-
     const row_0_items = [_][]const u8{ "A0", "B0", "C0", "D0" };
-    var row_0 = try makeStandardItemsList(allocator, &row_0_items);
-    defer row_0.deinit(allocator);
+    var row_0 = try makeStandardItemsList(init.gpa, &row_0_items);
+    defer row_0.deinit(init.gpa);
 
     const row_1_items = [_][]const u8{ "A1", "B1", "C1", "D1" };
-    var row_1 = try makeStandardItemsList(allocator, &row_1_items);
-    defer row_1.deinit(allocator);
+    var row_1 = try makeStandardItemsList(init.gpa, &row_1_items);
+    defer row_1.deinit(init.gpa);
 
     const row_2_items = [_][]const u8{ "A2", "B2", "C2", "D2" };
-    var row_2 = try makeStandardItemsList(allocator, &row_2_items);
-    defer row_2.deinit(allocator);
+    var row_2 = try makeStandardItemsList(init.gpa, &row_2_items);
+    defer row_2.deinit(init.gpa);
 
     const labels = [_][]const u8{ "H1", "H2", "H3", "H4" };
 
@@ -41,7 +37,7 @@ pub fn main() !void {
     qstandarditemmodel.InsertRow(source, 0, row_0.items);
     qstandarditemmodel.InsertRow(source, 1, row_1.items);
     qstandarditemmodel.InsertRow(source, 2, row_2.items);
-    qstandarditemmodel.SetHorizontalHeaderLabels(source, &labels, allocator);
+    qstandarditemmodel.SetHorizontalHeaderLabels(source, &labels, init.gpa);
 
     proxy = krearrangecolumnsproxymodel.New();
     defer krearrangecolumnsproxymodel.Delete(proxy);
@@ -68,11 +64,10 @@ pub fn main() !void {
     _ = qapplication.Exec();
 }
 
-fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(C.QStandardItem) {
-    var row: std.ArrayList(C.QStandardItem) = try .initCapacity(alloc, labels.len);
-    for (labels) |label| {
+fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(?*anyopaque) {
+    var row: std.ArrayList(?*anyopaque) = try .initCapacity(alloc, labels.len);
+    for (labels) |label|
         try row.append(alloc, qstandarditem.New2(label));
-    }
     return row;
 }
 

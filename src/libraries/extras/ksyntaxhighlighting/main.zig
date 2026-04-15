@@ -13,21 +13,14 @@ const qpalette = qt6.qpalette;
 const qpalette_enums = qt6.qpalette_enums;
 const repository_enums = qt6.repository_enums;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
-
-var buffer: [128]u8 = undefined;
-var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
 const src_file = "src/libraries/extras/ksyntaxhighlighting/main.zig";
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
-
-    defer _ = gpa.deinit();
 
     const window = qmainwindow.New2();
     defer qmainwindow.Delete(window);
@@ -38,8 +31,7 @@ pub fn main() !void {
     const file = qfile.New4(src_file, window);
 
     if (!qfile.Open(file, qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
-        try stdout_writer.interface.print("Failed to open file: \t{s}\n", .{src_file});
-        try stdout_writer.interface.flush();
+        try std.Io.File.stdout().writeStreamingAll(init.io, "\nFailed to open file: \t" ++ src_file ++ "\n");
         return;
     }
 
@@ -52,9 +44,9 @@ pub fn main() !void {
 
     qmainwindow.SetCentralWidget(window, plaintextedit);
 
-    const text = qfile.ReadAll(file, allocator);
+    const text = qfile.ReadAll(file, init.gpa);
     defer {
-        allocator.free(text);
+        init.gpa.free(text);
         qfile.Close(file);
     }
 

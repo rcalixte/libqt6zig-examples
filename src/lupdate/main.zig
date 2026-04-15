@@ -16,25 +16,25 @@ const qmenu = qt6.qmenu;
 const qlocale = qt6.qlocale;
 const qtranslator = qt6.qtranslator;
 
-var gpa = @import("alloc_config").gpa;
-const allocator = gpa.allocator();
+var allocator: std.mem.Allocator = undefined;
 
 var label: C.QLabel = null;
 var window: C.QMainWindow = null;
-var upButton: C.QPushButton = null;
-var downButton: C.QPushButton = null;
-var leftButton: C.QPushButton = null;
-var rightButton: C.QPushButton = null;
-var exitAction: C.QAction = null;
-var fileMenu: C.QMenu = null;
+var up_button: C.QPushButton = null;
+var down_button: C.QPushButton = null;
+var left_button: C.QPushButton = null;
+var right_button: C.QPushButton = null;
+var exit_action: C.QAction = null;
+var file_menu: C.QMenu = null;
 
-pub fn main() void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
     defer qapplication.Delete(qapp);
 
-    defer _ = gpa.deinit();
+    allocator = init.gpa;
 
     const combo = qcombobox.New2();
     const texts = [_][]const u8{ "en", "es", "fr" };
@@ -53,17 +53,17 @@ pub fn main() void {
 
     const widget = qwidget.New2();
 
-    upButton = qpushbutton.New3("&Up");
-    downButton = qpushbutton.New3("&Down");
-    leftButton = qpushbutton.New3("&Left");
-    rightButton = qpushbutton.New3("&Right");
+    up_button = qpushbutton.New3("&Up");
+    down_button = qpushbutton.New3("&Down");
+    left_button = qpushbutton.New3("&Left");
+    right_button = qpushbutton.New3("&Right");
 
     const gridlayout = qgridlayout.New2();
 
-    qgridlayout.AddWidget2(gridlayout, upButton, 0, 1);
-    qgridlayout.AddWidget2(gridlayout, downButton, 2, 1);
-    qgridlayout.AddWidget2(gridlayout, leftButton, 1, 0);
-    qgridlayout.AddWidget2(gridlayout, rightButton, 1, 2);
+    qgridlayout.AddWidget2(gridlayout, up_button, 0, 1);
+    qgridlayout.AddWidget2(gridlayout, down_button, 2, 1);
+    qgridlayout.AddWidget2(gridlayout, left_button, 1, 0);
+    qgridlayout.AddWidget2(gridlayout, right_button, 1, 2);
 
     const vboxlayout = qvboxlayout.New2();
 
@@ -76,16 +76,16 @@ pub fn main() void {
     qwidget.SetLayout(widget, gridlayout);
     qmainwindow.SetCentralWidget(window, widget);
 
-    exitAction = qaction.New5("E&xit", window);
+    exit_action = qaction.New5("E&xit", window);
 
-    const exitKey = qkeysequence.New2("Ctrl+Q");
-    defer qkeysequence.Delete(exitKey);
+    const exit_key = qkeysequence.New2("Ctrl+Q");
+    defer qkeysequence.Delete(exit_key);
 
-    qaction.SetShortcut(exitAction, exitKey);
-    qaction.OnTriggered(exitAction, onTriggered);
+    qaction.SetShortcut(exit_action, exit_key);
+    qaction.OnTriggered(exit_action, onTriggered);
 
-    fileMenu = qmenubar.AddMenu2(qmainwindow.MenuBar(window), "&File");
-    qmenu.AddAction(fileMenu, exitAction);
+    file_menu = qmenubar.AddMenu2(qmainwindow.MenuBar(window), "&File");
+    qmenu.AddAction(file_menu, exit_action);
 
     qmainwindow.Show(window);
 
@@ -110,39 +110,39 @@ fn onCurrentTextChanged(_: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
 }
 
 fn retranslate() void {
-    const labelText = qapplication.Translate("Main", "L&anguage:", allocator);
-    defer allocator.free(labelText);
-    qlabel.SetText(label, labelText);
+    const label_text = qapplication.Translate("Main", "L&anguage:", allocator);
+    defer allocator.free(label_text);
+    qlabel.SetText(label, label_text);
 
-    const upText = qapplication.Translate("Main", "&Up", allocator);
-    defer allocator.free(upText);
-    qpushbutton.SetText(upButton, upText);
+    const up_text = qapplication.Translate("Main", "&Up", allocator);
+    defer allocator.free(up_text);
+    qpushbutton.SetText(up_button, up_text);
 
-    const downText = qapplication.Translate("Main", "&Down", allocator);
-    defer allocator.free(downText);
-    qpushbutton.SetText(downButton, downText);
+    const down_text = qapplication.Translate("Main", "&Down", allocator);
+    defer allocator.free(down_text);
+    qpushbutton.SetText(down_button, down_text);
 
-    const leftText = qapplication.Translate("Main", "&Left", allocator);
-    defer allocator.free(leftText);
-    qpushbutton.SetText(leftButton, leftText);
+    const left_text = qapplication.Translate("Main", "&Left", allocator);
+    defer allocator.free(left_text);
+    qpushbutton.SetText(left_button, left_text);
 
-    const rightText = qapplication.Translate("Main", "&Right", allocator);
-    defer allocator.free(rightText);
-    qpushbutton.SetText(rightButton, rightText);
+    const right_text = qapplication.Translate("Main", "&Right", allocator);
+    defer allocator.free(right_text);
+    qpushbutton.SetText(right_button, right_text);
 
-    const exitText = qapplication.Translate("Main", "E&xit", allocator);
-    defer allocator.free(exitText);
-    qaction.SetText(exitAction, exitText);
+    const exit_text = qapplication.Translate("Main", "E&xit", allocator);
+    defer allocator.free(exit_text);
+    qaction.SetText(exit_action, exit_text);
 
-    const fileText = qapplication.Translate("Main", "&File", allocator);
-    defer allocator.free(fileText);
-    qmenu.SetTitle(fileMenu, fileText);
+    const file_text = qapplication.Translate("Main", "&File", allocator);
+    defer allocator.free(file_text);
+    qmenu.SetTitle(file_menu, file_text);
 
-    const quitBind = qapplication.Translate3("Main", "Ctrl+Q", "Quit", allocator);
-    defer allocator.free(quitBind);
+    const quit_bind = qapplication.Translate3("Main", "Ctrl+Q", "Quit", allocator);
+    defer allocator.free(quit_bind);
 
-    const exitKey = qkeysequence.New2(quitBind);
-    defer qkeysequence.Delete(exitKey);
+    const exit_key = qkeysequence.New2(quit_bind);
+    defer qkeysequence.Delete(exit_key);
 
-    qaction.SetShortcut(exitAction, exitKey);
+    qaction.SetShortcut(exit_action, exit_key);
 }

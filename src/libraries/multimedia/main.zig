@@ -1,27 +1,28 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
+const qcoreapplication = qt6.qcoreapplication;
 const qmediaplayer = qt6.qmediaplayer;
 const qmediaplayer_enums = qt6.qmediaplayer_enums;
 const qaudiooutput = qt6.qaudiooutput;
 const qurl = qt6.qurl;
 
 var buffer: [32]u8 = undefined;
+var io: std.Io = undefined;
 
-pub fn main() !void {
-    const argc = std.os.argv.len;
-    const argv = std.os.argv.ptr;
-    const qapp = qapplication.New(argc, argv);
-    defer qapplication.Delete(qapp);
+pub fn main(init: std.process.Init) !void {
+    const argv = try qt6.init(init.gpa, init.minimal.args);
+    defer qt6.deinit(init.gpa, argv);
+    var argc: i32 = @intCast(argv.len);
+    const qapp = qcoreapplication.New(&argc, argv, init.arena.allocator());
+    defer qcoreapplication.Delete(qapp);
 
-    var stdout_writer = std.fs.File.stdout().writer(&buffer);
+    io = init.io;
 
     const player = qmediaplayer.New();
     defer qmediaplayer.Delete(player);
 
     if (qmediaplayer.Error(player) != qmediaplayer_enums.Error.NoError) {
-        try stdout_writer.interface.writeAll("Failed to create player.\n");
-        try stdout_writer.interface.flush();
+        try std.Io.File.stdout().writeStreamingAll(init.io, "Failed to create player.\n");
         return;
     }
 
@@ -36,22 +37,18 @@ pub fn main() !void {
 
     qmediaplayer.OnPlaybackStateChanged(player, onPlaybackStateChanged);
 
-    try stdout_writer.interface.writeAll("Playback starting...\n");
-    try stdout_writer.interface.flush();
+    try std.Io.File.stdout().writeStreamingAll(init.io, "Playback starting...\n");
     qmediaplayer.Play(player);
 
-    _ = qapplication.Exec();
+    _ = qcoreapplication.Exec();
 }
 
 fn onPlaybackStateChanged(_: ?*anyopaque, state: i32) callconv(.c) void {
-    var stdout_writer = std.fs.File.stdout().writer(&buffer);
-
-    stdout_writer.interface.print("Playback state: {any}\n", .{state}) catch @panic("Playback state stdout error");
-    stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
+    const play_str = std.fmt.bufPrint(&buffer, "Playback state: {d}\n", .{state}) catch @panic("Playback state stdout error");
+    std.Io.File.stdout().writeStreamingAll(io, play_str) catch @panic("Failed to write playback state");
 
     if (state == qmediaplayer_enums.PlaybackState.StoppedState) {
-        stdout_writer.interface.writeAll("Playback complete.\n") catch @panic("Playback complete stdout error");
-        stdout_writer.interface.flush() catch @panic("Failed to flush stdout writer");
-        qapplication.Exit();
+        std.Io.File.stdout().writeStreamingAll(io, "Playback complete.\n") catch @panic("Playback complete stdout error");
+        qcoreapplication.Exit();
     }
 }
