@@ -1,18 +1,18 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QPaintEvent = qt6.QPaintEvent;
 const qpalette_enums = qt6.qpalette_enums;
-const qbasictimer = qt6.qbasictimer;
-const qfont = qt6.qfont;
-const qfontmetrics = qt6.qfontmetrics;
-const qcolor = qt6.qcolor;
-const qstylepainter = qt6.qstylepainter;
-const qtimerevent = qt6.qtimerevent;
-const qdialog = qt6.qdialog;
-const qvboxlayout = qt6.qvboxlayout;
-const qlineedit = qt6.qlineedit;
+const QBasicTimer = qt6.QBasicTimer;
+const QFont = qt6.QFont;
+const QFontMetrics = qt6.QFontMetrics;
+const QColor = qt6.QColor;
+const QStylePainter = qt6.QStylePainter;
+const QTimerEvent = qt6.QTimerEvent;
+const QDialog = qt6.QDialog;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QLineEdit = qt6.QLineEdit;
 
 var wiggly: *WigglyWidget = undefined;
 
@@ -26,11 +26,11 @@ const sine_table = [_]i32{
 };
 
 pub const WigglyWidget = struct {
-    timer: C.QBasicTimer,
+    timer: QBasicTimer,
     buffer: [max_len:0]u8,
     text: []u8,
     step: usize,
-    widget: C.QWidget,
+    widget: QWidget,
 
     pub fn init(alloc: std.mem.Allocator, text: []const u8) !*WigglyWidget {
         var self = try alloc.create(WigglyWidget);
@@ -38,67 +38,66 @@ pub const WigglyWidget = struct {
         self.step = 0;
         self.text = try std.fmt.bufPrint(&self.buffer, "{s}", .{text});
 
-        self.widget = qwidget.New2();
-        qwidget.SetBackgroundRole(self.widget, qpalette_enums.ColorRole.Midlight);
-        qwidget.SetAutoFillBackground(self.widget, true);
+        self.widget = QWidget.New2();
+        self.widget.SetBackgroundRole(qpalette_enums.ColorRole.Midlight);
+        self.widget.SetAutoFillBackground(true);
 
-        self.timer = qbasictimer.New();
-        qbasictimer.Start3(self.timer, 60, self.widget);
+        self.timer = QBasicTimer.New();
+        self.timer.Start3(60, self.widget);
 
-        const font = qfont.New();
-        defer qfont.Delete(font);
+        const font = QFont.New();
+        defer font.Delete();
 
-        qfont.SetPointSize(font, qfont.PointSize(font) + 25);
-        qwidget.SetFont(self.widget, font);
+        font.SetPointSize(font.PointSize() + 25);
+        self.widget.SetFont(font);
 
-        qwidget.OnPaintEvent(self.widget, onPaintEvent);
-        qwidget.OnTimerEvent(self.widget, onTimerEvent);
+        self.widget.OnPaintEvent(onPaintEvent);
+        self.widget.OnTimerEvent(onTimerEvent);
 
         return self;
     }
 
     pub fn deinit(self: *WigglyWidget, alloc: std.mem.Allocator) void {
-        qbasictimer.Delete(self.timer);
-        qwidget.DeleteLater(self.widget);
+        self.timer.Delete();
+        self.widget.DeleteLater();
         alloc.destroy(self);
     }
 
-    fn onPaintEvent(self: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
-        const font = qfont.New();
-        defer qfont.Delete(font);
+    fn onPaintEvent(self: QWidget, _: QPaintEvent) callconv(.c) void {
+        const font = QFont.New();
+        defer font.Delete();
 
-        const font_metrics = qfontmetrics.New(font);
-        defer qfontmetrics.Delete(font_metrics);
+        const font_metrics = QFontMetrics.New(font);
+        defer font_metrics.Delete();
 
-        var x = @divFloor(qwidget.Width(self) - qfontmetrics.HorizontalAdvance(font_metrics, wiggly.text), 4);
-        const y = @divFloor(qwidget.Height(self) + qfontmetrics.Ascent(font_metrics) - qfontmetrics.Descent(font_metrics), 2);
+        var x = @divFloor(self.Width() - font_metrics.HorizontalAdvance(wiggly.text), 4);
+        const y = @divFloor(self.Height() + font_metrics.Ascent() - font_metrics.Descent(), 2);
 
-        const color = qcolor.New3();
-        defer qcolor.Delete(color);
+        const color = QColor.New3();
+        defer color.Delete();
 
-        const painter = qstylepainter.New(self);
-        defer qstylepainter.Delete(painter);
+        const painter = QStylePainter.New(self);
+        defer painter.Delete();
 
         for (0..wiggly.text.len) |i| {
             const index: usize = @mod(wiggly.step + i, sine_table.len);
-            qcolor.SetHsv(color, @as(i32, @intCast((63 - index) * (sine_table.len / 4))), 255, 191);
-            qstylepainter.SetPen(painter, color);
-            qstylepainter.DrawText3(
-                painter,
+            color.SetHsv(@intCast((63 - index) * (sine_table.len / 4)), 255, 191);
+            painter.SetPen(color);
+            painter.DrawText3(
                 x,
-                y - @divFloor(sine_table[index] * qfontmetrics.Height(font_metrics) * 2, 300),
+                y - @divFloor(sine_table[index] * font_metrics.Height() * 2, 300),
                 wiggly.text[i..][0..1],
             );
-            x += qfontmetrics.HorizontalAdvance(font_metrics, wiggly.text[i..][0..1]) * 3;
+            x += font_metrics.HorizontalAdvance(wiggly.text[i..][0..1]) * 3;
         }
     }
 
-    fn onTimerEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
-        if (qtimerevent.TimerId(event) == qbasictimer.TimerId(wiggly.timer)) {
+    fn onTimerEvent(self: QWidget, event: QTimerEvent) callconv(.c) void {
+        if (event.TimerId() == wiggly.timer.TimerId()) {
             wiggly.step += 1;
-            qwidget.Update(self);
+            self.Update();
         } else {
-            qwidget.SuperTimerEvent(self, event);
+            self.SuperTimerEvent(event);
         }
     }
 };
@@ -107,38 +106,38 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const dialog = qdialog.New2();
-    defer qdialog.Delete(dialog);
+    const dialog = QDialog.New2();
+    defer dialog.Delete();
 
-    qdialog.SetWindowTitle(dialog, "Qt 6 Wiggly Text Example");
-    qdialog.Resize(dialog, 500, 180);
+    dialog.SetWindowTitle("Qt 6 Wiggly Text Example");
+    dialog.Resize(500, 180);
 
     wiggly = try WigglyWidget.init(init.gpa, wiggly_text);
     defer wiggly.deinit(init.gpa);
 
-    const line_edit = qlineedit.New2();
-    qlineedit.SetText(line_edit, wiggly_text);
-    qlineedit.SetMaxLength(line_edit, max_len - 1);
-    qlineedit.OnTextChanged(line_edit, onTextChanged);
+    const line_edit = QLineEdit.New2();
+    line_edit.SetText(wiggly_text);
+    line_edit.SetMaxLength(max_len - 1);
+    line_edit.OnTextChanged(onTextChanged);
 
-    const layout = qvboxlayout.New(dialog);
-    qvboxlayout.AddWidget(layout, wiggly.widget);
-    qvboxlayout.AddWidget(layout, line_edit);
+    const layout = QVBoxLayout.New(dialog);
+    layout.AddWidget(wiggly.widget);
+    layout.AddWidget(line_edit);
 
-    qdialog.Show(dialog);
+    dialog.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onTextChanged(_: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
+fn onTextChanged(_: QLineEdit, text: [*:0]const u8) callconv(.c) void {
     wiggly.text = std.fmt.bufPrint(
         &wiggly.buffer,
         "{s}",
         .{std.mem.span(text)},
     ) catch @panic("Failed to bufPrint");
 
-    qwidget.Update(wiggly.widget);
+    wiggly.widget.Update();
 }

@@ -1,66 +1,65 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qlistwidget = qt6.qlistwidget;
-const qplace = qt6.qplace;
+const QApplication = qt6.QApplication;
+const QListWidget = qt6.QListWidget;
+const QPlace = qt6.QPlace;
 
 var allocator: std.mem.Allocator = undefined;
 
-var listwidget: C.QListWidget = null;
+var listwidget: QListWidget = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    listwidget = qlistwidget.New2();
-    defer qlistwidget.Delete(listwidget);
+    listwidget = QListWidget.New2();
+    defer listwidget.Delete();
 
-    qlistwidget.SetWindowTitle(listwidget, "Qt 6 Location Example");
-    qlistwidget.Resize(listwidget, 400, 250);
-    qlistwidget.SetSpacing(listwidget, 5);
+    listwidget.SetWindowTitle("Qt 6 Location Example");
+    listwidget.Resize(400, 250);
+    listwidget.SetSpacing(5);
 
-    const place1 = qplace.New();
-    defer qplace.Delete(place1);
+    const place1 = QPlace.New();
+    defer place1.Delete();
 
-    qplace.SetName(place1, "Eiffel Tower");
-    qplace.SetPlaceId(place1, "Champ de Mars, Paris, France");
+    place1.SetName("Eiffel Tower");
+    place1.SetPlaceId("Champ de Mars, Paris, France");
 
-    const place2 = qplace.New();
-    defer qplace.Delete(place2);
+    const place2 = QPlace.New();
+    defer place2.Delete();
 
-    qplace.SetName(place2, "Space Needle");
-    qplace.SetPlaceId(place2, "Seattle, Washington, USA");
+    place2.SetName("Space Needle");
+    place2.SetPlaceId("Seattle, Washington, USA");
 
-    const place3 = qplace.New();
-    defer qplace.Delete(place3);
+    const place3 = QPlace.New();
+    defer place3.Delete();
 
-    qplace.SetName(place3, "Statue of Liberty");
-    qplace.SetPlaceId(place3, "New York, USA");
+    place3.SetName("Statue of Liberty");
+    place3.SetPlaceId("New York, USA");
 
     addPlace(place1);
     addPlace(place2);
     addPlace(place3);
 
-    qlistwidget.Show(listwidget);
+    listwidget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn addPlace(place: C.QPlace) void {
-    const name = qplace.Name(place, allocator);
+fn addPlace(place: QPlace) void {
+    const name = place.Name(allocator);
     defer allocator.free(name);
 
-    const placeid = qplace.PlaceId(place, allocator);
+    const placeid = place.PlaceId(allocator);
     defer allocator.free(placeid);
 
     const text = std.mem.concat(allocator, u8, &.{ name, "\n", placeid }) catch @panic("Failed to concat");
     defer allocator.free(text);
 
-    qlistwidget.AddItem(listwidget, text);
+    listwidget.AddItem(text);
 }

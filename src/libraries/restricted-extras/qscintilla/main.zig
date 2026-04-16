@@ -1,20 +1,20 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qsciscintilla = qt6.qsciscintilla;
+const QApplication = qt6.QApplication;
+const QsciScintilla = qt6.QsciScintilla;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const area = qsciscintilla.New2();
-    defer qsciscintilla.Delete(area);
+    const area = QsciScintilla.New2();
+    defer area.Delete();
 
-    qsciscintilla.SetFixedSize2(area, 640, 480);
-    qsciscintilla.Show(area);
+    area.SetFixedSize2(640, 480);
+    area.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

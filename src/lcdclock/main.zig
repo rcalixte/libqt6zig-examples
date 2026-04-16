@@ -1,59 +1,58 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qhboxlayout = qt6.qhboxlayout;
-const qlcdnumber = qt6.qlcdnumber;
-const qtime = qt6.qtime;
-const qtimer = qt6.qtimer;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QHBoxLayout = qt6.QHBoxLayout;
+const QLCDNumber = qt6.QLCDNumber;
+const QTime = qt6.QTime;
+const QTimer = qt6.QTimer;
 
 var allocator: std.mem.Allocator = undefined;
 
-var lcd: C.QLCDNumber = null;
-var time: C.QTime = null;
+var lcd: QLCDNumber = undefined;
+var time: QTime = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 LCD Clock Example");
-    qwidget.Resize(widget, 360, 240);
+    widget.SetWindowTitle("Qt 6 LCD Clock Example");
+    widget.Resize(360, 240);
 
-    const hbox = qhboxlayout.New(widget);
-    lcd = qlcdnumber.New(widget);
+    const hbox = QHBoxLayout.New(widget);
+    lcd = QLCDNumber.New(widget);
 
-    qlcdnumber.SetStyleSheet(lcd, "background-color: #ec915c; color: white;");
+    lcd.SetStyleSheet("background-color: #ec915c; color: white;");
 
-    show_time(null);
+    show_time(.{ .ptr = null });
 
-    qhboxlayout.AddWidget(hbox, lcd);
+    hbox.AddWidget(lcd);
 
-    const timer = qtimer.New2(widget);
-    qtimer.Start(timer, 1000);
-    qtimer.OnTimeout(timer, show_time);
+    const timer = QTimer.New2(widget);
+    timer.Start(1000);
+    timer.OnTimeout(show_time);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn show_time(_: ?*anyopaque) callconv(.c) void {
-    time = qtime.CurrentTime();
-    defer qtime.Delete(time);
+fn show_time(_: QTimer) callconv(.c) void {
+    time = QTime.CurrentTime();
+    defer time.Delete();
 
-    const lcd_format = if (@mod(qtime.Second(time), 2) == 0) "hh:mm" else "hh mm";
+    const lcd_format = if (@mod(time.Second(), 2) == 0) "hh:mm" else "hh mm";
 
-    const text = qtime.ToString2(time, lcd_format, allocator);
+    const text = time.ToString2(allocator, lcd_format);
     defer allocator.free(text);
 
-    qlcdnumber.Display(lcd, text);
+    lcd.Display(text);
 }

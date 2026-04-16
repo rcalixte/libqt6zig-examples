@@ -1,53 +1,53 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
+const QApplication = qt6.QApplication;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const quiloader = qt6.quiloader;
-const qfile = qt6.qfile;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QUiLoader = qt6.QUiLoader;
+const QFile = qt6.QFile;
 const qiodevicebase_enums = qt6.qiodevicebase_enums;
-const qlabel = qt6.qlabel;
+const QLabel = qt6.QLabel;
 
 const form_path = "src/libraries/uitools/design.ui";
 
 pub fn main(init: std.process.Init) !void {
-    qapplication.SetAttribute(qnamespace_enums.ApplicationAttribute.AA_ShareOpenGLContexts);
+    QApplication.SetAttribute(qnamespace_enums.ApplicationAttribute.AA_ShareOpenGLContexts);
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 UI Tools Example");
+    widget.SetWindowTitle("Qt 6 UI Tools Example");
 
-    const layout = qvboxlayout.New(widget);
+    const layout = QVBoxLayout.New(widget);
 
-    const loader = quiloader.New();
-    defer quiloader.Delete(loader);
+    const loader = QUiLoader.New();
+    defer loader.Delete();
 
-    const file = qfile.New2(form_path);
-    defer qfile.Delete(file);
+    const file = QFile.New2(form_path);
+    defer file.Delete();
 
-    if (qfile.Open(file, qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
-        defer qfile.Close(file);
+    if (file.Open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
+        defer file.Close();
 
-        const parent = qwidget.New2();
-        const form = quiloader.Load2(loader, file, parent);
-        qvboxlayout.AddWidget(layout, form);
-        qwidget.Resize(widget, 1000, 550);
+        const parent = QWidget.New2();
+        const form = loader.Load2(file, parent);
+        layout.AddWidget(form);
+        widget.Resize(1000, 550);
     } else {
-        const label = qlabel.New5("### Failed to open form file: " ++ form_path, widget);
-        qlabel.SetTextFormat(label, qnamespace_enums.TextFormat.MarkdownText);
-        qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
-        qvboxlayout.AddWidget(layout, label);
-        qwidget.Resize(widget, 550, 100);
+        const label = QLabel.New5("### Failed to open form file: " ++ form_path, widget);
+        label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        layout.AddWidget(label);
+        widget.Resize(550, 100);
     }
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

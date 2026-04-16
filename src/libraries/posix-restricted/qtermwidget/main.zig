@@ -1,28 +1,28 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qtermwidget = qt6.qtermwidget;
+const QApplication = qt6.QApplication;
+const QTermWidget = qt6.QTermWidget;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const term = qtermwidget.New3();
-    defer qtermwidget.Delete(term);
+    const term = QTermWidget.New3();
+    defer term.Delete();
 
-    qtermwidget.SetWindowTitle(term, "Qt 6 QTermWidget Example");
-    qtermwidget.SetMinimumSize2(term, 640, 480);
-    qtermwidget.SetColorScheme(term, "WhiteOnBlack");
-    qtermwidget.OnFinished(term, on_finished);
+    term.SetWindowTitle("Qt 6 QTermWidget Example");
+    term.SetMinimumSize2(640, 480);
+    term.SetColorScheme("WhiteOnBlack");
+    term.OnFinished(on_finished);
 
-    qtermwidget.Show(term);
+    term.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn on_finished(_: ?*anyopaque) callconv(.c) void {
-    qapplication.Quit();
+fn on_finished(_: QTermWidget) callconv(.c) void {
+    QApplication.Quit();
 }

@@ -1,24 +1,24 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const kiconbutton = qt6.kiconbutton;
+const QApplication = qt6.QApplication;
+const KIconButton = qt6.KIconButton;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const button = kiconbutton.New2();
-    defer kiconbutton.Delete(button);
+    const button = KIconButton.New2();
+    defer button.Delete();
 
-    kiconbutton.SetWindowTitle(button, "Qt 6 KIconThemes Example");
-    kiconbutton.SetText(button, "Click to open the chooser dialog");
-    kiconbutton.SetMinimumSize2(button, 320, 70);
-    kiconbutton.SetIconSize(button, 64);
+    button.SetWindowTitle("Qt 6 KIconThemes Example");
+    button.SetText("Click to open the chooser dialog");
+    button.SetMinimumSize2(320, 70);
+    button.SetIconSize(64);
 
-    kiconbutton.Show(button);
+    button.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

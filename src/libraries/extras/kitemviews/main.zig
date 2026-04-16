@@ -1,160 +1,159 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qdialog = qt6.qdialog;
-const qtreewidget = qt6.qtreewidget;
-const ktreewidgetsearchline = qt6.ktreewidgetsearchline;
-const ktreewidgetsearchlinewidget = qt6.ktreewidgetsearchlinewidget;
-const qtreewidgetitem = qt6.qtreewidgetitem;
-const qvboxlayout = qt6.qvboxlayout;
-const qhboxlayout = qt6.qhboxlayout;
-const qpushbutton = qt6.qpushbutton;
+const QApplication = qt6.QApplication;
+const QDialog = qt6.QDialog;
+const QTreeWidget = qt6.QTreeWidget;
+const KTreeWidgetSearchLine = qt6.KTreeWidgetSearchLine;
+const KTreeWidgetSearchLineWidget = qt6.KTreeWidgetSearchLineWidget;
+const QTreeWidgetItem = qt6.QTreeWidgetItem;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QHBoxLayout = qt6.QHBoxLayout;
+const QPushButton = qt6.QPushButton;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qdialogbuttonbox = qt6.qdialogbuttonbox;
+const QDialogButtonBox = qt6.QDialogButtonBox;
 const qdialogbuttonbox_enums = qt6.qdialogbuttonbox_enums;
-const qheaderview = qt6.qheaderview;
+const QShowEvent = qt6.QShowEvent;
 
 var allocator: std.mem.Allocator = undefined;
 
-var dialog: C.QDialog = null;
-var treewidget: C.QTreeWidget = null;
-var m_searchline: C.KTreeWidgetSearchLine = null;
+var dialog: QDialog = undefined;
+var treewidget: QTreeWidget = undefined;
+var m_searchline: KTreeWidgetSearchLine = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    dialog = qdialog.New2();
+    dialog = QDialog.New2();
 
-    qdialog.SetWindowTitle(dialog, "Qt 6 KItemViews");
-    qdialog.SetWhatsThis(dialog, "This is a test dialog for KTreeWidgetSearchLineTest");
+    dialog.SetWindowTitle("Qt 6 KItemViews");
+    dialog.SetWhatsThis("This is a test dialog for KTreeWidgetSearchLineTest");
 
-    treewidget = qtreewidget.New(dialog);
-    qtreewidget.SetColumnCount(treewidget, 4);
+    treewidget = QTreeWidget.New(dialog);
+    treewidget.SetColumnCount(4);
     const labels = [_][]const u8{ "Item", "Price", "HIDDEN COLUMN", "Source" };
-    qtreewidget.SetHeaderLabels(treewidget, &labels, allocator);
-    qtreewidget.HideColumn(treewidget, 2);
+    treewidget.SetHeaderLabels(allocator, &labels);
+    treewidget.HideColumn(2);
 
-    const searchwidget = ktreewidgetsearchlinewidget.New3(dialog, treewidget);
-    m_searchline = ktreewidgetsearchlinewidget.SearchLine(searchwidget);
+    const searchwidget = KTreeWidgetSearchLineWidget.New3(dialog, treewidget);
+    m_searchline = searchwidget.SearchLine();
 
     const red_s = [_][]const u8{"Red"};
-    const red = qtreewidgetitem.New4(treewidget, &red_s, allocator);
-    qtreewidgetitem.SetWhatsThis(red, 0, "This item is red");
-    qtreewidgetitem.SetWhatsThis(red, 1, "This item is pricey");
-    qtreewidget.ExpandItem(treewidget, red);
+    const red = QTreeWidgetItem.New4(allocator, treewidget, &red_s);
+    red.SetWhatsThis(0, "This item is red");
+    red.SetWhatsThis(1, "This item is pricey");
+    treewidget.ExpandItem(red);
 
     const blue_s = [_][]const u8{"Blue"};
-    const blue = qtreewidgetitem.New4(treewidget, &blue_s, allocator);
-    qtreewidget.ExpandItem(treewidget, blue);
+    const blue = QTreeWidgetItem.New4(allocator, treewidget, &blue_s);
+    treewidget.ExpandItem(blue);
 
     const green_s = [_][]const u8{"Green"};
-    const green = qtreewidgetitem.New4(treewidget, &green_s, allocator);
-    qtreewidget.ExpandItem(treewidget, green);
+    const green = QTreeWidgetItem.New4(allocator, treewidget, &green_s);
+    treewidget.ExpandItem(green);
 
     const yellow_s = [_][]const u8{"Yellow"};
-    const yellow = qtreewidgetitem.New4(treewidget, &yellow_s, allocator);
-    qtreewidget.ExpandItem(treewidget, yellow);
+    const yellow = QTreeWidgetItem.New4(allocator, treewidget, &yellow_s);
+    treewidget.ExpandItem(yellow);
 
     create2ndLevel(red);
     create2ndLevel(blue);
     create2ndLevel(green);
     create2ndLevel(yellow);
 
-    const vboxlayout = qvboxlayout.New(dialog);
-    const hboxlayout = qhboxlayout.New2();
+    const vboxlayout = QVBoxLayout.New(dialog);
+    const hboxlayout = QHBoxLayout.New2();
 
-    const case_sensitive = qpushbutton.New5("&Case Sensitive", dialog);
-    qhboxlayout.AddWidget(hboxlayout, case_sensitive);
+    const case_sensitive = QPushButton.New5("&Case Sensitive", dialog);
+    hboxlayout.AddWidget(case_sensitive);
 
-    qpushbutton.SetCheckable(case_sensitive, true);
-    qpushbutton.OnToggled(case_sensitive, switchCaseSensitivity);
+    case_sensitive.SetCheckable(true);
+    case_sensitive.OnToggled(switchCaseSensitivity);
 
-    const keep_parents_visible = qpushbutton.New5("Keep &Parents Visible", dialog);
-    qhboxlayout.AddWidget(hboxlayout, keep_parents_visible);
+    const keep_parents_visible = QPushButton.New5("Keep &Parents Visible", dialog);
+    hboxlayout.AddWidget(keep_parents_visible);
 
-    qpushbutton.SetCheckable(keep_parents_visible, true);
-    qpushbutton.SetChecked(keep_parents_visible, true);
-    qpushbutton.OnToggled(keep_parents_visible, switchKeepParentsVisible);
+    keep_parents_visible.SetCheckable(true);
+    keep_parents_visible.SetChecked(true);
+    keep_parents_visible.OnToggled(switchKeepParentsVisible);
 
-    const buttonbox = qdialogbuttonbox.New(dialog);
-    qdialogbuttonbox.SetStandardButtons(buttonbox, qdialogbuttonbox_enums.StandardButton.Ok | qdialogbuttonbox_enums.StandardButton.Cancel);
+    const buttonbox = QDialogButtonBox.New(dialog);
+    buttonbox.SetStandardButtons(qdialogbuttonbox_enums.StandardButton.Ok | qdialogbuttonbox_enums.StandardButton.Cancel);
 
-    qdialogbuttonbox.OnAccepted(buttonbox, onAccepted);
-    qdialogbuttonbox.OnRejected(buttonbox, onRejected);
+    buttonbox.OnAccepted(onAccepted);
+    buttonbox.OnRejected(onRejected);
 
-    qvboxlayout.AddWidget(vboxlayout, searchwidget);
-    qvboxlayout.AddWidget(vboxlayout, treewidget);
-    qvboxlayout.AddLayout(vboxlayout, hboxlayout);
-    qvboxlayout.AddWidget(vboxlayout, buttonbox);
+    vboxlayout.AddWidget(searchwidget);
+    vboxlayout.AddWidget(treewidget);
+    vboxlayout.AddLayout(hboxlayout);
+    vboxlayout.AddWidget(buttonbox);
 
-    ktreewidgetsearchline.SetFocus(m_searchline);
-    qdialog.Resize(dialog, 350, 600);
-    qdialog.OnShowEvent(dialog, showEvent);
+    m_searchline.SetFocus();
+    dialog.Resize(350, 600);
+    dialog.OnShowEvent(showEvent);
 
-    _ = qdialog.Exec(dialog);
+    _ = dialog.Exec();
 }
 
-fn create2ndLevel(item: C.QTreeWidgetItem) void {
+fn create2ndLevel(item: QTreeWidgetItem) void {
     const beans_s = [_][]const u8{"Beans"};
-    const beans = qtreewidgetitem.New7(item, &beans_s, allocator);
-    qtreewidget.ExpandItem(treewidget, beans);
+    const beans = QTreeWidgetItem.New7(allocator, item, &beans_s);
+    treewidget.ExpandItem(beans);
     create3rdLevel(beans);
 
     const grapes_s = [_][]const u8{"Grapes"};
-    const grapes = qtreewidgetitem.New7(item, &grapes_s, allocator);
-    qtreewidget.ExpandItem(treewidget, grapes);
+    const grapes = QTreeWidgetItem.New7(allocator, item, &grapes_s);
+    treewidget.ExpandItem(grapes);
     create3rdLevel(grapes);
 
     const plums_s = [_][]const u8{"Plums"};
-    const plums = qtreewidgetitem.New7(item, &plums_s, allocator);
-    qtreewidget.ExpandItem(treewidget, plums);
+    const plums = QTreeWidgetItem.New7(allocator, item, &plums_s);
+    treewidget.ExpandItem(plums);
     create3rdLevel(plums);
 
     const bananas_s = [_][]const u8{"Bananas"};
-    const bananas = qtreewidgetitem.New7(item, &bananas_s, allocator);
-    qtreewidget.ExpandItem(treewidget, bananas);
+    const bananas = QTreeWidgetItem.New7(allocator, item, &bananas_s);
+    treewidget.ExpandItem(bananas);
     create3rdLevel(bananas);
 }
 
-fn create3rdLevel(item: C.QTreeWidgetItem) void {
+fn create3rdLevel(item: QTreeWidgetItem) void {
     const growing = [_][]const u8{ "Growing", "$2.00", "", "Farmer" };
-    _ = qtreewidgetitem.New7(item, &growing, allocator);
+    _ = QTreeWidgetItem.New7(allocator, item, &growing);
     const ripe = [_][]const u8{ "Ripe", "$8.00", "", "Market" };
-    _ = qtreewidgetitem.New7(item, &ripe, allocator);
+    _ = QTreeWidgetItem.New7(allocator, item, &ripe);
     const decaying = [_][]const u8{ "Decaying", "$0.50", "", "Ground" };
-    _ = qtreewidgetitem.New7(item, &decaying, allocator);
+    _ = QTreeWidgetItem.New7(allocator, item, &decaying);
     const pickled = [_][]const u8{ "Pickled", "$4.00", "", "Shop" };
-    _ = qtreewidgetitem.New7(item, &pickled, allocator);
+    _ = QTreeWidgetItem.New7(allocator, item, &pickled);
 }
 
-fn switchCaseSensitivity(_: ?*anyopaque, checked: bool) callconv(.c) void {
-    ktreewidgetsearchline.SetCaseSensitivity(m_searchline, if (checked) qnamespace_enums.CaseSensitivity.CaseSensitive else qnamespace_enums.CaseSensitivity.CaseInsensitive);
+fn switchCaseSensitivity(_: QPushButton, checked: bool) callconv(.c) void {
+    m_searchline.SetCaseSensitivity(if (checked) qnamespace_enums.CaseSensitivity.CaseSensitive else qnamespace_enums.CaseSensitivity.CaseInsensitive);
 }
 
-fn switchKeepParentsVisible(_: ?*anyopaque, checked: bool) callconv(.c) void {
-    ktreewidgetsearchline.SetKeepParentsVisible(m_searchline, checked);
+fn switchKeepParentsVisible(_: QPushButton, checked: bool) callconv(.c) void {
+    m_searchline.SetKeepParentsVisible(checked);
 }
 
-fn onAccepted(_: ?*anyopaque) callconv(.c) void {
-    qdialog.Accept(dialog);
+fn onAccepted(_: QDialogButtonBox) callconv(.c) void {
+    dialog.Accept();
 }
 
-fn onRejected(_: ?*anyopaque) callconv(.c) void {
-    qdialog.Reject(dialog);
+fn onRejected(_: QDialogButtonBox) callconv(.c) void {
+    dialog.Reject();
 }
 
-fn showEvent(self: ?*anyopaque, event: ?*anyopaque) callconv(.c) void {
-    qdialog.SuperShowEvent(self, event);
+fn showEvent(self: QDialog, event: QShowEvent) callconv(.c) void {
+    self.SuperShowEvent(event);
 
-    const headerview = qtreewidget.Header(treewidget);
-    for (0..@intCast(qheaderview.Count(headerview))) |i|
-        if (!qheaderview.IsSectionHidden(headerview, @intCast(i)))
-            qtreewidget.ResizeColumnToContents(treewidget, @intCast(i));
+    const headerview = treewidget.Header();
+    for (0..@intCast(headerview.Count())) |i|
+        if (!headerview.IsSectionHidden(@intCast(i)))
+            treewidget.ResizeColumnToContents(@intCast(i));
 }

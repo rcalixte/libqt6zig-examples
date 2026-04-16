@@ -1,20 +1,21 @@
+const builtin = @import("builtin");
 const std = @import("std");
 const qt6 = @import("libqt6zig");
 const properties_enums = qt6.properties_enums;
-const qapplication = qt6.qapplication;
-const qlistwidget = qt6.qlistwidget;
-const qsize = qt6.qsize;
+const QApplication = qt6.QApplication;
+const QListWidget = qt6.QListWidget;
+const QSize = qt6.QSize;
 const qlistview_enums = qt6.qlistview_enums;
-const qicon = qt6.qicon;
-const qlistwidgetitem = qt6.qlistwidgetitem;
+const QIcon = qt6.QIcon;
+const QListWidgetItem = qt6.QListWidgetItem;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qobject = qt6.qobject;
-const kfilemetadata__extractorplugin = qt6.kfilemetadata__extractorplugin;
-const kfilemetadata__simpleextractionresult = qt6.kfilemetadata__simpleextractionresult;
-const qvariant = qt6.qvariant;
-const kfilemetadata__propertyinfo = qt6.kfilemetadata__propertyinfo;
-const qimagereader = qt6.qimagereader;
-const kfilemetadata__extractionresult = qt6.kfilemetadata__extractionresult;
+const QObject = qt6.QObject;
+const KFileMetaData__ExtractorPlugin = qt6.KFileMetaData__ExtractorPlugin;
+const KFileMetaData__SimpleExtractionResult = qt6.KFileMetaData__SimpleExtractionResult;
+const QVariant = qt6.QVariant;
+const KFileMetaData__PropertyInfo = qt6.KFileMetaData__PropertyInfo;
+const QImageReader = qt6.QImageReader;
+const KFileMetaData__ExtractionResult = qt6.KFileMetaData__ExtractionResult;
 const types_enums = qt6.types_enums;
 const extractionresult_enums = qt6.extractionresult_enums;
 
@@ -34,109 +35,119 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
     io = init.io;
 
-    const listwidget = qlistwidget.New2();
-    defer qlistwidget.Delete(listwidget);
+    const listwidget = QListWidget.New2();
+    defer listwidget.Delete();
 
-    qlistwidget.SetWindowTitle(listwidget, "Qt 6 KFileMetaData Example");
-    qlistwidget.Resize(listwidget, 500, 250);
-    qlistwidget.SetSpacing(listwidget, 5);
+    listwidget.SetWindowTitle("Qt 6 KFileMetaData Example");
+    listwidget.Resize(500, 250);
+    listwidget.SetSpacing(5);
 
-    const size = qsize.New4(200, 200);
-    defer qsize.Delete(size);
+    const size = QSize.New4(200, 200);
+    defer size.Delete();
 
-    qlistwidget.SetIconSize(listwidget, size);
-    qlistwidget.SetViewMode(listwidget, qlistview_enums.ViewMode.IconMode);
+    listwidget.SetIconSize(size);
+    listwidget.SetViewMode(qlistview_enums.ViewMode.IconMode);
 
-    const icon = qicon.New4(filename);
-    defer qicon.Delete(icon);
+    const icon = QIcon.New4(filename);
+    defer icon.Delete();
 
-    const item = qlistwidgetitem.New3(icon, "Image Properties");
-    defer qlistwidgetitem.Delete(item);
+    const item = QListWidgetItem.New3(icon, "Image Properties");
+    defer item.Delete();
 
-    qlistwidget.AddItem2(listwidget, item);
+    listwidget.AddItem2(item);
 
-    const object = qobject.New();
-    defer qobject.Delete(object);
+    const object = QObject.New();
+    defer object.Delete();
 
-    const pngextractor = kfilemetadata__extractorplugin.New(object);
-    kfilemetadata__extractorplugin.OnMimetypes(pngextractor, onMimeTypes);
-    kfilemetadata__extractorplugin.OnExtract(pngextractor, onExtract);
+    const pngextractor = KFileMetaData__ExtractorPlugin.New(object);
+    pngextractor.OnMimetypes(onMimeTypes);
+    pngextractor.OnExtract(onExtract);
 
-    const result = kfilemetadata__simpleextractionresult.New(filename);
-    defer kfilemetadata__simpleextractionresult.Delete(result);
-    kfilemetadata__extractorplugin.Extract(pngextractor, result);
+    const result = KFileMetaData__SimpleExtractionResult.New(filename);
+    defer result.Delete();
 
-    var properties = kfilemetadata__simpleextractionresult.Properties(result, allocator);
+    pngextractor.Extract(result);
+
+    var properties = result.Properties(allocator);
     defer properties.deinit(allocator);
 
     var it = properties.iterator();
     while (it.next()) |entry| {
         const key = entry.key_ptr.*;
         for (0..entry.value_ptr.*.len) |j| {
-            const value_str = qvariant.ToString(entry.value_ptr.*[j], allocator);
+            const value_str = entry.value_ptr.*[j].ToString(allocator);
             defer {
                 allocator.free(value_str);
-                qvariant.Delete(entry.value_ptr.*[j]);
+                entry.value_ptr.*[j].Delete();
                 allocator.free(entry.value_ptr.*);
             }
 
-            const info = kfilemetadata__propertyinfo.New2(key);
-            defer kfilemetadata__propertyinfo.Delete(info);
+            const info = KFileMetaData__PropertyInfo.New2(key);
+            defer info.Delete();
 
-            const name = kfilemetadata__propertyinfo.DisplayName(info, allocator);
+            const name = info.DisplayName(allocator);
             defer allocator.free(name);
 
             const text = try std.mem.concat(allocator, u8, &.{ name, ": ", value_str });
             defer allocator.free(text);
 
-            qlistwidget.AddItem(listwidget, text);
+            listwidget.AddItem(text);
         }
     }
 
-    qlistwidget.Show(listwidget);
+    listwidget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
-    const list = std.heap.c_allocator.allocSentinel(?[*:0]const u8, 1, null) catch @panic("Failed to allocate memory");
-    list[0] = "image/png";
+    const n: usize = 1;
+    const list: [*:null]?[*:0]const u8 = switch (builtin.os.tag == .windows) {
+        true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
+        false => std.heap.c_allocator.allocSentinel(?[*:0]const u8, n, null) catch @panic("Failed to allocate memory"),
+    };
 
-    return list.ptr;
+    list[0] = "image/png";
+    list[n] = null;
+
+    return list;
 }
 
-fn onExtract(_: ?*anyopaque, result: ?*anyopaque) callconv(.c) void {
+fn onExtract(_: KFileMetaData__ExtractorPlugin, result: KFileMetaData__ExtractionResult) callconv(.c) void {
     var format = "png".*;
-    const reader = qimagereader.New5(filename, &format);
-    defer qimagereader.Delete(reader);
+    const reader = QImageReader.New5(filename, &format);
+    defer reader.Delete();
 
-    if (!qimagereader.CanRead(reader)) {
+    if (!reader.CanRead()) {
         std.Io.File.stdout().writeStreamingAll(io, "Unable to read input image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during read");
         return;
     }
 
-    kfilemetadata__extractionresult.AddType(result, types_enums.Type.Image);
+    result.AddType(types_enums.Type.Image);
 
-    if ((kfilemetadata__extractionresult.InputFlags(result) & extractionresult_enums.Flag.ExtractMetaData) == 0) {
+    if ((result.InputFlags() & extractionresult_enums.Flag.ExtractMetaData) == 0) {
         std.Io.File.stdout().writeStreamingAll(io, "Unable to extract metadata from image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during extraction");
         return;
     }
 
     for (text_mapping) |mapping| {
-        const value = qimagereader.Text(reader, mapping.key, allocator);
+        const value = reader.Text(
+            allocator,
+            mapping.key,
+        );
         defer allocator.free(value);
 
         if (value.len == 0) continue;
 
-        const variant = qt6.qvariant.New24(value);
-        defer qt6.qvariant.Delete(variant);
+        const variant = QVariant.New24(value);
+        defer variant.Delete();
 
-        kfilemetadata__extractionresult.Add(result, mapping.property, variant);
+        result.Add(mapping.property, variant);
     }
 }

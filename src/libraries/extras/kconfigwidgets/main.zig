@@ -1,61 +1,60 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qmainwindow = qt6.qmainwindow;
-const kcolorschememanager = qt6.kcolorschememanager;
-const qlistview = qt6.qlistview;
-const qdialogbuttonbox = qt6.qdialogbuttonbox;
+const QApplication = qt6.QApplication;
+const QMainWindow = qt6.QMainWindow;
+const KColorSchemeManager = qt6.KColorSchemeManager;
+const QListView = qt6.QListView;
+const QDialogButtonBox = qt6.QDialogButtonBox;
 const qdialogbuttonbox_enums = qt6.qdialogbuttonbox_enums;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const qmenu = qt6.qmenu;
-const kcolorschememenu = qt6.kcolorschememenu;
-const qmenubar = qt6.qmenubar;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QMenu = qt6.QMenu;
+const KColorSchemeMenu = qt6.KColorSchemeMenu;
+const QModelIndex = qt6.QModelIndex;
 
-var manager: C.KColorSchemeManager = null;
+var manager: KColorSchemeManager = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
-    qmainwindow.SetWindowTitle(window, "Qt 6 KConfigWidgets");
-    qmainwindow.SetMinimumSize2(window, 400, 450);
-    manager = kcolorschememanager.Instance();
-    const listview = qlistview.New(window);
-    const manager_model = kcolorschememanager.Model(manager);
-    qlistview.SetModel(listview, manager_model);
-    qlistview.OnClicked(listview, onClicked);
+    const window = QMainWindow.New2();
+    defer window.Delete();
+    window.SetWindowTitle("Qt 6 KConfigWidgets");
+    window.SetMinimumSize2(400, 450);
+    manager = KColorSchemeManager.Instance();
+    const listview = QListView.New(window);
+    const manager_model = manager.Model();
+    listview.SetModel(manager_model);
+    listview.OnClicked(onClicked);
 
-    const box = qdialogbuttonbox.New7(qdialogbuttonbox_enums.StandardButton.Close, window);
-    qdialogbuttonbox.OnRejected(box, quit_callback);
+    const box = QDialogButtonBox.New7(qdialogbuttonbox_enums.StandardButton.Close, window);
+    box.OnRejected(quit_callback);
 
-    const widget = qwidget.New2();
-    const layout = qvboxlayout.New(widget);
-    qvboxlayout.AddWidget(layout, listview);
-    qvboxlayout.AddWidget(layout, box);
+    const widget = QWidget.New2();
+    const layout = QVBoxLayout.New(widget);
+    layout.AddWidget(listview);
+    layout.AddWidget(box);
 
-    qmainwindow.SetCentralWidget(window, widget);
+    window.SetCentralWidget(widget);
 
-    const menu = qmenu.New4("Menu", window);
-    const manager_menu = kcolorschememenu.CreateMenu(manager, window);
-    qmenu.AddAction(menu, manager_menu);
-    _ = qmenubar.AddMenu(qmainwindow.MenuBar(window), menu);
+    const menu = QMenu.New4("Menu", window);
+    const manager_menu = KColorSchemeMenu.CreateMenu(manager, window);
+    menu.AddAction(manager_menu);
+    _ = window.MenuBar().AddMenu(menu);
 
-    qmainwindow.Show(window);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onClicked(_: ?*anyopaque, index: ?*anyopaque) callconv(.c) void {
-    kcolorschememanager.ActivateScheme(manager, index);
+fn onClicked(_: QListView, index: QModelIndex) callconv(.c) void {
+    manager.ActivateScheme(index);
 }
 
-fn quit_callback(_: ?*anyopaque) callconv(.c) void {
-    qapplication.Quit();
+fn quit_callback(_: QDialogButtonBox) callconv(.c) void {
+    QApplication.Quit();
 }

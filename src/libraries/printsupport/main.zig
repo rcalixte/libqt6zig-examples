@@ -1,35 +1,35 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qpushbutton = qt6.qpushbutton;
-const qprintdialog = qt6.qprintdialog;
+const QApplication = qt6.QApplication;
+const QPushButton = qt6.QPushButton;
+const QPrintDialog = qt6.QPrintDialog;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const button = qpushbutton.New3("QPrintSupport sample");
-    defer qpushbutton.Delete(button);
+    const button = QPushButton.New3("QPrintSupport sample");
+    defer button.Delete();
 
-    qpushbutton.SetFixedWidth(button, 320);
-    qpushbutton.OnPressed(button, onPressed);
+    button.SetFixedWidth(320);
+    button.OnPressed(onPressed);
 
-    qpushbutton.Show(button);
+    button.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onPressed(_: ?*anyopaque) callconv(.c) void {
-    const dialog = qprintdialog.New3();
+fn onPressed(_: QPushButton) callconv(.c) void {
+    const dialog = QPrintDialog.New3();
     // cleaned up in onFinished
 
-    qprintdialog.OnFinished(dialog, onFinished);
-    qprintdialog.Show(dialog);
+    dialog.OnFinished(onFinished);
+    dialog.Show();
 }
 
-fn onFinished(self: ?*anyopaque, _: i32) callconv(.c) void {
-    qprintdialog.DeleteLater(self);
+fn onFinished(self: QPrintDialog, _: i32) callconv(.c) void {
+    self.DeleteLater();
 }

@@ -6,11 +6,11 @@
 const qt6 = @import("libqt6zig");
 
 pub fn init() bool {
-    return qt6.qresource.RegisterResource2(&_resourceRcc[0]);
+    return qt6.QResource.RegisterResource2(&_resourceRcc[0]);
 }
 
 pub fn deinit() bool {
-    return qt6.qresource.UnregisterResource2(&_resourceRcc[0]);
+    return qt6.QResource.UnregisterResource2(&_resourceRcc[0]);
 }
 
 const _resourceRcc = [_]u8{

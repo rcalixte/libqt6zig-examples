@@ -1,60 +1,60 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qlineedit = qt6.qlineedit;
-const qlabel = qt6.qlabel;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QLineEdit = qt6.QLineEdit;
+const QLabel = qt6.QLabel;
 const qnamespace_enums = qt6.qnamespace_enums;
-const kdatevalidator = qt6.kdatevalidator;
-const qvboxlayout = qt6.qvboxlayout;
+const KDateValidator = qt6.KDateValidator;
+const QVBoxLayout = qt6.QVBoxLayout;
 const qvalidator_enums = qt6.qvalidator_enums;
 
-var label: C.QLabel = null;
+var label: QLabel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KGuiAddons Example");
-    qwidget.SetMinimumSize2(widget, 380, 180);
+    widget.SetWindowTitle("Qt 6 KGuiAddons Example");
+    widget.SetMinimumSize2(380, 180);
 
-    const titlelabel = qlabel.New3("Enter a date:");
+    const titlelabel = QLabel.New3("Enter a date:");
 
-    const input = qlineedit.New2();
-    qlineedit.OnTextChanged(input, onTextChanged);
+    const input = QLineEdit.New2();
+    input.OnTextChanged(onTextChanged);
 
-    label = qlabel.New2();
-    qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
-    qlabel.SetStyleSheet(label, "font: bold;");
+    label = QLabel.New2();
+    label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    label.SetStyleSheet("font: bold;");
 
-    const validator = kdatevalidator.New();
-    qlineedit.SetValidator(input, validator);
+    const validator = KDateValidator.New();
+    input.SetValidator(validator);
 
-    const layout = qvboxlayout.New(widget);
-    qvboxlayout.AddWidget(layout, titlelabel);
-    qvboxlayout.AddWidget(layout, input);
-    qvboxlayout.AddWidget(layout, label);
+    const layout = QVBoxLayout.New(widget);
+    layout.AddWidget(titlelabel);
+    layout.AddWidget(input);
+    layout.AddWidget(label);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onTextChanged(self: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
-    var pos = qlineedit.CursorPosition(self);
-    const ret = kdatevalidator.Validate(qlineedit.Validator(self), std.mem.span(text), &pos);
+fn onTextChanged(self: QLineEdit, text: [*:0]const u8) callconv(.c) void {
+    var pos = self.CursorPosition();
+    const validator: KDateValidator = .{ .ptr = @ptrCast(self.Validator().ptr) };
+    const ret = validator.Validate(std.mem.span(text), &pos);
 
     switch (ret) {
-        qvalidator_enums.State.Acceptable => qlabel.SetText(label, "Validation result: Acceptable"),
-        qvalidator_enums.State.Intermediate => qlabel.SetText(label, "Validation result: Intermediate"),
-        qvalidator_enums.State.Invalid => qlabel.SetText(label, "Validation result: Invalid"),
+        qvalidator_enums.State.Acceptable => label.SetText("Validation result: Acceptable"),
+        qvalidator_enums.State.Intermediate => label.SetText("Validation result: Intermediate"),
+        qvalidator_enums.State.Invalid => label.SetText("Validation result: Invalid"),
         else => unreachable,
     }
 }

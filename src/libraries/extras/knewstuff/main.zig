@@ -1,32 +1,32 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const knswidgets__button = qt6.knswidgets__button;
-const qvboxlayout = qt6.qvboxlayout;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const KNSWidgets__Button = qt6.KNSWidgets__Button;
+const QVBoxLayout = qt6.QVBoxLayout;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KNewStuff Example");
-    qwidget.SetMinimumSize2(widget, 300, 100);
+    widget.SetWindowTitle("Qt 6 KNewStuff Example");
+    widget.SetMinimumSize2(300, 100);
 
-    const button = knswidgets__button.New(widget);
-    knswidgets__button.SetText(button, "Click me!");
-    knswidgets__button.SetMinimumWidth(button, 100);
+    const button = KNSWidgets__Button.New(widget);
+    button.SetText("Click me!");
+    button.SetMinimumWidth(100);
 
-    const layout = qvboxlayout.New2();
-    qvboxlayout.AddWidget(layout, button);
-    qwidget.SetLayout(widget, layout);
+    const layout = QVBoxLayout.New2();
+    layout.AddWidget(button);
+    widget.SetLayout(layout);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

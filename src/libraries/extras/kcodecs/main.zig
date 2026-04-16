@@ -1,45 +1,45 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const kcharsets = qt6.kcharsets;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const qlabel = qt6.qlabel;
-const qlistwidget = qt6.qlistwidget;
+const QApplication = qt6.QApplication;
+const KCharsets = qt6.KCharsets;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QLabel = qt6.QLabel;
+const QListWidget = qt6.QListWidget;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const charsets = kcharsets.Charsets();
+    const charsets = KCharsets.Charsets();
 
-    const names = kcharsets.AvailableEncodingNames(charsets, init.gpa);
+    const names = charsets.AvailableEncodingNames(init.gpa);
     defer {
         for (names) |name|
             init.gpa.free(name);
         init.gpa.free(names);
     }
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KCharsets");
-    qwidget.SetMinimumSize2(widget, 300, 400);
+    widget.SetWindowTitle("Qt 6 KCharsets");
+    widget.SetMinimumSize2(300, 400);
 
-    const vboxlayout = qvboxlayout.New2();
-    const label = qlabel.New3("Available Encodings:");
-    const listwidget = qlistwidget.New2();
+    const vboxlayout = QVBoxLayout.New2();
+    const label = QLabel.New3("Available Encodings:");
+    const listwidget = QListWidget.New2();
 
-    qlistwidget.AddItems(listwidget, names, init.gpa);
+    listwidget.AddItems(init.gpa, names);
 
-    qvboxlayout.AddWidget(vboxlayout, label);
-    qvboxlayout.AddWidget(vboxlayout, listwidget);
-    qwidget.SetLayout(widget, vboxlayout);
+    vboxlayout.AddWidget(label);
+    vboxlayout.AddWidget(listwidget);
+    widget.SetLayout(vboxlayout);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

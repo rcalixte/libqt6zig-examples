@@ -1,62 +1,58 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const sonnet__dictionarycombobox = qt6.sonnet__dictionarycombobox;
-const qtextedit = qt6.qtextedit;
-const sonnet__spellcheckdecorator = qt6.sonnet__spellcheckdecorator;
-const sonnet__highlighter = qt6.sonnet__highlighter;
-const qvboxlayout = qt6.qvboxlayout;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const Sonnet__DictionaryComboBox = qt6.Sonnet__DictionaryComboBox;
+const QTextEdit = qt6.QTextEdit;
+const Sonnet__SpellCheckDecorator = qt6.Sonnet__SpellCheckDecorator;
+const Sonnet__Highlighter = qt6.Sonnet__Highlighter;
+const QVBoxLayout = qt6.QVBoxLayout;
 
-var highlighter1: C.Sonnet__Highlighter = null;
-var highlighter2: C.Sonnet__Highlighter = null;
+var highlighter1: Sonnet__Highlighter = undefined;
+var highlighter2: Sonnet__Highlighter = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.DeleteLater(widget);
+    const widget = QWidget.New2();
+    defer widget.DeleteLater();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 Sonnet Example");
+    widget.SetWindowTitle("Qt 6 Sonnet Example");
 
-    const combo = sonnet__dictionarycombobox.New2();
-    const textedit1 = qtextedit.New2();
-    qtextedit.SetText(
-        textedit1,
-        "This is a sample buffer. Whih this thingg will be checkin for misstakes. Whih, Enviroment, covermant. Whih.",
-    );
+    const combo = Sonnet__DictionaryComboBox.New2();
+    const textedit1 = QTextEdit.New2();
+    textedit1.SetText("This is a sample buffer. Whih this thingg will be checkin for misstakes. Whih, Enviroment, covermant. Whih.");
 
-    const installer1 = sonnet__spellcheckdecorator.New(textedit1);
-    highlighter1 = sonnet__spellcheckdecorator.Highlighter(installer1);
+    const installer1 = Sonnet__SpellCheckDecorator.New(textedit1);
+    highlighter1 = installer1.Highlighter();
 
-    sonnet__highlighter.SetCurrentLanguage(highlighter1, "en_US");
+    highlighter1.SetCurrentLanguage("en_US");
 
-    const textedit2 = qtextedit.New2();
-    qtextedit.SetText(textedit2, "John Doe said:\n> Hello how aree you?\nI am ffine thanks");
+    const textedit2 = QTextEdit.New2();
+    textedit2.SetText("John Doe said:\n> Hello how aree you?\nI am ffine thanks");
 
-    const installer2 = sonnet__spellcheckdecorator.New(textedit2);
-    highlighter2 = sonnet__spellcheckdecorator.Highlighter(installer2);
+    const installer2 = Sonnet__SpellCheckDecorator.New(textedit2);
+    highlighter2 = installer2.Highlighter();
 
-    sonnet__highlighter.SetCurrentLanguage(highlighter2, "en_US");
+    highlighter2.SetCurrentLanguage("en_US");
 
-    sonnet__dictionarycombobox.OnDictionaryChanged(combo, onDictionaryChanged);
+    combo.OnDictionaryChanged(onDictionaryChanged);
 
-    const layout = qvboxlayout.New(widget);
-    qvboxlayout.AddWidget(layout, combo);
-    qvboxlayout.AddWidget(layout, textedit1);
-    qvboxlayout.AddWidget(layout, textedit2);
+    const layout = QVBoxLayout.New(widget);
+    layout.AddWidget(combo);
+    layout.AddWidget(textedit1);
+    layout.AddWidget(textedit2);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onDictionaryChanged(_: ?*anyopaque, dictionary: [*:0]const u8) callconv(.c) void {
-    sonnet__highlighter.SetCurrentLanguage(highlighter1, std.mem.span(dictionary));
-    sonnet__highlighter.SetCurrentLanguage(highlighter2, std.mem.span(dictionary));
+fn onDictionaryChanged(_: Sonnet__DictionaryComboBox, dictionary: [*:0]const u8) callconv(.c) void {
+    highlighter1.SetCurrentLanguage(std.mem.span(dictionary));
+    highlighter2.SetCurrentLanguage(std.mem.span(dictionary));
 }

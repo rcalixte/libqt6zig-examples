@@ -1,133 +1,130 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const kunitconversion__converter = qt6.kunitconversion__converter;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const KUnitConversion__Converter = qt6.KUnitConversion__Converter;
 const unit_enums = qt6.unit_enums;
-const qcombobox = qt6.qcombobox;
-const kunitconversion__unitcategory = qt6.kunitconversion__unitcategory;
-const kunitconversion__unit = qt6.kunitconversion__unit;
-const qvariant = qt6.qvariant;
-const qlineedit = qt6.qlineedit;
-const qlabel = qt6.qlabel;
+const QComboBox = qt6.QComboBox;
+const QVariant = qt6.QVariant;
+const QLineEdit = qt6.QLineEdit;
+const QLabel = qt6.QLabel;
 const qnamespace_enums = qt6.qnamespace_enums;
-const kunitconversion__value = qt6.kunitconversion__value;
+const KUnitConversion__Value = qt6.KUnitConversion__Value;
 
 var allocator: std.mem.Allocator = undefined;
 
 var buffer: [128]u8 = undefined;
 
-var from: C.QComboBox = null;
-var to: C.QComboBox = null;
-var input: C.QLineEdit = null;
-var result: C.QLabel = null;
+var from: QComboBox = undefined;
+var to: QComboBox = undefined;
+var input: QLineEdit = undefined;
+var result: QLabel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KUnitConversion Example");
-    qwidget.SetFixedSize2(widget, 450, 300);
+    widget.SetWindowTitle("Qt 6 KUnitConversion Example");
+    widget.SetFixedSize2(450, 300);
 
-    const layout = qvboxlayout.New(widget);
-    const converter = kunitconversion__converter.New();
-    defer kunitconversion__converter.Delete(converter);
+    const layout = QVBoxLayout.New(widget);
+    const converter = KUnitConversion__Converter.New();
+    defer converter.Delete();
 
     // Update the category type to change the units!
-    const category = kunitconversion__converter.Category2(converter, unit_enums.CategoryId.LengthCategory);
-    defer kunitconversion__unitcategory.Delete(category);
+    const category = converter.Category2(unit_enums.CategoryId.LengthCategory);
+    defer category.Delete();
 
-    from = qcombobox.New2();
-    to = qcombobox.New2();
+    from = QComboBox.New2();
+    to = QComboBox.New2();
 
-    const units = kunitconversion__unitcategory.Units(category, allocator);
+    const units = category.Units(allocator);
     defer allocator.free(units);
 
     for (units) |unit| {
-        const description = kunitconversion__unit.Description(unit, allocator);
+        const description = unit.Description(allocator);
         defer allocator.free(description);
 
-        const id = kunitconversion__unit.Id(unit);
-        const data = qvariant.New4(id);
-        defer qvariant.Delete(data);
+        const id = unit.Id();
+        const data = QVariant.New4(id);
+        defer data.Delete();
 
-        qcombobox.AddItem22(from, description, data);
-        qcombobox.AddItem22(to, description, data);
+        from.AddItem22(description, data);
+        to.AddItem22(description, data);
     }
 
-    input = qlineedit.New2();
-    qlineedit.SetPlaceholderText(input, "Enter a value");
+    input = QLineEdit.New2();
+    input.SetPlaceholderText("Enter a value");
 
-    result = qlabel.New3("### Result:");
-    qlabel.SetTextFormat(result, qnamespace_enums.TextFormat.MarkdownText);
-    qlabel.SetAlignment(result, qnamespace_enums.AlignmentFlag.AlignCenter);
+    result = QLabel.New3("### Result:");
+    result.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    result.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
 
-    qvboxlayout.AddWidget(layout, qlabel.New3("From:"));
-    qvboxlayout.AddWidget(layout, from);
-    qvboxlayout.AddWidget(layout, input);
-    qvboxlayout.AddStretch(layout);
-    qvboxlayout.AddWidget(layout, qlabel.New3("To:"));
-    qvboxlayout.AddWidget(layout, to);
-    qvboxlayout.AddStretch(layout);
-    qvboxlayout.AddWidget(layout, result);
+    layout.AddWidget(QLabel.New3("From:"));
+    layout.AddWidget(from);
+    layout.AddWidget(input);
+    layout.AddStretch();
+    layout.AddWidget(QLabel.New3("To:"));
+    layout.AddWidget(to);
+    layout.AddStretch();
+    layout.AddWidget(result);
 
-    qcombobox.OnCurrentIndexChanged(from, onComboChanged);
-    qcombobox.OnCurrentIndexChanged(to, onComboChanged);
-    qlineedit.OnTextChanged(input, onTextChanged);
+    from.OnCurrentIndexChanged(onComboChanged);
+    to.OnCurrentIndexChanged(onComboChanged);
+    input.OnTextChanged(onTextChanged);
 
-    qlineedit.SetFocus(input);
+    input.SetFocus();
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onComboChanged(_: ?*anyopaque, _: i32) callconv(.c) void {
+fn onComboChanged(_: QComboBox, _: i32) callconv(.c) void {
     onTextChanged(input, "");
 }
 
-fn onTextChanged(_: ?*anyopaque, _: [*:0]const u8) callconv(.c) void {
-    const text = qlineedit.Text(input, allocator);
+fn onTextChanged(_: QLineEdit, _: [*:0]const u8) callconv(.c) void {
+    const text = input.Text(allocator);
     defer allocator.free(text);
 
     if (std.mem.eql(u8, text, "")) {
-        qlabel.SetText(result, "### Result:");
+        result.SetText("### Result:");
         return;
     }
 
     const value = std.fmt.parseFloat(f64, text) catch {
-        qlabel.SetText(result, "### Invalid input");
+        result.SetText("### Invalid input");
         return;
     };
 
-    const from_data = qcombobox.CurrentData(from);
-    defer qvariant.Delete(from_data);
+    const from_data = from.CurrentData();
+    defer from_data.Delete();
 
-    const from_id = qvariant.ToInt(from_data);
+    const from_id = from_data.ToInt();
 
-    const to_data = qcombobox.CurrentData(to);
-    defer qvariant.Delete(to_data);
+    const to_data = to.CurrentData();
+    defer to_data.Delete();
 
-    const to_id = qvariant.ToInt(to_data);
+    const to_id = to_data.ToInt();
 
-    const converted_obj = kunitconversion__value.New4(value, from_id);
-    defer kunitconversion__value.Delete(converted_obj);
+    const converted_obj = KUnitConversion__Value.New4(value, from_id);
+    defer converted_obj.Delete();
 
-    const converted_value = kunitconversion__value.ConvertTo2(converted_obj, to_id);
-    defer kunitconversion__value.Delete(converted_value);
+    const converted_value = converted_obj.ConvertTo2(to_id);
+    defer converted_value.Delete();
 
-    const converted_text = kunitconversion__value.ToString(converted_value, allocator);
+    const converted_text = converted_value.ToString(allocator);
     defer allocator.free(converted_text);
 
-    qlabel.SetText(result, std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch @panic("Failed to bufPrint"));
+    result.SetText(std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch @panic("Failed to bufPrint"));
 }

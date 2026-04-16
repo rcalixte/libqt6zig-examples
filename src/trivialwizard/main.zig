@@ -1,93 +1,84 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwizard = qt6.qwizard;
-const qwizardpage = qt6.qwizardpage;
-const qlabel = qt6.qlabel;
-const qvboxlayout = qt6.qvboxlayout;
-const qlineedit = qt6.qlineedit;
-const qgridlayout = qt6.qgridlayout;
+const QApplication = qt6.QApplication;
+const QWizard = qt6.QWizard;
+const QWizardPage = qt6.QWizardPage;
+const QLabel = qt6.QLabel;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QLineEdit = qt6.QLineEdit;
+const QGridLayout = qt6.QGridLayout;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const wizard = qwizard.New2();
-    defer qwizard.Delete(wizard);
+    const wizard = QWizard.New2();
+    defer wizard.Delete();
 
     const intro_page = createIntroPage();
-    _ = qwizard.AddPage(wizard, intro_page);
+    _ = wizard.AddPage(intro_page);
 
     const registration_page = createRegistrationPage();
-    _ = qwizard.AddPage(wizard, registration_page);
+    _ = wizard.AddPage(registration_page);
 
     const conclusion_page = createConclusionPage();
-    _ = qwizard.AddPage(wizard, conclusion_page);
+    _ = wizard.AddPage(conclusion_page);
 
-    qwizard.SetWindowTitle(wizard, "TrivialWizard");
-    qwizard.Show(wizard);
+    wizard.SetWindowTitle("TrivialWizard");
+    wizard.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-pub fn createIntroPage() C.QWizardPage {
-    const page = qwizardpage.New2();
-    qwizardpage.SetTitle(page, "Introduction");
+pub fn createIntroPage() QWizardPage {
+    const page = QWizardPage.New2();
+    page.SetTitle("Introduction");
     const text = "This wizard will help you register your copy of Super Product Two";
-    const label = qlabel.New5(text, page);
-    qlabel.SetWordWrap(label, true);
+    const label = QLabel.New5(text, page);
+    label.SetWordWrap(true);
 
-    const layout = qvboxlayout.New2();
-    qvboxlayout.AddWidget(layout, label);
-    qwizardpage.SetLayout(page, layout);
-
-    return page;
-}
-
-pub fn createRegistrationPage() C.QWizardPage {
-    const page = qwizardpage.New2();
-
-    const title = "Registration";
-    qwizardpage.SetTitle(page, title);
-
-    const subtitle = "Please fill both fields";
-    qwizardpage.SetSubTitle(page, subtitle);
-
-    const name = "Name:";
-    const name_label = qlabel.New5(name, page);
-    const name_edit = qlineedit.New(page);
-
-    const email = "Email address:";
-    const email_label = qlabel.New5(email, page);
-    const email_edit = qlineedit.New(page);
-
-    const layout = qgridlayout.New(page);
-    qgridlayout.AddWidget2(layout, name_label, 0, 0);
-    qgridlayout.AddWidget2(layout, name_edit, 0, 1);
-    qgridlayout.AddWidget2(layout, email_label, 1, 0);
-    qgridlayout.AddWidget2(layout, email_edit, 1, 1);
-    qwizardpage.SetLayout(page, layout);
+    const layout = QVBoxLayout.New2();
+    layout.AddWidget(label);
+    page.SetLayout(layout);
 
     return page;
 }
 
-pub fn createConclusionPage() C.QWizardPage {
-    const page = qwizardpage.New2();
+pub fn createRegistrationPage() QWizardPage {
+    const page = QWizardPage.New2();
+    page.SetTitle("Registration");
+    page.SetSubTitle("Please fill both fields");
 
-    const title = "Conclusion";
-    qwizardpage.SetTitle(page, title);
+    const name_label = QLabel.New5("Name:", page);
+    const name_edit = QLineEdit.New(page);
+
+    const email_label = QLabel.New5("Email address:", page);
+    const email_edit = QLineEdit.New(page);
+
+    const layout = QGridLayout.New(page);
+    layout.AddWidget2(name_label, 0, 0);
+    layout.AddWidget2(name_edit, 0, 1);
+    layout.AddWidget2(email_label, 1, 0);
+    layout.AddWidget2(email_edit, 1, 1);
+    page.SetLayout(layout);
+
+    return page;
+}
+
+pub fn createConclusionPage() QWizardPage {
+    const page = QWizardPage.New2();
+    page.SetTitle("Conclusion");
 
     const success = "You are now successfully registered. Have a nice day!";
-    const label = qlabel.New5(success, page);
-    qlabel.SetWordWrap(label, true);
+    const label = QLabel.New5(success, page);
+    label.SetWordWrap(true);
 
-    const layout = qvboxlayout.New2();
-    qvboxlayout.AddWidget(layout, label);
-    qwizardpage.SetLayout(page, layout);
+    const layout = QVBoxLayout.New2();
+    layout.AddWidget(label);
+    page.SetLayout(layout);
 
     return page;
 }

@@ -1,148 +1,148 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qcombobox = qt6.qcombobox;
-const qlabel = qt6.qlabel;
-const qmainwindow = qt6.qmainwindow;
-const qwidget = qt6.qwidget;
-const qpushbutton = qt6.qpushbutton;
-const qgridlayout = qt6.qgridlayout;
-const qvboxlayout = qt6.qvboxlayout;
-const qaction = qt6.qaction;
-const qkeysequence = qt6.qkeysequence;
-const qmenubar = qt6.qmenubar;
-const qmenu = qt6.qmenu;
-const qlocale = qt6.qlocale;
-const qtranslator = qt6.qtranslator;
+const QApplication = qt6.QApplication;
+const QComboBox = qt6.QComboBox;
+const QLabel = qt6.QLabel;
+const QMainWindow = qt6.QMainWindow;
+const QWidget = qt6.QWidget;
+const QPushButton = qt6.QPushButton;
+const QGridLayout = qt6.QGridLayout;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QAction = qt6.QAction;
+const QKeySequence = qt6.QKeySequence;
+const QMenuBar = qt6.QMenuBar;
+const QMenu = qt6.QMenu;
+const QLocale = qt6.QLocale;
+const QTranslator = qt6.QTranslator;
 
 var allocator: std.mem.Allocator = undefined;
 
-var label: C.QLabel = null;
-var window: C.QMainWindow = null;
-var up_button: C.QPushButton = null;
-var down_button: C.QPushButton = null;
-var left_button: C.QPushButton = null;
-var right_button: C.QPushButton = null;
-var exit_action: C.QAction = null;
-var file_menu: C.QMenu = null;
+var label: QLabel = undefined;
+var window: QMainWindow = undefined;
+
+var up_button: QPushButton = undefined;
+var down_button: QPushButton = undefined;
+var left_button: QPushButton = undefined;
+var right_button: QPushButton = undefined;
+var exit_action: QAction = undefined;
+var file_menu: QMenu = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const combo = qcombobox.New2();
+    const combo = QComboBox.New2();
     const texts = [_][]const u8{ "en", "es", "fr" };
 
-    qcombobox.AddItems(combo, &texts, allocator);
-    qcombobox.OnCurrentTextChanged(combo, onCurrentTextChanged);
+    combo.AddItems(allocator, &texts);
+    combo.OnCurrentTextChanged(onCurrentTextChanged);
 
-    label = qlabel.New3("L&anguage:");
-    qlabel.SetBuddy(label, combo);
+    label = QLabel.New3("L&anguage:");
+    label.SetBuddy(combo);
 
-    window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
+    window = QMainWindow.New2();
+    defer window.Delete();
 
-    qmainwindow.SetWindowTitle(window, "Qt 6 Translation Example");
-    qmainwindow.SetMinimumSize2(window, 460, 270);
+    window.SetWindowTitle("Qt 6 Translation Example");
+    window.SetMinimumSize2(460, 270);
 
-    const widget = qwidget.New2();
+    const widget = QWidget.New2();
 
-    up_button = qpushbutton.New3("&Up");
-    down_button = qpushbutton.New3("&Down");
-    left_button = qpushbutton.New3("&Left");
-    right_button = qpushbutton.New3("&Right");
+    up_button = QPushButton.New3("&Up");
+    down_button = QPushButton.New3("&Down");
+    left_button = QPushButton.New3("&Left");
+    right_button = QPushButton.New3("&Right");
 
-    const gridlayout = qgridlayout.New2();
+    const gridlayout = QGridLayout.New2();
 
-    qgridlayout.AddWidget2(gridlayout, up_button, 0, 1);
-    qgridlayout.AddWidget2(gridlayout, down_button, 2, 1);
-    qgridlayout.AddWidget2(gridlayout, left_button, 1, 0);
-    qgridlayout.AddWidget2(gridlayout, right_button, 1, 2);
+    gridlayout.AddWidget2(up_button, 0, 1);
+    gridlayout.AddWidget2(down_button, 2, 1);
+    gridlayout.AddWidget2(left_button, 1, 0);
+    gridlayout.AddWidget2(right_button, 1, 2);
 
-    const vboxlayout = qvboxlayout.New2();
+    const vboxlayout = QVBoxLayout.New2();
 
-    qvboxlayout.AddStretch(vboxlayout);
-    qvboxlayout.AddWidget(vboxlayout, label);
-    qvboxlayout.AddWidget(vboxlayout, combo);
+    vboxlayout.AddStretch();
+    vboxlayout.AddWidget(label);
+    vboxlayout.AddWidget(combo);
 
-    qgridlayout.AddLayout(gridlayout, vboxlayout, 3, 0);
+    gridlayout.AddLayout(vboxlayout, 3, 0);
 
-    qwidget.SetLayout(widget, gridlayout);
-    qmainwindow.SetCentralWidget(window, widget);
+    widget.SetLayout(gridlayout);
+    window.SetCentralWidget(widget);
 
-    exit_action = qaction.New5("E&xit", window);
+    exit_action = QAction.New5("E&xit", window);
 
-    const exit_key = qkeysequence.New2("Ctrl+Q");
-    defer qkeysequence.Delete(exit_key);
+    const exit_key = QKeySequence.New2("Ctrl+Q");
+    defer exit_key.Delete();
 
-    qaction.SetShortcut(exit_action, exit_key);
-    qaction.OnTriggered(exit_action, onTriggered);
+    exit_action.SetShortcut(exit_key);
+    exit_action.OnTriggered(onTriggered);
 
-    file_menu = qmenubar.AddMenu2(qmainwindow.MenuBar(window), "&File");
-    qmenu.AddAction(file_menu, exit_action);
+    file_menu = window.MenuBar().AddMenu2("&File");
+    file_menu.AddAction(exit_action);
 
-    qmainwindow.Show(window);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onTriggered(_: ?*anyopaque) callconv(.c) void {
-    _ = qmainwindow.Close(window);
+fn onTriggered(_: QAction) callconv(.c) void {
+    _ = window.Close();
 }
 
-fn onCurrentTextChanged(_: ?*anyopaque, text: [*:0]const u8) callconv(.c) void {
-    const locale = qlocale.New2(std.mem.span(text));
-    defer qlocale.Delete(locale);
+fn onCurrentTextChanged(_: QComboBox, text: [*:0]const u8) callconv(.c) void {
+    const locale = QLocale.New2(std.mem.span(text));
+    defer locale.Delete();
 
-    const translator = qtranslator.New();
-    defer qtranslator.Delete(translator);
+    const translator = QTranslator.New();
+    defer translator.Delete();
 
-    if (qtranslator.Load42(translator, locale, "lupdate", "_", "src/lupdate")) {
-        _ = qapplication.InstallTranslator(translator);
+    if (translator.Load42(locale, "lupdate", "_", "src/lupdate")) {
+        _ = QApplication.InstallTranslator(translator);
         retranslate();
     }
 }
 
 fn retranslate() void {
-    const label_text = qapplication.Translate("Main", "L&anguage:", allocator);
+    const label_text = QApplication.Translate(allocator, "Main", "L&anguage:");
     defer allocator.free(label_text);
-    qlabel.SetText(label, label_text);
+    label.SetText(label_text);
 
-    const up_text = qapplication.Translate("Main", "&Up", allocator);
+    const up_text = QApplication.Translate(allocator, "Main", "&Up");
     defer allocator.free(up_text);
-    qpushbutton.SetText(up_button, up_text);
+    up_button.SetText(up_text);
 
-    const down_text = qapplication.Translate("Main", "&Down", allocator);
+    const down_text = QApplication.Translate(allocator, "Main", "&Down");
     defer allocator.free(down_text);
-    qpushbutton.SetText(down_button, down_text);
+    down_button.SetText(down_text);
 
-    const left_text = qapplication.Translate("Main", "&Left", allocator);
+    const left_text = QApplication.Translate(allocator, "Main", "&Left");
     defer allocator.free(left_text);
-    qpushbutton.SetText(left_button, left_text);
+    left_button.SetText(left_text);
 
-    const right_text = qapplication.Translate("Main", "&Right", allocator);
+    const right_text = QApplication.Translate(allocator, "Main", "&Right");
     defer allocator.free(right_text);
-    qpushbutton.SetText(right_button, right_text);
+    right_button.SetText(right_text);
 
-    const exit_text = qapplication.Translate("Main", "E&xit", allocator);
+    const exit_text = QApplication.Translate(allocator, "Main", "E&xit");
     defer allocator.free(exit_text);
-    qaction.SetText(exit_action, exit_text);
+    exit_action.SetText(exit_text);
 
-    const file_text = qapplication.Translate("Main", "&File", allocator);
+    const file_text = QApplication.Translate(allocator, "Main", "&File");
     defer allocator.free(file_text);
-    qmenu.SetTitle(file_menu, file_text);
+    file_menu.SetTitle(file_text);
 
-    const quit_bind = qapplication.Translate3("Main", "Ctrl+Q", "Quit", allocator);
+    const quit_bind = QApplication.Translate3(allocator, "Main", "Ctrl+Q", "Quit");
     defer allocator.free(quit_bind);
 
-    const exit_key = qkeysequence.New2(quit_bind);
-    defer qkeysequence.Delete(exit_key);
+    const exit_key = QKeySequence.New2(quit_bind);
+    defer exit_key.Delete();
 
-    qaction.SetShortcut(exit_action, exit_key);
+    exit_action.SetShortcut(exit_key);
 }

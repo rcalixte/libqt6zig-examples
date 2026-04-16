@@ -1,47 +1,45 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qpushbutton = qt6.qpushbutton;
-const qdatawidgetmapper = qt6.qdatawidgetmapper;
-const qsqldatabase = qt6.qsqldatabase;
-const qmessagebox = qt6.qmessagebox;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QPushButton = qt6.QPushButton;
+const QDataWidgetMapper = qt6.QDataWidgetMapper;
+const QSqlDatabase = qt6.QSqlDatabase;
+const QMessageBox = qt6.QMessageBox;
 const qmessagebox_enums = qt6.qmessagebox_enums;
-const qsqlquery = qt6.qsqlquery;
-const qsqlrelationaltablemodel = qt6.qsqlrelationaltablemodel;
+const QSqlQuery = qt6.QSqlQuery;
+const QSqlRelationalTableModel = qt6.QSqlRelationalTableModel;
 const qsqltablemodel_enums = qt6.qsqltablemodel_enums;
-const qsqlrelation = qt6.qsqlrelation;
-const qlabel = qt6.qlabel;
-const qlineedit = qt6.qlineedit;
-const qtextedit = qt6.qtextedit;
-const qcombobox = qt6.qcombobox;
-const qsqltablemodel = qt6.qsqltablemodel;
-const qstyleditemdelegate = qt6.qstyleditemdelegate;
-const qgridlayout = qt6.qgridlayout;
-const qmodelindex = qt6.qmodelindex;
+const QSqlRelation = qt6.QSqlRelation;
+const QLabel = qt6.QLabel;
+const QLineEdit = qt6.QLineEdit;
+const QTextEdit = qt6.QTextEdit;
+const QComboBox = qt6.QComboBox;
+const QStyledItemDelegate = qt6.QStyledItemDelegate;
+const QGridLayout = qt6.QGridLayout;
+const QModelIndex = qt6.QModelIndex;
 
-var mapper: C.QDataWidgetMapper = null;
-var next_button: C.QPushButton = null;
-var prev_button: C.QPushButton = null;
-var model: C.QSqlRelationalTableModel = null;
+var mapper: QDataWidgetMapper = undefined;
+var next_button: QPushButton = undefined;
+var prev_button: QPushButton = undefined;
+var model: QSqlRelationalTableModel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    const db = qsqldatabase.AddDatabase("QSQLITE");
-    defer qsqldatabase.Delete(db);
+    const db = QSqlDatabase.AddDatabase("QSQLITE");
+    defer db.Delete();
 
-    qsqldatabase.SetDatabaseName(db, ":memory:");
-    if (!qsqldatabase.Open(db)) {
-        _ = qmessagebox.Critical42(
+    db.SetDatabaseName(":memory:");
+    if (!db.Open()) {
+        _ = QMessageBox.Critical42(
             widget,
             "Cannot open database",
             "Unable to establish a database connection.\nThis example needs SQLite support. Please read the Qt SQL driver documentation for information on how to build it.",
@@ -50,124 +48,96 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     }
 
-    const query = qsqlquery.New2();
-    defer qsqlquery.Delete(query);
+    const query = QSqlQuery.New2();
+    defer query.Delete();
 
     // Setup the main table
-    _ = qsqlquery.Exec(
-        query,
-        "create table person (id int primary key, name varchar(20), address varchar(200), typeid int)",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into person values(1, 'Alice', '<qt>123 Main Street<br/>Market Town</qt>', 101)",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into person values(2, 'Bob', '<qt>PO Box 32<br/>Mail Handling Service<br/>Service City</qt>', 102)",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into person values(3, 'Carol', '<qt>The Lighthouse<br/>Remote Island</qt>', 103)",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into person values(4, 'Donald', '<qt>47338 Park Avenue<br/>Big City</qt>', 101)",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into person values(5, 'Emma', '<qt>Research Station<br/>Base Camp<br/>Big Mountain</qt>', 103)",
-    );
+    _ = query.Exec("create table person (id int primary key, name varchar(20), address varchar(200), typeid int)");
+    _ = query.Exec("insert into person values(1, 'Alice', '<qt>123 Main Street<br/>Market Town</qt>', 101)");
+    _ = query.Exec("insert into person values(2, 'Bob', '<qt>PO Box 32<br/>Mail Handling Service<br/>Service City</qt>', 102)");
+    _ = query.Exec("insert into person values(3, 'Carol', '<qt>The Lighthouse<br/>Remote Island</qt>', 103)");
+    _ = query.Exec("insert into person values(4, 'Donald', '<qt>47338 Park Avenue<br/>Big City</qt>', 101)");
+    _ = query.Exec("insert into person values(5, 'Emma', '<qt>Research Station<br/>Base Camp<br/>Big Mountain</qt>', 103)");
 
     // Setup the address table
-    _ = qsqlquery.Exec(
-        query,
-        "create table addresstype (id int, description varchar(20))",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into addresstype values(101, 'Home')",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into addresstype values(102, 'Work')",
-    );
-    _ = qsqlquery.Exec(
-        query,
-        "insert into addresstype values(103, 'Other')",
-    );
+    _ = query.Exec("create table addresstype (id int, description varchar(20))");
+    _ = query.Exec("insert into addresstype values(101, 'Home')");
+    _ = query.Exec("insert into addresstype values(102, 'Work')");
+    _ = query.Exec("insert into addresstype values(103, 'Other')");
 
-    model = qsqlrelationaltablemodel.New2(widget);
-    qsqlrelationaltablemodel.SetTable(model, "person");
-    qsqlrelationaltablemodel.SetEditStrategy(model, qsqltablemodel_enums.EditStrategy.OnManualSubmit);
+    model = QSqlRelationalTableModel.New2(widget);
+    model.SetTable("person");
+    model.SetEditStrategy(qsqltablemodel_enums.EditStrategy.OnManualSubmit);
 
-    const type_index = qsqlrelationaltablemodel.FieldIndex(model, "typeid");
-    const relation = qsqlrelation.New2("addresstype", "id", "description");
-    defer qsqlrelation.Delete(relation);
-    qsqlrelationaltablemodel.SetRelation(model, type_index, relation);
+    const type_index = model.FieldIndex("typeid");
+    const relation = QSqlRelation.New2("addresstype", "id", "description");
+    defer relation.Delete();
 
-    _ = qsqlrelationaltablemodel.Select(model);
+    model.SetRelation(type_index, relation);
+
+    _ = model.Select();
 
     // Ownership of these widgets will be transferred to the widget via the layout
-    const name_label = qlabel.New3("Na&me:");
-    const name_edit = qlineedit.New2();
-    const address_label = qlabel.New3("&Address:");
-    const address_edit = qtextedit.New2();
-    const type_label = qlabel.New3("&Type:");
-    const type_combo = qcombobox.New2();
-    next_button = qpushbutton.New3("&Next");
-    prev_button = qpushbutton.New3("&Previous");
+    const name_label = QLabel.New3("Na&me:");
+    const name_edit = QLineEdit.New2();
+    const address_label = QLabel.New3("&Address:");
+    const address_edit = QTextEdit.New2();
+    const type_label = QLabel.New3("&Type:");
+    const type_combo = QComboBox.New2();
+    next_button = QPushButton.New3("&Next");
+    prev_button = QPushButton.New3("&Previous");
 
-    qlabel.SetBuddy(name_label, name_edit);
-    qlabel.SetBuddy(address_label, address_edit);
-    qlabel.SetBuddy(type_label, type_combo);
+    name_label.SetBuddy(name_edit);
+    address_label.SetBuddy(address_edit);
+    type_label.SetBuddy(type_combo);
 
-    const relModel = qsqlrelationaltablemodel.RelationModel(model, type_index);
-    qcombobox.SetModel(type_combo, relModel);
-    qcombobox.SetModelColumn(type_combo, qsqltablemodel.FieldIndex(relModel, "description"));
+    const relModel = model.RelationModel(type_index);
+    type_combo.SetModel(relModel);
+    type_combo.SetModelColumn(relModel.FieldIndex("description"));
 
-    mapper = qdatawidgetmapper.New2(widget);
-    qdatawidgetmapper.SetModel(mapper, model);
-    const relational_delegate = qstyleditemdelegate.New2(mapper);
-    qdatawidgetmapper.SetItemDelegate(mapper, relational_delegate);
-    qdatawidgetmapper.AddMapping(mapper, name_edit, qsqlrelationaltablemodel.FieldIndex(model, "name"));
-    qdatawidgetmapper.AddMapping(mapper, address_edit, qsqlrelationaltablemodel.FieldIndex(model, "address"));
-    qdatawidgetmapper.AddMapping(mapper, type_combo, type_index);
+    mapper = QDataWidgetMapper.New2(widget);
+    mapper.SetModel(model);
+    const relational_delegate = QStyledItemDelegate.New2(mapper);
+    mapper.SetItemDelegate(relational_delegate);
+    mapper.AddMapping(name_edit, model.FieldIndex("name"));
+    mapper.AddMapping(address_edit, model.FieldIndex("address"));
+    mapper.AddMapping(type_combo, type_index);
 
-    qpushbutton.OnClicked(prev_button, toPrevious);
-    qpushbutton.OnClicked(next_button, toNext);
-    qdatawidgetmapper.OnCurrentIndexChanged(mapper, updateButtons);
+    prev_button.OnClicked(toPrevious);
+    next_button.OnClicked(toNext);
+    mapper.OnCurrentIndexChanged(updateButtons);
 
-    const layout = qgridlayout.New2();
-    qgridlayout.AddWidget2(layout, name_label, 0, 0);
-    qgridlayout.AddWidget2(layout, name_edit, 0, 1);
-    qgridlayout.AddWidget2(layout, prev_button, 0, 2);
-    qgridlayout.AddWidget2(layout, address_label, 1, 0);
-    qgridlayout.AddWidget3(layout, address_edit, 1, 1, 2, 1);
-    qgridlayout.AddWidget2(layout, next_button, 1, 2);
-    qgridlayout.AddWidget2(layout, type_label, 3, 0);
-    qgridlayout.AddWidget2(layout, type_combo, 3, 1);
-    qwidget.SetLayout(widget, layout);
+    const layout = QGridLayout.New2();
+    layout.AddWidget2(name_label, 0, 0);
+    layout.AddWidget2(name_edit, 0, 1);
+    layout.AddWidget2(prev_button, 0, 2);
+    layout.AddWidget2(address_label, 1, 0);
+    layout.AddWidget3(address_edit, 1, 1, 2, 1);
+    layout.AddWidget2(next_button, 1, 2);
+    layout.AddWidget2(type_label, 3, 0);
+    layout.AddWidget2(type_combo, 3, 1);
+    widget.SetLayout(layout);
 
-    qwidget.SetWindowTitle(widget, "Qt 6 SQL Widget Mapper");
-    qdatawidgetmapper.ToFirst(mapper);
+    widget.SetWindowTitle("Qt 6 SQL Widget Mapper");
+    mapper.ToFirst();
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn toPrevious(_: ?*anyopaque) callconv(.c) void {
-    qdatawidgetmapper.ToPrevious(mapper);
+fn toPrevious(_: QPushButton) callconv(.c) void {
+    mapper.ToPrevious();
 }
 
-fn toNext(_: ?*anyopaque) callconv(.c) void {
-    qdatawidgetmapper.ToNext(mapper);
+fn toNext(_: QPushButton) callconv(.c) void {
+    mapper.ToNext();
 }
 
-fn updateButtons(_: ?*anyopaque, index: i32) callconv(.c) void {
-    qpushbutton.SetEnabled(prev_button, index > 0);
-    const model_index = qmodelindex.New3();
-    defer qmodelindex.Delete(model_index);
-    qpushbutton.SetEnabled(next_button, index < qsqlrelationaltablemodel.RowCount(model, model_index) - 1);
+fn updateButtons(_: QDataWidgetMapper, index: i32) callconv(.c) void {
+    prev_button.SetEnabled(index > 0);
+    const model_index = QModelIndex.New3();
+    defer model_index.Delete();
+
+    next_button.SetEnabled(index < model.RowCount(model_index) - 1);
 }

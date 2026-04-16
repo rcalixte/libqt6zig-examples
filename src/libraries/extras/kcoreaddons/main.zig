@@ -1,67 +1,68 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qmainwindow = qt6.qmainwindow;
-const qwidget = qt6.qwidget;
-const qhboxlayout = qt6.qhboxlayout;
-const qtextedit = qt6.qtextedit;
-const qtextbrowser = qt6.qtextbrowser;
-const qtimer = qt6.qtimer;
-const ktexttohtml = qt6.ktexttohtml;
+const QApplication = qt6.QApplication;
+const QMainWindow = qt6.QMainWindow;
+const QWidget = qt6.QWidget;
+const QHBoxLayout = qt6.QHBoxLayout;
+const QTextEdit = qt6.QTextEdit;
+const QTextBrowser = qt6.QTextBrowser;
+const QTimer = qt6.QTimer;
+const KTextToHTML = qt6.KTextToHTML;
+const ktexttohtml_enums = qt6.ktexttohtml_enums;
 
 var allocator: std.mem.Allocator = undefined;
 
-var edit: C.QTextEdit = null;
-var htmlview: C.QTextBrowser = null;
-var timer: C.QTimer = null;
+var edit: QTextEdit = undefined;
+var htmlview: QTextBrowser = undefined;
+var timer: QTimer = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
+    const window = QMainWindow.New2();
+    defer window.Delete();
 
-    const widget = qwidget.New2();
-    const layout = qhboxlayout.New2();
+    const widget = QWidget.New2();
+    const layout = QHBoxLayout.New2();
 
-    qmainwindow.SetWindowTitle(window, "Qt 6 KCoreAddons Example");
-    qmainwindow.SetCentralWidget(window, widget);
-    qwidget.SetLayout(widget, layout);
+    window.SetWindowTitle("Qt 6 KCoreAddons Example");
+    window.SetCentralWidget(widget);
+    widget.SetLayout(layout);
 
-    edit = qtextedit.New2();
-    qtextedit.SetAcceptRichText(edit, false);
+    edit = QTextEdit.New2();
+    edit.SetAcceptRichText(false);
 
-    qhboxlayout.AddWidget(layout, edit);
+    layout.AddWidget(edit);
 
-    htmlview = qtextbrowser.New2();
-    qhboxlayout.AddWidget(layout, htmlview);
+    htmlview = QTextBrowser.New2();
+    layout.AddWidget(htmlview);
 
-    timer = qtimer.New2(qapp);
-    qtimer.SetSingleShot(timer, true);
-    qtimer.SetInterval(timer, 1000);
-    qtimer.OnTimeout(timer, onTimeout);
-    qtextedit.OnTextChanged(edit, onTextChanged);
+    timer = QTimer.New2(qapp);
+    timer.SetSingleShot(true);
+    timer.SetInterval(1000);
+    timer.OnTimeout(onTimeout);
+    edit.OnTextChanged(onTextChanged);
 
-    qmainwindow.Show(window);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onTimeout(_: ?*anyopaque) callconv(.c) void {
-    const plaintext = qtextedit.ToPlainText(edit, allocator);
+fn onTimeout(_: QTimer) callconv(.c) void {
+    const plaintext = edit.ToPlainText(allocator);
     defer allocator.free(plaintext);
-    const html = ktexttohtml.ConvertToHtml(plaintext, &0, 4096, 255, allocator);
+    const options = ktexttohtml_enums.Option.HighlightText;
+    const html = KTextToHTML.ConvertToHtml(allocator, plaintext, &options, 4096, 255);
     defer allocator.free(html);
-    qtextbrowser.SetHtml(htmlview, html);
+    htmlview.SetHtml(html);
 }
 
-fn onTextChanged(_: ?*anyopaque) callconv(.c) void {
-    qtimer.Start2(timer);
+fn onTextChanged(_: QTextEdit) callconv(.c) void {
+    timer.Start2();
 }

@@ -1,11 +1,13 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
+const QApplication = qt6.QApplication;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qgroupbox = qt6.qgroupbox;
-const qstylepainter = qt6.qstylepainter;
-const qbrush = qt6.qbrush;
-const qkeyevent = qt6.qkeyevent;
+const QGroupBox = qt6.QGroupBox;
+const QPaintEvent = qt6.QPaintEvent;
+const QStylePainter = qt6.QStylePainter;
+const QBrush = qt6.QBrush;
+const QContextMenuEvent = qt6.QContextMenuEvent;
+const QKeyEvent = qt6.QKeyEvent;
 
 var buffer: [32]u8 = undefined;
 var current_color: u2 = 0;
@@ -21,56 +23,56 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    qapplication.SetApplicationDisplayName("Right-click to change the color");
+    QApplication.SetApplicationDisplayName("Right-click to change the color");
 
-    const groupbox = qgroupbox.New2();
-    defer qgroupbox.Delete(groupbox);
+    const groupbox = QGroupBox.New2();
+    defer groupbox.Delete();
 
-    qgroupbox.SetTitle(groupbox, "QGroupBox title");
-    qgroupbox.SetFixedSize2(groupbox, 320, 240);
-    qgroupbox.SetMinimumSize2(groupbox, 100, 100);
-    qgroupbox.OnPaintEvent(groupbox, onPaintEvent);
-    qgroupbox.OnContextMenuEvent(groupbox, onContextMenuEvent);
-    qgroupbox.OnKeyPressEvent(groupbox, onKeyPressEvent);
+    groupbox.SetTitle("QGroupBox title");
+    groupbox.SetFixedSize2(320, 240);
+    groupbox.SetMinimumSize2(100, 100);
+    groupbox.OnPaintEvent(onPaintEvent);
+    groupbox.OnContextMenuEvent(onContextMenuEvent);
+    groupbox.OnKeyPressEvent(onKeyPressEvent);
 
-    qgroupbox.Show(groupbox);
+    groupbox.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onPaintEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
+fn onPaintEvent(self: QGroupBox, ev: QPaintEvent) callconv(.c) void {
     // Call the base class's PaintEvent to get initial content
     // (Comment this out to see the QGroupBox disappear)
-    qgroupbox.SuperPaintEvent(self, ev);
+    self.SuperPaintEvent(ev);
 
     // Then, draw on top of it
-    const painter = qstylepainter.New(self);
-    defer qstylepainter.Delete(painter);
+    const painter = QStylePainter.New(self);
+    defer painter.Delete();
 
-    const brush = qbrush.New12(colors[current_color], qnamespace_enums.BrushStyle.SolidPattern);
-    defer qbrush.Delete(brush);
+    const brush = QBrush.New12(colors[current_color], qnamespace_enums.BrushStyle.SolidPattern);
+    defer brush.Delete();
 
-    qstylepainter.SetBrush(painter, brush);
-    qstylepainter.DrawRect2(painter, 80, 60, 160, 120);
+    painter.SetBrush(brush);
+    painter.DrawRect2(80, 60, 160, 120);
 }
 
-fn onContextMenuEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
-    qgroupbox.SuperContextMenuEvent(self, ev);
+fn onContextMenuEvent(self: QGroupBox, ev: QContextMenuEvent) callconv(.c) void {
+    self.SuperContextMenuEvent(ev);
 
     current_color +%= 1;
-    qgroupbox.Update(self);
+    self.Update();
 }
 
-fn onKeyPressEvent(self: ?*anyopaque, ev: ?*anyopaque) callconv(.c) void {
-    qgroupbox.SuperKeyPressEvent(self, ev);
+fn onKeyPressEvent(self: QGroupBox, ev: QKeyEvent) callconv(.c) void {
+    self.SuperKeyPressEvent(ev);
 
     const title = std.fmt.bufPrint(
         &buffer,
         "Keypress {d}",
-        .{qkeyevent.Key(ev)},
+        .{ev.Key()},
     ) catch @panic("Buffer full");
-    qgroupbox.SetTitle(self, title);
+    self.SetTitle(title);
 }

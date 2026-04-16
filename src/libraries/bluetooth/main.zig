@@ -1,121 +1,118 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qbluetoothlocaldevice = qt6.qbluetoothlocaldevice;
-const qvboxlayout = qt6.qvboxlayout;
-const qcheckbox = qt6.qcheckbox;
-const qpushbutton = qt6.qpushbutton;
-const qlistwidget = qt6.qlistwidget;
-const qlabel = qt6.qlabel;
-const qbluetoothdevicediscoveryagent = qt6.qbluetoothdevicediscoveryagent;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QBluetoothLocalDevice = qt6.QBluetoothLocalDevice;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QCheckBox = qt6.QCheckBox;
+const QPushButton = qt6.QPushButton;
+const QListWidget = qt6.QListWidget;
+const QLabel = qt6.QLabel;
+const QBluetoothDeviceDiscoveryAgent = qt6.QBluetoothDeviceDiscoveryAgent;
 const qnamespace_enums = qt6.qnamespace_enums;
 const qbluetoothdevicediscoveryagent_enums = qt6.qbluetoothdevicediscoveryagent_enums;
-const qbluetoothdeviceinfo = qt6.qbluetoothdeviceinfo;
-const qbluetoothaddress = qt6.qbluetoothaddress;
+const QBluetoothDeviceInfo = qt6.QBluetoothDeviceInfo;
 
 var allocator: std.mem.Allocator = undefined;
 
 var buffer: [256]u8 = undefined;
 
-var toggle: C.QCheckBox = null;
-var button: C.QPushButton = null;
-var list: C.QListWidget = null;
-var status: C.QLabel = null;
-var agent: C.QBluetoothDeviceDiscoveryAgent = null;
+var toggle: QCheckBox = undefined;
+var button: QPushButton = undefined;
+var list: QListWidget = undefined;
+var status: QLabel = undefined;
+var agent: QBluetoothDeviceDiscoveryAgent = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 Bluetooth Example");
-    qwidget.SetMinimumSize2(widget, 400, 400);
+    widget.SetWindowTitle("Qt 6 Bluetooth Example");
+    widget.SetMinimumSize2(400, 400);
 
-    const local_device = qbluetoothlocaldevice.New();
-    defer qbluetoothlocaldevice.Delete(local_device);
+    const local_device = QBluetoothLocalDevice.New();
+    defer local_device.Delete();
 
-    const layout = qvboxlayout.New(widget);
+    const layout = QVBoxLayout.New(widget);
 
-    if (qbluetoothlocaldevice.IsValid(local_device)) {
-        toggle = qcheckbox.New3("Bluetooth enabled");
-        qcheckbox.SetChecked(toggle, true);
+    if (local_device.IsValid()) {
+        toggle = QCheckBox.New3("Bluetooth enabled");
+        toggle.SetChecked(true);
 
-        button = qpushbutton.New3("Scan for devices");
-        list = qlistwidget.New2();
-        status = qlabel.New3("Ready.");
+        button = QPushButton.New3("Scan for devices");
+        list = QListWidget.New2();
+        status = QLabel.New3("Ready.");
 
-        qvboxlayout.AddWidget(layout, toggle);
-        qvboxlayout.AddWidget(layout, button);
-        qvboxlayout.AddWidget(layout, list);
-        qvboxlayout.AddWidget(layout, status);
+        layout.AddWidget(toggle);
+        layout.AddWidget(button);
+        layout.AddWidget(list);
+        layout.AddWidget(status);
 
-        agent = qbluetoothdevicediscoveryagent.New3(widget);
-        qbluetoothdevicediscoveryagent.SetLowEnergyDiscoveryTimeout(agent, 3000);
+        agent = QBluetoothDeviceDiscoveryAgent.New3(widget);
+        agent.SetLowEnergyDiscoveryTimeout(3000);
 
-        qcheckbox.OnToggled(toggle, onToggled);
-        qpushbutton.OnClicked(button, onClicked);
-        qbluetoothdevicediscoveryagent.OnDeviceDiscovered(agent, onDeviceDiscovered);
-        qbluetoothdevicediscoveryagent.OnFinished(agent, onFinished);
-        qbluetoothdevicediscoveryagent.OnErrorOccurred(agent, onErrorOccurred);
+        toggle.OnToggled(onToggled);
+        button.OnClicked(onClicked);
+        agent.OnDeviceDiscovered(onDeviceDiscovered);
+        agent.OnFinished(onFinished);
+        agent.OnErrorOccurred(onErrorOccurred);
     } else {
-        const label = qlabel.New3(
+        const label = QLabel.New3(
             \\## No Bluetooth adapter detected.
             \\### Please ensure that your device has a Bluetooth adapter.
         );
-        qlabel.SetTextFormat(label, qnamespace_enums.TextFormat.MarkdownText);
-        qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
-        qlabel.SetWordWrap(label, true);
-        qvboxlayout.AddWidget(layout, label);
+        label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        label.SetWordWrap(true);
+        layout.AddWidget(label);
     }
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onToggled(_: ?*anyopaque, checked: bool) callconv(.c) void {
-    qpushbutton.SetEnabled(button, checked);
-    qlistwidget.SetEnabled(list, checked);
+fn onToggled(_: QCheckBox, checked: bool) callconv(.c) void {
+    button.SetEnabled(checked);
+    list.SetEnabled(checked);
 
-    if (!checked and qbluetoothdevicediscoveryagent.IsActive(agent))
-        qbluetoothdevicediscoveryagent.Stop(agent);
+    if (!checked and agent.IsActive())
+        agent.Stop();
 
     const text = switch (checked) {
         true => "Bluetooth enabled.",
         false => "Bluetooth disabled.",
     };
-    qlabel.SetText(status, text);
+    status.SetText(text);
 }
 
-fn onClicked(self: ?*anyopaque) callconv(.c) void {
-    if (qbluetoothdevicediscoveryagent.IsActive(agent))
+fn onClicked(self: QPushButton) callconv(.c) void {
+    if (agent.IsActive())
         return;
 
-    qlistwidget.Clear(list);
-    qlabel.SetText(status, "Scanning...");
-    qpushbutton.SetEnabled(self, false);
-    qbluetoothdevicediscoveryagent.Start2(
-        agent,
+    list.Clear();
+    status.SetText("Scanning...");
+    self.SetEnabled(false);
+    agent.Start2(
         qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.ClassicMethod | qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.LowEnergyMethod,
     );
 }
 
-fn onDeviceDiscovered(_: ?*anyopaque, info: ?*anyopaque) callconv(.c) void {
-    const name = qbluetoothdeviceinfo.Name(info, allocator);
+fn onDeviceDiscovered(_: QBluetoothDeviceDiscoveryAgent, info: QBluetoothDeviceInfo) callconv(.c) void {
+    const name = info.Name(allocator);
     defer allocator.free(name);
 
-    const address = qbluetoothdeviceinfo.Address(info);
+    const address = info.Address();
 
-    const address_str = qbluetoothaddress.ToString(address, allocator);
+    const address_str = address.ToString(allocator);
     defer allocator.free(address_str);
 
     const title = switch (name.len) {
@@ -123,22 +120,22 @@ fn onDeviceDiscovered(_: ?*anyopaque, info: ?*anyopaque) callconv(.c) void {
         else => std.fmt.bufPrint(&buffer, "{s} ({s})", .{ name, address_str }) catch @panic("Failed to bufPrint"),
     };
 
-    qlistwidget.AddItem(list, title);
+    list.AddItem(title);
 }
 
-fn onFinished(_: ?*anyopaque) callconv(.c) void {
-    qpushbutton.SetEnabled(button, qcheckbox.IsChecked(toggle));
+fn onFinished(_: QBluetoothDeviceDiscoveryAgent) callconv(.c) void {
+    button.SetEnabled(toggle.IsChecked());
 
     const text = "Scan complete - {d} device(s) found.";
-    const formatted = std.fmt.bufPrint(&buffer, text, .{qlistwidget.Count(list)}) catch @panic("Failed to bufPrint");
-    qlabel.SetText(status, formatted);
+    const formatted = std.fmt.bufPrint(&buffer, text, .{list.Count()}) catch @panic("Failed to bufPrint");
+    status.SetText(formatted);
 }
 
-fn onErrorOccurred(self: ?*anyopaque, _: i32) callconv(.c) void {
-    qpushbutton.SetEnabled(button, qcheckbox.IsChecked(toggle));
+fn onErrorOccurred(self: QBluetoothDeviceDiscoveryAgent, _: i32) callconv(.c) void {
+    button.SetEnabled(toggle.IsChecked());
 
-    const error_text = qbluetoothdevicediscoveryagent.ErrorString(self, allocator);
+    const error_text = self.ErrorString(allocator);
     defer allocator.free(error_text);
 
-    qlabel.SetText(status, error_text);
+    status.SetText(error_text);
 }

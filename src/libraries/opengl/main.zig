@@ -1,46 +1,45 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qmainwindow = qt6.qmainwindow;
-const qopenglwidget = qt6.qopenglwidget;
-const qopenglcontext = qt6.qopenglcontext;
-const qopenglextrafunctions = qt6.qopenglextrafunctions;
+const QApplication = qt6.QApplication;
+const QMainWindow = qt6.QMainWindow;
+const QOpenGLWidget = qt6.QOpenGLWidget;
+const QOpenGLContext = qt6.QOpenGLContext;
+const QOpenGLExtraFunctions = qt6.QOpenGLExtraFunctions;
 
-var glfuncs: C.QOpenGLExtraFunctions = null;
+var glfuncs: QOpenGLExtraFunctions = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
+    const window = QMainWindow.New2();
+    defer window.Delete();
 
-    qmainwindow.SetWindowTitle(window, "Qt 6 OpenGL Example");
-    qmainwindow.SetMinimumSize2(window, 400, 400);
+    window.SetWindowTitle("Qt 6 OpenGL Example");
+    window.SetMinimumSize2(400, 400);
 
-    const glwidget = qopenglwidget.New2();
+    const glwidget = QOpenGLWidget.New2();
 
-    qopenglwidget.OnInitializeGL(glwidget, initializeGL);
-    qopenglwidget.OnResizeGL(glwidget, resizeGL);
+    glwidget.OnInitializeGL(initializeGL);
+    glwidget.OnResizeGL(resizeGL);
 
-    qmainwindow.SetCentralWidget(window, glwidget);
+    window.SetCentralWidget(glwidget);
 
-    qmainwindow.Show(window);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
 fn initializeGL() callconv(.c) void {
-    glfuncs = qopenglcontext.ExtraFunctions(qopenglcontext.CurrentContext());
+    glfuncs = QOpenGLContext.CurrentContext().ExtraFunctions();
 
-    qopenglextrafunctions.InitializeOpenGLFunctions(glfuncs);
-    qopenglextrafunctions.GlClearColor(glfuncs, 0.92, 0.57, 0.36, 1.0);
+    glfuncs.InitializeOpenGLFunctions();
+    glfuncs.GlClearColor(0.92, 0.57, 0.36, 1);
 }
 
-fn resizeGL(_: ?*anyopaque, width: i32, height: i32) callconv(.c) void {
-    qopenglextrafunctions.GlViewport(glfuncs, 0, 0, width, height);
+fn resizeGL(_: QOpenGLWidget, width: i32, height: i32) callconv(.c) void {
+    glfuncs.GlViewport(0, 0, width, height);
 }

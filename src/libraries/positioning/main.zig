@@ -1,100 +1,97 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qmainwindow = qt6.qmainwindow;
-const qwidget = qt6.qwidget;
-const qdoublespinbox = qt6.qdoublespinbox;
-const qgeocoordinate = qt6.qgeocoordinate;
+const QApplication = qt6.QApplication;
+const QMainWindow = qt6.QMainWindow;
+const QWidget = qt6.QWidget;
+const QDoubleSpinBox = qt6.QDoubleSpinBox;
+const QGeoCoordinate = qt6.QGeoCoordinate;
 const qgeocoordinate_enums = qt6.qgeocoordinate_enums;
-const qlabel = qt6.qlabel;
+const QLabel = qt6.QLabel;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qformlayout = qt6.qformlayout;
+const QFormLayout = qt6.QFormLayout;
 
 var allocator: std.mem.Allocator = undefined;
 
-var coord: C.QGeoCoordinate = null;
-var label: C.QLabel = null;
+var coord: QGeoCoordinate = undefined;
+var label: QLabel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    const window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
+    const window = QMainWindow.New2();
+    defer window.Delete();
 
-    qmainwindow.SetWindowTitle(window, "Qt 6 Positioning Example");
-    qmainwindow.Resize(window, 300, 120);
+    window.SetWindowTitle("Qt 6 Positioning Example");
+    window.Resize(300, 120);
 
-    const widget = qwidget.New2();
+    const widget = QWidget.New2();
 
-    const lat = qdoublespinbox.New2();
-    qdoublespinbox.SetObjectName(lat, "lat");
-    qdoublespinbox.SetRange(lat, -90.0, 90.0);
-    qdoublespinbox.SetDecimals(lat, 5);
-    qdoublespinbox.SetValue(lat, 0.0);
-    qdoublespinbox.OnValueChanged(lat, onValueChanged);
+    const lat = QDoubleSpinBox.New2();
+    lat.SetObjectName("lat");
+    lat.SetRange(-90, 90);
+    lat.SetDecimals(5);
+    lat.SetValue(0);
+    lat.OnValueChanged(onValueChanged);
 
-    const lon = qdoublespinbox.New2();
-    qdoublespinbox.SetObjectName(lon, "lon");
-    qdoublespinbox.SetRange(lon, -180.0, 180.0);
-    qdoublespinbox.SetDecimals(lon, 5);
-    qdoublespinbox.SetValue(lon, 0.0);
-    qdoublespinbox.OnValueChanged(lon, onValueChanged);
+    const lon = QDoubleSpinBox.New2();
+    lon.SetObjectName("lon");
+    lon.SetRange(-180, 180);
+    lon.SetDecimals(5);
+    lon.SetValue(0);
+    lon.OnValueChanged(onValueChanged);
 
-    coord = qgeocoordinate.New2(qdoublespinbox.Value(lat), qdoublespinbox.Value(lon));
-    defer qgeocoordinate.Delete(coord);
+    coord = QGeoCoordinate.New2(lat.Value(), lon.Value());
+    defer coord.Delete();
 
-    const geotext = qgeocoordinate.ToString1(
-        coord,
-        qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
+    const geotext = coord.ToString1(
         allocator,
+        qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
     );
     defer allocator.free(geotext);
 
     const text = try std.mem.concat(allocator, u8, &.{ "### ", geotext });
     defer allocator.free(text);
 
-    label = qlabel.New3(text);
-    qlabel.SetTextFormat(label, qnamespace_enums.TextFormat.MarkdownText);
+    label = QLabel.New3(text);
+    label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
 
-    const layout = qformlayout.New2();
-    qformlayout.SetFormAlignment(layout, qnamespace_enums.AlignmentFlag.AlignHCenter);
-    qformlayout.SetSpacing(layout, 10);
-    qformlayout.AddRow3(layout, "Latitude:", lat);
-    qformlayout.AddRow3(layout, "Longitude:", lon);
-    qformlayout.AddWidget(layout, label);
+    const layout = QFormLayout.New2();
+    layout.SetFormAlignment(qnamespace_enums.AlignmentFlag.AlignHCenter);
+    layout.SetSpacing(10);
+    layout.AddRow3("Latitude:", lat);
+    layout.AddRow3("Longitude:", lon);
+    layout.AddWidget(label);
 
-    qwidget.SetLayout(widget, layout);
-    qmainwindow.SetCentralWidget(window, widget);
-    qmainwindow.Show(window);
+    widget.SetLayout(layout);
+    window.SetCentralWidget(widget);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onValueChanged(self: ?*anyopaque, value: f64) callconv(.c) void {
-    const name = qdoublespinbox.ObjectName(self, allocator);
+fn onValueChanged(self: QDoubleSpinBox, value: f64) callconv(.c) void {
+    const name = self.ObjectName(allocator);
     defer allocator.free(name);
 
     if (std.mem.eql(u8, name, "lat"))
-        qgeocoordinate.SetLatitude(coord, value)
+        coord.SetLatitude(value)
     else if (std.mem.eql(u8, name, "lon"))
-        qgeocoordinate.SetLongitude(coord, value);
+        coord.SetLongitude(value);
 
-    const geotext = qgeocoordinate.ToString1(
-        coord,
-        qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
+    const geotext = coord.ToString1(
         allocator,
+        qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
     );
     defer allocator.free(geotext);
 
     const text = std.mem.concat(allocator, u8, &.{ "### ", geotext }) catch @panic("Failed to concat");
     defer allocator.free(text);
 
-    qlabel.SetText(label, text);
+    label.SetText(text);
 }

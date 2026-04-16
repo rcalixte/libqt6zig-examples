@@ -1,60 +1,59 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const qpushbutton = qt6.qpushbutton;
-const qlabel = qt6.qlabel;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QPushButton = qt6.QPushButton;
+const QLabel = qt6.QLabel;
 const qnamespace_enums = qt6.qnamespace_enums;
-const packagekit__daemon = qt6.packagekit__daemon;
-const packagekit__transaction = qt6.packagekit__transaction;
+const PackageKit__Daemon = qt6.PackageKit__Daemon;
+const PackageKit__Transaction = qt6.PackageKit__Transaction;
 const transaction_enums = qt6.transaction_1_enums;
 
-var status_label: C.QLabel = null;
+var status_label: QLabel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 PackageKit Example");
-    qwidget.Resize(widget, 300, 200);
+    widget.SetWindowTitle("Qt 6 PackageKit Example");
+    widget.Resize(300, 200);
 
-    const layout = qvboxlayout.New2();
-    const button = qpushbutton.New3("Check for updates");
-    status_label = qlabel.New2();
-    qlabel.SetAlignment(status_label, qnamespace_enums.AlignmentFlag.AlignCenter);
+    const layout = QVBoxLayout.New2();
+    const button = QPushButton.New3("Check for updates");
+    status_label = QLabel.New2();
+    status_label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
 
-    qvboxlayout.AddStretch(layout);
-    qvboxlayout.AddWidget(layout, status_label);
-    qvboxlayout.AddStretch(layout);
-    qvboxlayout.AddWidget(layout, button);
-    qvboxlayout.AddStretch(layout);
-    qwidget.SetLayout(widget, layout);
+    layout.AddStretch();
+    layout.AddWidget(status_label);
+    layout.AddStretch();
+    layout.AddWidget(button);
+    layout.AddStretch();
+    widget.SetLayout(layout);
 
-    qpushbutton.OnClicked(button, checkForUpdates);
+    button.OnClicked(checkForUpdates);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn checkForUpdates(_: ?*anyopaque) callconv(.c) void {
-    qlabel.SetText(status_label, "Checking for updates...");
+fn checkForUpdates(_: QPushButton) callconv(.c) void {
+    status_label.SetText("Checking for updates...");
 
-    const transaction = packagekit__daemon.GetUpdates();
-    packagekit__transaction.OnFinished(transaction, transactionFinished);
+    const transaction = PackageKit__Daemon.GetUpdates();
+    transaction.OnFinished(transactionFinished);
 }
 
-fn transactionFinished(_: ?*anyopaque, status: i32, _: u32) callconv(.c) void {
+fn transactionFinished(_: PackageKit__Transaction, status: i32, _: u32) callconv(.c) void {
     if (status == transaction_enums.Exit.ExitSuccess)
-        qlabel.SetText(status_label, "✅ Update check successful!")
+        status_label.SetText("✅ Update check successful!")
     else
-        qlabel.SetText(status_label, "❌ Update check failed!");
+        status_label.SetText("❌ Update check failed!");
 }

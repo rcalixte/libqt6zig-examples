@@ -1,24 +1,24 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const kfilecustomdialog = qt6.kfilecustomdialog;
-const qlabel = qt6.qlabel;
+const QApplication = qt6.QApplication;
+const KFileCustomDialog = qt6.KFileCustomDialog;
+const QLabel = qt6.QLabel;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const dialog = kfilecustomdialog.New2();
-    defer kfilecustomdialog.Delete(dialog);
+    const dialog = KFileCustomDialog.New2();
+    defer dialog.Delete();
 
-    kfilecustomdialog.SetWindowTitle(dialog, "Qt 6 KIO Example");
+    dialog.SetWindowTitle("Qt 6 KIO Example");
 
-    const label = qlabel.New3("Select a file or directory");
+    const label = QLabel.New3("Select a file or directory");
 
-    kfilecustomdialog.SetCustomWidget(dialog, label);
+    dialog.SetCustomWidget(label);
 
-    _ = kfilecustomdialog.Exec(dialog);
+    _ = dialog.Exec();
 }

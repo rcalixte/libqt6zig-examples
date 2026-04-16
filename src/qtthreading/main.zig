@@ -1,54 +1,53 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qmainwindow = qt6.qmainwindow;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const qlabel = qt6.qlabel;
+const QApplication = qt6.QApplication;
+const QMainWindow = qt6.QMainWindow;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QLabel = qt6.QLabel;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qpushbutton = qt6.qpushbutton;
-const qvariant = qt6.qvariant;
+const QPushButton = qt6.QPushButton;
+const QVariant = qt6.QVariant;
 const threading = qt6.threading;
 
 // Data for each button, attached via Qt's property system
 const ButtonData = struct {
     counters: *std.ArrayListUnmanaged(*Counter),
-    button: C.QPushButton,
+    button: QPushButton,
 };
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const thread_count = std.Thread.getCpuCount() catch 2;
+    const thread_count: u16 = @min(std.Thread.getCpuCount() catch 2, 16);
 
     // This will serve as our parent object. When we deallocate it, all the
     // children will be deallocated as well. Because this is not
     // allocated with memory visible to Zig, we need to be mindful of
     // memory leaks.
-    const window = qmainwindow.New2();
-    defer qmainwindow.Delete(window);
+    const window = QMainWindow.New2();
+    defer window.Delete();
 
-    qmainwindow.SetFixedSize2(window, 250, 50 * @as(i32, @intCast(thread_count)) + 1);
-    qmainwindow.SetWindowTitle(window, "Qt 6 Threading Example");
+    window.SetFixedSize2(250, 50 * (thread_count + 1));
+    window.SetWindowTitle("Qt 6 Threading Example");
 
-    const widget = qwidget.New(window);
-    const layout = qvboxlayout.New(widget);
-    qmainwindow.SetCentralWidget(window, widget);
+    const widget = QWidget.New(window);
+    const layout = QVBoxLayout.New(widget);
+    window.SetCentralWidget(widget);
 
     // Create a counter and state for each thread
     var counters: std.ArrayListUnmanaged(*Counter) = .empty;
     var group: std.Io.Group = .init;
 
     for (0..thread_count) |_| {
-        const label = qlabel.New(widget);
-        qlabel.SetAlignment(label, qnamespace_enums.AlignmentFlag.AlignCenter);
-        qlabel.SetText(label, "0 0");
-        qvboxlayout.AddWidget(layout, label);
+        const label = QLabel.New(widget);
+        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        label.SetText("0 0");
+        layout.AddWidget(label);
 
         const counter = try init.gpa.create(Counter);
 
@@ -74,9 +73,9 @@ pub fn main(init: std.process.Init) !void {
         counters.deinit(init.gpa);
     }
 
-    const button = qpushbutton.New5("Start!", widget);
-    qpushbutton.OnClicked(button, onClicked);
-    qvboxlayout.AddWidget(layout, button);
+    const button = QPushButton.New5("Start!", widget);
+    button.OnClicked(onClicked);
+    layout.AddWidget(button);
 
     var button_data = ButtonData{
         .counters = &counters,
@@ -85,22 +84,22 @@ pub fn main(init: std.process.Init) !void {
 
     // Create a QVariant to store the pointer and use Qt's property system
     // to store it on the button
-    const variant = qvariant.New7(@intFromPtr(&button_data));
-    defer qvariant.Delete(variant);
+    const variant = QVariant.New7(@intFromPtr(&button_data));
+    defer variant.Delete();
 
-    _ = qpushbutton.SetProperty(button, "buttonData", variant);
+    _ = button.SetProperty("buttonData", variant);
 
-    qmainwindow.Show(window);
+    window.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onClicked(self: ?*anyopaque) callconv(.c) void {
-    const variant = qpushbutton.Property(self, "buttonData");
-    defer qvariant.Delete(variant);
+fn onClicked(self: QPushButton) callconv(.c) void {
+    const variant = self.Property("buttonData");
+    defer variant.Delete();
 
-    const ptr_val = qvariant.ToLongLong(variant);
-    const data_ptr = @as(*ButtonData, @ptrFromInt(@as(usize, @intCast(ptr_val))));
+    const ptr_val = variant.ToLongLong();
+    const data_ptr: *ButtonData = @ptrFromInt(@as(usize, @intCast(ptr_val)));
 
     // Check if any counter is running
     const is_running = for (data_ptr.counters.items) |counter| {
@@ -111,24 +110,24 @@ fn onClicked(self: ?*anyopaque) callconv(.c) void {
         // Stop all counters
         for (data_ptr.counters.items) |counter|
             counter.stop();
-        qpushbutton.SetText(data_ptr.button, "Start!");
+        data_ptr.button.SetText("Start!");
     } else {
         // Start all counters
         for (data_ptr.counters.items) |counter| {
             counter.running = true;
             counter.group.concurrent(counter.io, Counter.run, .{counter}) catch @panic("Failed to concurrently run counter");
         }
-        qpushbutton.SetText(data_ptr.button, "Stop!");
+        data_ptr.button.SetText("Stop!");
     }
 }
 
 const Counter = struct {
     counter: i32,
-    label: C.QLabel,
+    label: QLabel,
     running: bool = false,
     buffer: [32]u8 = undefined,
     io: std.Io,
-    group: *std.Io.Group = undefined,
+    group: *std.Io.Group,
 
     fn run(self: *Counter) !void {
         while (self.running) {
@@ -149,6 +148,6 @@ const Counter = struct {
             counter.counter,
             std.Io.Clock.real.now(counter.io).toSeconds(),
         }) catch @panic("Failed to bufPrint");
-        qlabel.SetText(counter.label, text);
+        counter.label.SetText(text);
     }
 };

@@ -1,13 +1,14 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qpushbutton = qt6.qpushbutton;
-const qwidget = qt6.qwidget;
-const qpixmap = qt6.qpixmap;
-const qsplashscreen = qt6.qsplashscreen;
+const QApplication = qt6.QApplication;
+const QPushButton = qt6.QPushButton;
+const QWidget = qt6.QWidget;
+const QPixmap = qt6.QPixmap;
+const QSplashScreen = qt6.QSplashScreen;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qtimer = qt6.qtimer;
-const qvariant = qt6.qvariant;
+const QTimer = qt6.QTimer;
+const QVariant = qt6.QVariant;
+const QMouseEvent = qt6.QMouseEvent;
 
 var counter: usize = 0;
 var buffer: [64]u8 = undefined;
@@ -16,65 +17,69 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const pixmap = qpixmap.New4("assets/libqt6zig-examples.png");
-    defer qpixmap.Delete(pixmap);
+    const pixmap = QPixmap.New4("assets/libqt6zig-examples.png");
+    defer pixmap.Delete();
 
-    const splash = qsplashscreen.New4(pixmap, qnamespace_enums.WindowType.WindowStaysOnTopHint);
-    defer qsplashscreen.Delete(splash);
+    const splash = QSplashScreen.New4(pixmap, qnamespace_enums.WindowType.WindowStaysOnTopHint);
+    defer splash.Delete();
 
-    qsplashscreen.OnMousePressEvent(splash, onMousePressEvent);
+    splash.OnMousePressEvent(onMousePressEvent);
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Hello world");
+    widget.SetWindowTitle("Hello world");
 
-    const button = qpushbutton.New5("Hello world!", widget);
-    qpushbutton.SetFixedWidth(button, 320);
-    qpushbutton.OnClicked(button, onClicked);
+    const button = QPushButton.New5("Hello world!", widget);
+    button.SetFixedWidth(320);
+    button.OnClicked(onClicked);
 
-    qsplashscreen.Show(splash);
+    splash.Show();
 
-    const timer = qtimer.New();
-    defer qtimer.Delete(timer);
+    const timer = QTimer.New();
+    defer timer.Delete();
 
-    const splash_qv = qvariant.New7(@intFromPtr(splash));
-    _ = qtimer.SetProperty(timer, "splash", splash_qv);
+    const splash_qv = QVariant.New7(@intFromPtr(splash.ptr));
+    _ = timer.SetProperty("splash", splash_qv);
 
-    const widget_qv = qvariant.New7(@intFromPtr(widget));
-    _ = qtimer.SetProperty(timer, "widget", widget_qv);
+    const widget_qv = QVariant.New7(@intFromPtr(widget.ptr));
+    _ = timer.SetProperty("widget", widget_qv);
 
-    qtimer.Start(timer, 3000);
-    qtimer.OnTimeout(timer, onTimeout);
+    timer.Start(3000);
+    timer.OnTimeout(onTimeout);
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 
     std.debug.print("OK!\n", .{});
 }
 
-fn onClicked(self: ?*anyopaque) callconv(.c) void {
+fn onClicked(self: QPushButton) callconv(.c) void {
     counter += 1;
     const formatted = std.fmt.bufPrint(
         &buffer,
         "You have clicked the button {d} time(s)",
         .{counter},
     ) catch @panic("Failed to bufPrint");
-    qpushbutton.SetText(self, formatted);
+    self.SetText(formatted);
 }
 
-fn onMousePressEvent(_: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {}
+fn onMousePressEvent(_: QSplashScreen, _: QMouseEvent) callconv(.c) void {}
 
-fn onTimeout(self: ?*anyopaque) callconv(.c) void {
-    const splash_qv = qtimer.Property(self, "splash");
-    const splash_i = qvariant.ToLongLong(splash_qv);
+fn onTimeout(self: QTimer) callconv(.c) void {
+    const splash_qv = self.Property("splash");
+    const splash_i = splash_qv.ToLongLong();
 
-    const widget_qv = qtimer.Property(self, "widget");
-    const widget_i = qvariant.ToLongLong(widget_qv);
+    const widget_qv = self.Property("widget");
+    const widget_i = widget_qv.ToLongLong();
 
-    _ = qsplashscreen.Close(@ptrFromInt(@as(usize, @intCast(splash_i))));
-    qwidget.Show(@ptrFromInt(@as(usize, @intCast(widget_i))));
-    qtimer.Stop(self);
+    const s: QSplashScreen = .{ .ptr = @ptrFromInt(@as(usize, @intCast(splash_i))) };
+    _ = s.Close();
+
+    const w: QWidget = .{ .ptr = @ptrFromInt(@as(usize, @intCast(widget_i))) };
+    w.Show();
+
+    self.Stop();
 }

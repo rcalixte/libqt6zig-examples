@@ -5,77 +5,76 @@
 
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
 
 /// The type definition for MainWindowUi containing all of the Qt objects
 pub const MainWindowUi = struct {
-    MainWindow: C.QMainWindow,
-    centralwidget: C.QWidget,
-    gridLayout: C.QGridLayout,
-    tabWidget: C.QTabWidget,
-    tab: C.QWidget,
-    formLayout: C.QFormLayout,
-    label: C.QLabel,
-    comboBox: C.QComboBox,
-    label_2: C.QLabel,
-    spinBox: C.QSpinBox,
-    tab_2: C.QWidget,
-    treeWidget: C.QTreeWidget,
-    menubar: C.QMenuBar,
-    menu_File: C.QMenu,
-    statusbar: C.QStatusBar,
-    dockWidget: C.QDockWidget,
-    dockWidgetContents: C.QWidget,
-    verticalLayout: C.QVBoxLayout,
-    calendarWidget: C.QCalendarWidget,
-    action_New: C.QAction,
-    actionE_xit: C.QAction,
+    MainWindow: qt6.QMainWindow,
+    centralwidget: qt6.QWidget,
+    gridLayout: qt6.QGridLayout,
+    tabWidget: qt6.QTabWidget,
+    tab: qt6.QWidget,
+    formLayout: qt6.QFormLayout,
+    label: qt6.QLabel,
+    comboBox: qt6.QComboBox,
+    label_2: qt6.QLabel,
+    spinBox: qt6.QSpinBox,
+    tab_2: qt6.QWidget,
+    treeWidget: qt6.QTreeWidget,
+    menubar: qt6.QMenuBar,
+    menu_File: qt6.QMenu,
+    statusbar: qt6.QStatusBar,
+    dockWidget: qt6.QDockWidget,
+    dockWidgetContents: qt6.QWidget,
+    verticalLayout: qt6.QVBoxLayout,
+    calendarWidget: qt6.QCalendarWidget,
+    action_New: qt6.QAction,
+    actionE_xit: qt6.QAction,
 
     /// Reapplies all text translations
     pub fn retranslate(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
-        const text0 = qt6.qcoreapplication.Translate("MainWindow", "MainWindow", allocator);
+        const text0 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "MainWindow");
         defer allocator.free(text0);
-        qt6.qmainwindow.SetWindowTitle(ui.MainWindow, text0);
-        const text1 = qt6.qcoreapplication.Translate("MainWindow", "&New...", allocator);
+        ui.MainWindow.SetWindowTitle(text0);
+        const text1 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "&New...");
         defer allocator.free(text1);
-        qt6.qaction.SetText(ui.action_New, text1);
-        const text2 = qt6.qcoreapplication.Translate("MainWindow", "E&xit", allocator);
+        ui.action_New.SetText(text1);
+        const text2 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "E&xit");
         defer allocator.free(text2);
-        qt6.qaction.SetText(ui.actionE_xit, text2);
-        const text3 = qt6.qcoreapplication.Translate("MainWindow", "Ctrl+Q", allocator);
+        ui.actionE_xit.SetText(text2);
+        const text3 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Ctrl+Q");
         defer allocator.free(text3);
-        const actionE_xitShortcut = qt6.qkeysequence.New2(text3);
-        defer qt6.qkeysequence.Delete(actionE_xitShortcut);
-        qt6.qaction.SetShortcut(ui.actionE_xit, actionE_xitShortcut);
-        const text4 = qt6.qcoreapplication.Translate("MainWindow", "Tab 1", allocator);
+        const actionE_xitShortcut = qt6.QKeySequence.New2(text3);
+        defer actionE_xitShortcut.Delete();
+        ui.actionE_xit.SetShortcut(actionE_xitShortcut);
+        const text4 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Tab 1");
         defer allocator.free(text4);
-        qt6.qtabwidget.SetTabText(ui.tabWidget, qt6.qtabwidget.IndexOf(ui.tabWidget, ui.tab), text4);
-        const text5 = qt6.qcoreapplication.Translate("MainWindow", "Dropdown:", allocator);
+        ui.tabWidget.SetTabText(ui.tabWidget.IndexOf(ui.tab), text4);
+        const text5 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Dropdown:");
         defer allocator.free(text5);
-        qt6.qlabel.SetText(ui.label, text5);
-        const text6 = qt6.qcoreapplication.Translate("MainWindow", "First", allocator);
+        ui.label.SetText(text5);
+        const text6 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "First");
         defer allocator.free(text6);
-        qt6.qcombobox.SetItemText(ui.comboBox, 0, text6);
-        const text7 = qt6.qcoreapplication.Translate("MainWindow", "Second", allocator);
+        ui.comboBox.SetItemText(0, text6);
+        const text7 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Second");
         defer allocator.free(text7);
-        qt6.qcombobox.SetItemText(ui.comboBox, 1, text7);
-        const text8 = qt6.qcoreapplication.Translate("MainWindow", "Number:", allocator);
+        ui.comboBox.SetItemText(1, text7);
+        const text8 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Number:");
         defer allocator.free(text8);
-        qt6.qlabel.SetText(ui.label_2, text8);
-        const text9 = qt6.qcoreapplication.Translate("MainWindow", "Tab 2", allocator);
+        ui.label_2.SetText(text8);
+        const text9 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Tab 2");
         defer allocator.free(text9);
-        qt6.qtabwidget.SetTabText(ui.tabWidget, qt6.qtabwidget.IndexOf(ui.tabWidget, ui.tab_2), text9);
-        const text10 = qt6.qcoreapplication.Translate("MainWindow", "&File", allocator);
+        ui.tabWidget.SetTabText(ui.tabWidget.IndexOf(ui.tab_2), text9);
+        const text10 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "&File");
         defer allocator.free(text10);
-        qt6.qmenu.SetTitle(ui.menu_File, text10);
-        const text11 = qt6.qcoreapplication.Translate("MainWindow", "Dock Title", allocator);
+        ui.menu_File.SetTitle(text10);
+        const text11 = qt6.QCoreApplication.Translate(allocator, "MainWindow", "Dock Title");
         defer allocator.free(text11);
-        qt6.qdockwidget.SetWindowTitle(ui.dockWidget, text11);
+        ui.dockWidget.SetWindowTitle(text11);
     }
 
     /// Destroys all the Qt objects for MainWindowUi and frees the allocated memory
     pub fn destroy(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
-        qt6.qmainwindow.Delete(ui.MainWindow);
+        ui.MainWindow.Delete();
         allocator.destroy(ui);
     }
 };
@@ -84,99 +83,99 @@ pub const MainWindowUi = struct {
 pub fn create(allocator: std.mem.Allocator) !*MainWindowUi {
     var ui = try allocator.create(MainWindowUi);
 
-    ui.MainWindow = qt6.qmainwindow.New2();
-    qt6.qmainwindow.SetObjectName(ui.MainWindow, "MainWindow");
-    qt6.qmainwindow.Resize(ui.MainWindow, 800, 600);
+    ui.MainWindow = qt6.QMainWindow.New2();
+    ui.MainWindow.SetObjectName("MainWindow");
+    ui.MainWindow.Resize(800, 600);
 
-    ui.action_New = qt6.qaction.New4(ui.MainWindow);
-    qt6.qaction.SetObjectName(ui.action_New, "action_New");
+    ui.action_New = qt6.QAction.New4(ui.MainWindow);
+    ui.action_New.SetObjectName("action_New");
 
-    ui.actionE_xit = qt6.qaction.New4(ui.MainWindow);
-    qt6.qaction.SetObjectName(ui.actionE_xit, "actionE_xit");
+    ui.actionE_xit = qt6.QAction.New4(ui.MainWindow);
+    ui.actionE_xit.SetObjectName("actionE_xit");
 
-    ui.centralwidget = qt6.qwidget.New(ui.MainWindow);
-    qt6.qwidget.SetObjectName(ui.centralwidget, "centralwidget");
+    ui.centralwidget = qt6.QWidget.New(ui.MainWindow);
+    ui.centralwidget.SetObjectName("centralwidget");
 
-    ui.gridLayout = qt6.qgridlayout.New(ui.centralwidget);
-    qt6.qgridlayout.SetObjectName(ui.gridLayout, "gridLayout");
+    ui.gridLayout = qt6.QGridLayout.New(ui.centralwidget);
+    ui.gridLayout.SetObjectName("gridLayout");
 
-    ui.tabWidget = qt6.qtabwidget.New(ui.centralwidget);
-    qt6.qtabwidget.SetObjectName(ui.tabWidget, "tabWidget");
+    ui.tabWidget = qt6.QTabWidget.New(ui.centralwidget);
+    ui.tabWidget.SetObjectName("tabWidget");
 
-    ui.tab = qt6.qwidget.New2();
-    qt6.qwidget.SetObjectName(ui.tab, "tab");
+    ui.tab = qt6.QWidget.New2();
+    ui.tab.SetObjectName("tab");
 
-    ui.formLayout = qt6.qformlayout.New(ui.tab);
-    qt6.qformlayout.SetObjectName(ui.formLayout, "formLayout");
+    ui.formLayout = qt6.QFormLayout.New(ui.tab);
+    ui.formLayout.SetObjectName("formLayout");
 
-    ui.label = qt6.qlabel.New(ui.tab);
-    qt6.qlabel.SetObjectName(ui.label, "label");
-    qt6.qformlayout.SetWidget(ui.formLayout, 0, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label);
+    ui.label = qt6.QLabel.New(ui.tab);
+    ui.label.SetObjectName("label");
+    ui.formLayout.SetWidget(0, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label);
 
-    ui.comboBox = qt6.qcombobox.New(ui.tab);
-    qt6.qcombobox.SetObjectName(ui.comboBox, "comboBox");
-    qt6.qcombobox.AddItem(ui.comboBox, "");
-    qt6.qcombobox.AddItem(ui.comboBox, "");
-    qt6.qformlayout.SetWidget(ui.formLayout, 0, qt6.qformlayout_enums.ItemRole.FieldRole, ui.comboBox);
+    ui.comboBox = qt6.QComboBox.New(ui.tab);
+    ui.comboBox.SetObjectName("comboBox");
+    ui.comboBox.AddItem("");
+    ui.comboBox.AddItem("");
+    ui.formLayout.SetWidget(0, qt6.qformlayout_enums.ItemRole.FieldRole, ui.comboBox);
 
-    ui.label_2 = qt6.qlabel.New(ui.tab);
-    qt6.qlabel.SetObjectName(ui.label_2, "label_2");
-    qt6.qformlayout.SetWidget(ui.formLayout, 1, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label_2);
+    ui.label_2 = qt6.QLabel.New(ui.tab);
+    ui.label_2.SetObjectName("label_2");
+    ui.formLayout.SetWidget(1, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label_2);
 
-    ui.spinBox = qt6.qspinbox.New(ui.tab);
-    qt6.qspinbox.SetObjectName(ui.spinBox, "spinBox");
-    qt6.qformlayout.SetWidget(ui.formLayout, 1, qt6.qformlayout_enums.ItemRole.FieldRole, ui.spinBox);
+    ui.spinBox = qt6.QSpinBox.New(ui.tab);
+    ui.spinBox.SetObjectName("spinBox");
+    ui.formLayout.SetWidget(1, qt6.qformlayout_enums.ItemRole.FieldRole, ui.spinBox);
 
-    _ = qt6.qtabwidget.AddTab(ui.tabWidget, ui.tab, "");
+    _ = ui.tabWidget.AddTab(ui.tab, "");
 
-    ui.tab_2 = qt6.qwidget.New2();
-    qt6.qwidget.SetObjectName(ui.tab_2, "tab_2");
+    ui.tab_2 = qt6.QWidget.New2();
+    ui.tab_2.SetObjectName("tab_2");
 
-    _ = qt6.qtabwidget.AddTab(ui.tabWidget, ui.tab_2, "");
-    qt6.qgridlayout.AddWidget2(ui.gridLayout, ui.tabWidget, 0, 0);
+    _ = ui.tabWidget.AddTab(ui.tab_2, "");
+    ui.gridLayout.AddWidget2(ui.tabWidget, 0, 0);
 
-    ui.treeWidget = qt6.qtreewidget.New(ui.centralwidget);
-    qt6.qtreewidget.SetObjectName(ui.treeWidget, "treeWidget");
-    qt6.qtreewidget.SetFrameShape(ui.treeWidget, qt6.qframe_enums.Shape.Panel);
-    const ui_treeWidgetItem = qt6.qtreewidgetitem.New();
-    qt6.qtreewidget.SetHeaderItem(ui.treeWidget, ui_treeWidgetItem);
-    qt6.qtreewidgetitem.SetText(ui_treeWidgetItem, 0, "1");
-    qt6.qgridlayout.AddWidget2(ui.gridLayout, ui.treeWidget, 0, 1);
+    ui.treeWidget = qt6.QTreeWidget.New(ui.centralwidget);
+    ui.treeWidget.SetObjectName("treeWidget");
+    ui.treeWidget.SetFrameShape(qt6.qframe_enums.Shape.Panel);
+    const ui_treeWidgetItem = qt6.QTreeWidgetItem.New();
+    ui.treeWidget.SetHeaderItem(ui_treeWidgetItem);
+    ui_treeWidgetItem.SetText(0, "1");
+    ui.gridLayout.AddWidget2(ui.treeWidget, 0, 1);
 
-    qt6.qmainwindow.SetCentralWidget(ui.MainWindow, ui.centralwidget);
+    ui.MainWindow.SetCentralWidget(ui.centralwidget);
 
-    ui.menubar = qt6.qmenubar.New(ui.MainWindow);
-    qt6.qmenubar.SetObjectName(ui.menubar, "menubar");
-    qt6.qmenubar.SetGeometry(ui.menubar, 0, 0, 800, 27);
+    ui.menubar = qt6.QMenuBar.New(ui.MainWindow);
+    ui.menubar.SetObjectName("menubar");
+    ui.menubar.SetGeometry(0, 0, 800, 27);
 
-    ui.menu_File = qt6.qmenu.New(ui.menubar);
-    qt6.qmenu.SetObjectName(ui.menu_File, "menu_File");
-    qt6.qmainwindow.SetMenuBar(ui.MainWindow, ui.menubar);
+    ui.menu_File = qt6.QMenu.New(ui.menubar);
+    ui.menu_File.SetObjectName("menu_File");
+    ui.MainWindow.SetMenuBar(ui.menubar);
 
-    ui.statusbar = qt6.qstatusbar.New(ui.MainWindow);
-    qt6.qstatusbar.SetObjectName(ui.statusbar, "statusbar");
-    qt6.qmainwindow.SetStatusBar(ui.MainWindow, ui.statusbar);
+    ui.statusbar = qt6.QStatusBar.New(ui.MainWindow);
+    ui.statusbar.SetObjectName("statusbar");
+    ui.MainWindow.SetStatusBar(ui.statusbar);
 
-    ui.dockWidget = qt6.qdockwidget.New(ui.MainWindow);
-    qt6.qdockwidget.SetObjectName(ui.dockWidget, "dockWidget");
-    qt6.qmainwindow.AddDockWidget(ui.MainWindow, 1, ui.dockWidget); // qt6.qnamespace_enums.DockWidgetArea (1)
+    ui.dockWidget = qt6.QDockWidget.New(ui.MainWindow);
+    ui.dockWidget.SetObjectName("dockWidget");
+    ui.MainWindow.AddDockWidget(1, ui.dockWidget); // qt6.qnamespace_enums.DockWidgetArea (1)
 
-    ui.dockWidgetContents = qt6.qwidget.New2();
-    qt6.qwidget.SetObjectName(ui.dockWidgetContents, "dockWidgetContents");
+    ui.dockWidgetContents = qt6.QWidget.New2();
+    ui.dockWidgetContents.SetObjectName("dockWidgetContents");
 
-    ui.verticalLayout = qt6.qvboxlayout.New(ui.dockWidgetContents);
-    qt6.qvboxlayout.SetObjectName(ui.verticalLayout, "verticalLayout");
+    ui.verticalLayout = qt6.QVBoxLayout.New(ui.dockWidgetContents);
+    ui.verticalLayout.SetObjectName("verticalLayout");
 
-    ui.calendarWidget = qt6.qcalendarwidget.New(ui.dockWidgetContents);
-    qt6.qcalendarwidget.SetObjectName(ui.calendarWidget, "calendarWidget");
+    ui.calendarWidget = qt6.QCalendarWidget.New(ui.dockWidgetContents);
+    ui.calendarWidget.SetObjectName("calendarWidget");
 
-    qt6.qvboxlayout.AddWidget(ui.verticalLayout, ui.calendarWidget);
-    qt6.qdockwidget.SetWidget(ui.dockWidget, ui.dockWidgetContents);
+    ui.verticalLayout.AddWidget(ui.calendarWidget);
+    ui.dockWidget.SetWidget(ui.dockWidgetContents);
 
-    qt6.qmenubar.AddAction(ui.menubar, qt6.qmenu.MenuAction(ui.menu_File));
-    qt6.qmenu.AddAction(ui.menu_File, ui.action_New);
-    _ = qt6.qmenu.AddSeparator(ui.menu_File);
-    qt6.qmenu.AddAction(ui.menu_File, ui.actionE_xit);
+    ui.menubar.AddAction(ui.menu_File.MenuAction());
+    ui.menu_File.AddAction(ui.action_New);
+    _ = ui.menu_File.AddSeparator();
+    ui.menu_File.AddAction(ui.actionE_xit);
 
     ui.retranslate(allocator);
 

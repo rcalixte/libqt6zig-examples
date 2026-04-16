@@ -1,91 +1,90 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const kcountry = qt6.kcountry;
-const qwidget = qt6.qwidget;
-const qvboxlayout = qt6.qvboxlayout;
-const qlabel = qt6.qlabel;
-const qfont = qt6.qfont;
-const qcombobox = qt6.qcombobox;
+const QApplication = qt6.QApplication;
+const KCountry = qt6.KCountry;
+const QWidget = qt6.QWidget;
+const QVBoxLayout = qt6.QVBoxLayout;
+const QLabel = qt6.QLabel;
+const QFont = qt6.QFont;
+const QComboBox = qt6.QComboBox;
 const qnamespace_enums = qt6.qnamespace_enums;
 
 var allocator: std.mem.Allocator = undefined;
 
 var buffer: [24]u8 = undefined;
 
-var all_countries: []C.KCountry = undefined;
-var emoji_flag_label: C.QLabel = null;
-var currency_label: C.QLabel = null;
+var all_countries: []KCountry = undefined;
+var emoji_flag_label: QLabel = undefined;
+var currency_label: QLabel = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
     allocator = init.gpa;
 
-    all_countries = kcountry.AllCountries(allocator);
+    all_countries = KCountry.AllCountries(allocator);
     defer {
         for (all_countries) |country|
-            kcountry.Delete(country);
+            country.Delete();
         allocator.free(all_countries);
     }
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KCountry Example");
-    qwidget.SetFixedSize2(widget, 400, 250);
+    widget.SetWindowTitle("Qt 6 KCountry Example");
+    widget.SetFixedSize2(400, 250);
 
     // Ownership of the created widgets will be transferred to the widget via the layout
-    const vboxlayout = qvboxlayout.New2();
-    const label = qlabel.New3("Select a country:");
-    const country_combo = qcombobox.New2();
-    emoji_flag_label = qlabel.New2();
-    const font = qfont.New2("Noto Color Emoji");
-    defer qfont.Delete(font);
+    const vboxlayout = QVBoxLayout.New2();
+    const label = QLabel.New3("Select a country:");
+    const country_combo = QComboBox.New2();
+    emoji_flag_label = QLabel.New2();
+    const font = QFont.New2("Noto Color Emoji");
+    defer font.Delete();
     const style_sheet = "font-size: 28px;";
-    qlabel.SetFont(emoji_flag_label, font);
-    qlabel.SetStyleSheet(emoji_flag_label, style_sheet);
-    qlabel.SetAlignment(emoji_flag_label, qnamespace_enums.AlignmentFlag.AlignCenter);
-    currency_label = qlabel.New2();
-    qlabel.SetFont(currency_label, font);
-    qlabel.SetStyleSheet(currency_label, style_sheet);
-    qlabel.SetAlignment(currency_label, qnamespace_enums.AlignmentFlag.AlignCenter);
+    emoji_flag_label.SetFont(font);
+    emoji_flag_label.SetStyleSheet(style_sheet);
+    emoji_flag_label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    currency_label = QLabel.New2();
+    currency_label.SetFont(font);
+    currency_label.SetStyleSheet(style_sheet);
+    currency_label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
 
     for (all_countries) |country| {
-        const name = kcountry.Name(country, allocator);
+        const name = country.Name(allocator);
         defer allocator.free(name);
-        qcombobox.AddItem(country_combo, name);
+        country_combo.AddItem(name);
     }
 
-    qcombobox.OnCurrentIndexChanged(country_combo, onCurrentIndexChanged);
+    country_combo.OnCurrentIndexChanged(onCurrentIndexChanged);
 
-    qvboxlayout.AddWidget(vboxlayout, label);
-    qvboxlayout.AddWidget(vboxlayout, country_combo);
-    qvboxlayout.AddStretch(vboxlayout);
-    qvboxlayout.AddWidget(vboxlayout, emoji_flag_label);
-    qvboxlayout.AddWidget(vboxlayout, currency_label);
-    qvboxlayout.AddStretch(vboxlayout);
-    qwidget.SetLayout(widget, vboxlayout);
+    vboxlayout.AddWidget(label);
+    vboxlayout.AddWidget(country_combo);
+    vboxlayout.AddStretch();
+    vboxlayout.AddWidget(emoji_flag_label);
+    vboxlayout.AddWidget(currency_label);
+    vboxlayout.AddStretch();
+    widget.SetLayout(vboxlayout);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onCurrentIndexChanged(_: ?*anyopaque, index: i32) callconv(.c) void {
+fn onCurrentIndexChanged(_: QComboBox, index: i32) callconv(.c) void {
     const country = all_countries[@intCast(index)];
-    const emoji_flag = kcountry.EmojiFlag(country, allocator);
+    const emoji_flag = country.EmojiFlag(allocator);
     defer allocator.free(emoji_flag);
     const emoji_text = std.fmt.bufPrint(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch @panic("Failed to bufPrint emoji flag");
-    qlabel.SetText(emoji_flag_label, emoji_text);
+    emoji_flag_label.SetText(emoji_text);
 
-    const currency = kcountry.CurrencyCode(country, allocator);
+    const currency = country.CurrencyCode(allocator);
     defer allocator.free(currency);
     const currency_text = std.fmt.bufPrint(&buffer, "Currency code: {s}", .{currency}) catch @panic("Failed to bufPrint currency code");
-    qlabel.SetText(currency_label, currency_text);
+    currency_label.SetText(currency_text);
 }

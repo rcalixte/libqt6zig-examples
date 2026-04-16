@@ -1,69 +1,68 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const C = qt6.C;
-const qapplication = qt6.qapplication;
-const qabstractlistmodel = qt6.qabstractlistmodel;
-const qlistview = qt6.qlistview;
+const QApplication = qt6.QApplication;
+const QAbstractListModel = qt6.QAbstractListModel;
+const QListView = qt6.QListView;
 const qnamespace_enums = qt6.qnamespace_enums;
-const qmodelindex = qt6.qmodelindex;
-const qvariant = qt6.qvariant;
-const qcolor = qt6.qcolor;
+const QModelIndex = qt6.QModelIndex;
+const QVariant = qt6.QVariant;
+const QColor = qt6.QColor;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const model = qabstractlistmodel.New();
+    const model = QAbstractListModel.New();
 
-    qabstractlistmodel.OnColumnCount(model, onColumnCount);
-    qabstractlistmodel.OnRowCount(model, onRowCount);
-    qabstractlistmodel.OnData(model, onData);
+    model.OnColumnCount(onColumnCount);
+    model.OnRowCount(onRowCount);
+    model.OnData(onData);
 
-    const listview = qlistview.New2();
-    defer qlistview.Delete(listview);
+    const listview = QListView.New2();
+    defer listview.Delete();
 
-    qlistview.SetModel(listview, model);
-    qlistview.Show(listview);
+    listview.SetModel(model);
+    listview.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
 
-fn onRowCount(_: ?*anyopaque, _: ?*anyopaque) callconv(.c) i32 {
+fn onRowCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
     return 1000;
 }
 
-fn onColumnCount(_: ?*anyopaque, _: ?*anyopaque) callconv(.c) i32 {
+fn onColumnCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
     return 1;
 }
 
-fn onData(_: ?*anyopaque, index: ?*anyopaque, role: i32) callconv(.c) C.QVariant {
+fn onData(_: QAbstractListModel, index: QModelIndex, role: i32) callconv(.c) QVariant {
     switch (role) {
-        qnamespace_enums.ItemDataRole.ForegroundRole => if (@mod(qmodelindex.Row(index), 2) == 0) {
-            const color = qcolor.New5(0, 0, 0);
-            defer qcolor.Delete(color);
-            return qcolor.ToQVariant(color);
+        qnamespace_enums.ItemDataRole.ForegroundRole => if (@mod(index.Row(), 2) == 0) {
+            const color = QColor.New5(0, 0, 0);
+            defer color.Delete();
+            return color.ToQVariant();
         } else {
-            const color = qcolor.New5(255, 0, 0);
-            defer qcolor.Delete(color);
-            return qcolor.ToQVariant(color);
+            const color = QColor.New5(255, 0, 0);
+            defer color.Delete();
+            return color.ToQVariant();
         },
-        qnamespace_enums.ItemDataRole.BackgroundRole => if (@mod(qmodelindex.Row(index), 2) == 0) {
-            const color = qcolor.New5(255, 255, 255);
-            defer qcolor.Delete(color);
-            return qcolor.ToQVariant(color);
+        qnamespace_enums.ItemDataRole.BackgroundRole => if (@mod(index.Row(), 2) == 0) {
+            const color = QColor.New5(255, 255, 255);
+            defer color.Delete();
+            return color.ToQVariant();
         } else {
-            const color = qcolor.New5(80, 80, 80);
-            defer qcolor.Delete(color);
-            return qcolor.ToQVariant(color);
+            const color = QColor.New5(80, 80, 80);
+            defer color.Delete();
+            return color.ToQVariant();
         },
         qnamespace_enums.ItemDataRole.DisplayRole => {
             var buf: [16]u8 = undefined;
-            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{qmodelindex.Row(index)}) catch @panic("failed to bufPrint");
-            return qvariant.New24(str);
+            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{index.Row()}) catch @panic("failed to bufPrint");
+            return QVariant.New24(str);
         },
-        else => return qvariant.New(),
+        else => return QVariant.New(),
     }
 }

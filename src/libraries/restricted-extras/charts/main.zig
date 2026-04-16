@@ -1,43 +1,43 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qlineseries = qt6.qlineseries;
-const qchart = qt6.qchart;
-const qchartview = qt6.qchartview;
+const QApplication = qt6.QApplication;
+const QLineSeries = qt6.QLineSeries;
+const QChart = qt6.QChart;
+const QChartView = qt6.QChartView;
 const qpainter_enums = qt6.qpainter_enums;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const series = qlineseries.New();
-    defer qlineseries.Delete(series);
+    const series = QLineSeries.New();
+    defer series.Delete();
 
-    qlineseries.SetName(series, "Sine Wave");
+    series.SetName("Sine Wave");
 
-    var x: f64 = 0.0;
-    var y: f64 = 0.0;
+    var x: f64 = 0;
+    var y: f64 = 0;
 
-    var i: i32 = -500;
+    var i: f16 = -500;
     while (i <= 500) : (i += 1) {
-        x = @as(f64, i) / 10000;
+        x = i / 10000;
         y = @sin(1 / x) * x;
         if (std.math.isNan(y)) y = 0;
-        qlineseries.Append(series, x, y);
+        series.Append(x, y);
     }
 
-    const chart = qchart.New();
-    qchart.AddSeries(chart, series);
-    qchart.CreateDefaultAxes(chart);
+    const chart = QChart.New();
+    chart.AddSeries(series);
+    chart.CreateDefaultAxes();
 
-    const chart_view = qchartview.New3(chart);
-    qchartview.SetWindowTitle(chart_view, "Qt 6 Charts Example");
-    qchartview.Resize(chart_view, 650, 400);
-    qchartview.SetRenderHint(chart_view, qpainter_enums.RenderHint.Antialiasing);
-    qchartview.Show(chart_view);
+    const chart_view = QChartView.New3(chart);
+    chart_view.SetWindowTitle("Qt 6 Charts Example");
+    chart_view.Resize(650, 400);
+    chart_view.SetRenderHint(qpainter_enums.RenderHint.Antialiasing);
+    chart_view.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }

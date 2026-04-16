@@ -1,48 +1,48 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
-const qapplication = qt6.qapplication;
-const qwidget = qt6.qwidget;
-const qlabel = qt6.qlabel;
-const qvboxlayout = qt6.qvboxlayout;
-const klineedit = qt6.klineedit;
-const kcompletion = qt6.kcompletion;
+const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
+const QLabel = qt6.QLabel;
+const QVBoxLayout = qt6.QVBoxLayout;
+const KLineEdit = qt6.KLineEdit;
+const KCompletion = qt6.KCompletion;
 const kcompletion_enums = qt6.kcompletion_enums;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = qapplication.New(&argc, argv, init.arena.allocator());
-    defer qapplication.Delete(qapp);
+    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    defer qapp.Delete();
 
-    const widget = qwidget.New2();
-    defer qwidget.Delete(widget);
+    const widget = QWidget.New2();
+    defer widget.Delete();
 
-    qwidget.SetWindowTitle(widget, "Qt 6 KCompletion Example");
-    qwidget.SetMinimumSize2(widget, 300, 200);
+    widget.SetWindowTitle("Qt 6 KCompletion Example");
+    widget.SetMinimumSize2(300, 200);
 
-    const label = qlabel.New3("Enter the letter 'H':");
+    const label = QLabel.New3("Enter the letter 'H':");
 
-    const vboxlayout = qvboxlayout.New2();
+    const vboxlayout = QVBoxLayout.New2();
 
-    const lineedit = klineedit.New3();
+    const lineedit = KLineEdit.New3();
     // Try different completion modes!
-    klineedit.SetCompletionMode(lineedit, kcompletion_enums.CompletionMode.CompletionPopupAuto);
+    lineedit.SetCompletionMode(kcompletion_enums.CompletionMode.CompletionPopupAuto);
 
-    const completion = kcompletion.New();
-    kcompletion.SetSoundsEnabled(completion, false);
-    klineedit.SetCompletionObject(lineedit, completion, true);
+    const completion = KCompletion.New();
+    completion.SetSoundsEnabled(false);
+    lineedit.SetCompletionObject(completion, true);
 
     const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
-    kcompletion.SetItems(completion, &items, init.gpa);
+    completion.SetItems(init.gpa, &items);
 
-    qvboxlayout.AddStretch(vboxlayout);
-    qvboxlayout.AddWidget(vboxlayout, label);
-    qvboxlayout.AddWidget(vboxlayout, lineedit);
-    qvboxlayout.AddStretch(vboxlayout);
-    qwidget.SetLayout(widget, vboxlayout);
+    vboxlayout.AddStretch();
+    vboxlayout.AddWidget(label);
+    vboxlayout.AddWidget(lineedit);
+    vboxlayout.AddStretch();
+    widget.SetLayout(vboxlayout);
 
-    qwidget.Show(widget);
+    widget.Show();
 
-    _ = qapplication.Exec();
+    _ = QApplication.Exec();
 }
