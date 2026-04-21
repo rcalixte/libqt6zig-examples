@@ -32,7 +32,7 @@ pub fn main(init: std.process.Init) !void {
     listview.OnClicked(onClicked);
 
     const box = QDialogButtonBox.New7(qdialogbuttonbox_enums.StandardButton.Close, window);
-    box.OnRejected(quit_callback);
+    box.OnRejected(onRejected);
 
     const widget = QWidget.New2();
     const layout = QVBoxLayout.New(widget);
@@ -55,6 +55,6 @@ fn onClicked(_: QListView, index: QModelIndex) callconv(.c) void {
     manager.ActivateScheme(index);
 }
 
-fn quit_callback(_: QDialogButtonBox) callconv(.c) void {
+fn onRejected(_: QDialogButtonBox) callconv(.c) void {
     QApplication.Quit();
 }
