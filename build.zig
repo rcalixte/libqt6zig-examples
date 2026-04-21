@@ -56,7 +56,7 @@ pub fn build(b: *std.Build) !void {
     while (try walker.next(b.graph.io)) |entry|
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             if (!ok) continue;
-            const parent_dir = std.fs.path.dirname(entry.path) orelse continue;
+            const parent_dir = std.Io.Dir.path.dirname(entry.path) orelse continue;
             if (is_windows and std.mem.containsAtLeast(u8, parent_dir, 2, "\\")) continue;
             const qtlibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "qtlibs" });
             var qtlibs_file = try b.build_root.handle.openFile(b.graph.io, qtlibs_path, .{});
@@ -162,7 +162,7 @@ pub fn build(b: *std.Build) !void {
 
     // Create an executable for each main.zig
     main_loop: for (main_files.items) |main| {
-        const exe_name = std.fs.path.basename(main.dir);
+        const exe_name = std.Io.Dir.path.basename(main.dir);
 
         for (disabled_paths.items) |disabled_path|
             if (std.mem.containsAtLeast(u8, main.dir, 1, disabled_path))
