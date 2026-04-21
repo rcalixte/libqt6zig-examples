@@ -221,7 +221,7 @@ pub const AppWindow = struct {
         const contents = file_reader.interface.allocRemaining(allocator, .unlimited) catch @panic("Failed to read file");
         defer allocator.free(contents);
 
-        main_window.createTabWithContents(std.fs.path.basename(fname), contents);
+        main_window.createTabWithContents(std.Io.Dir.path.basename(fname), contents);
     }
 
     pub fn handleExit(_: QAction) callconv(.c) void {
