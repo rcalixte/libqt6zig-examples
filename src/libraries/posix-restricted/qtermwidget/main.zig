@@ -16,13 +16,13 @@ pub fn main(init: std.process.Init) !void {
     term.SetWindowTitle("Qt 6 QTermWidget Example");
     term.SetMinimumSize2(640, 480);
     term.SetColorScheme("WhiteOnBlack");
-    term.OnFinished(on_finished);
+    term.OnFinished(onFinished);
 
     term.Show();
 
     _ = QApplication.Exec();
 }
 
-fn on_finished(_: QTermWidget) callconv(.c) void {
+fn onFinished(_: QTermWidget) callconv(.c) void {
     QApplication.Quit();
 }
