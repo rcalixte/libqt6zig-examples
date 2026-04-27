@@ -8,7 +8,6 @@ pub fn main(init: std.process.Init) !void {
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
     const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-
     defer qapp.Delete();
 
     const uic = try ui.create(init.gpa);
