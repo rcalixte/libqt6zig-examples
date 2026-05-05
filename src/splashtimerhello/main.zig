@@ -43,9 +43,13 @@ pub fn main(init: std.process.Init) !void {
     defer timer.Delete();
 
     const splash_qv = QVariant.New7(@intFromPtr(splash.ptr));
+    defer splash_qv.Delete();
+
     _ = timer.SetProperty("splash", splash_qv);
 
     const widget_qv = QVariant.New7(@intFromPtr(widget.ptr));
+    defer widget_qv.Delete();
+
     _ = timer.SetProperty("widget", widget_qv);
 
     timer.Start(3000);
@@ -70,9 +74,13 @@ fn onMousePressEvent(_: QSplashScreen, _: QMouseEvent) callconv(.c) void {}
 
 fn onTimeout(self: QTimer) callconv(.c) void {
     const splash_qv = self.Property("splash");
+    defer splash_qv.Delete();
+
     const splash_i = splash_qv.ToLongLong();
 
     const widget_qv = self.Property("widget");
+    defer widget_qv.Delete();
+
     const widget_i = widget_qv.ToLongLong();
 
     const s: QSplashScreen = .{ .ptr = @ptrFromInt(@as(usize, @intCast(splash_i))) };
