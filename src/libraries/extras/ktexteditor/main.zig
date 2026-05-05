@@ -22,9 +22,11 @@ pub fn main(init: std.process.Init) !void {
     defer window.Delete();
 
     window.SetWindowTitle("Qt 6 KTextEditor Example");
-    window.SetMinimumSize2(1300, 1150);
+    window.SetMinimumSize2(1300, 1180);
 
     editor = KTextEditor__Editor.Instance();
+    defer editor.DeleteLater();
+
     const doc = editor.CreateDocument(window);
     const dir = QDir.CurrentPath(init.gpa);
     defer init.gpa.free(dir);

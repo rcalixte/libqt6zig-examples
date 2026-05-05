@@ -1,10 +1,11 @@
 document
-qtoolbar
-qfont
 editor
 qapplication
 qdir
+qfont
 qmainwindow
+qobject
+qtoolbar
 qurl
 qwidget
 readonlypart
