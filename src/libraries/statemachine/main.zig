@@ -61,18 +61,22 @@ pub const LightWidget = struct {
     }
 
     pub fn deinit(self: *LightWidget, alloc: std.mem.Allocator) void {
-        self.widget.DeleteLater();
+        self.widget.Delete();
         alloc.destroy(self);
     }
 
     fn onPaintEvent(self: QWidget, _: QPaintEvent) callconv(.c) void {
         const on_variant = self.Property("on");
+        defer on_variant.Delete();
+
         const onValue = on_variant.ToLongLong();
         const on: *bool = @ptrFromInt(@as(usize, @intCast(onValue)));
 
         if (!on.*) return;
 
         const color_variant = self.Property("color");
+        defer color_variant.Delete();
+
         const color_value = color_variant.ToInt();
 
         const painter = QStylePainter.New(self);
@@ -143,7 +147,7 @@ pub const TrafficWidget = struct {
         self.red.deinit(alloc);
         self.yellow.deinit(alloc);
         self.green.deinit(alloc);
-        self.widget.DeleteLater();
+        self.widget.Delete();
         alloc.destroy(self);
     }
 };
@@ -171,8 +175,13 @@ pub fn main(init: std.process.Init) !void {
     layout.SetContentsMargins(0, 0, 0, 0);
 
     const red_going_green = createLightState(traffic_widget.redLight(), 3000);
+    defer red_going_green.Delete();
+
     const green_going_yellow = createLightState(traffic_widget.greenLight(), 3000);
+    defer green_going_yellow.Delete();
+
     const yellow_going_red = createLightState(traffic_widget.yellowLight(), 1000);
+    defer yellow_going_red.Delete();
 
     _ = red_going_green.AddTransition2(red_going_green, "finished()", green_going_yellow);
     _ = green_going_yellow.AddTransition2(green_going_yellow, "finished()", yellow_going_red);
@@ -219,10 +228,14 @@ pub fn createLightState(light: *LightWidget, duration: i32) QState {
 
 fn onEntered(self: QState) callconv(.c) void {
     const light_variant = self.Property("light");
+    defer light_variant.Delete();
+
     const light_value = light_variant.ToULongLong();
     const light: *LightWidget = @ptrFromInt(@as(usize, @intCast(light_value)));
 
     const timer_variant = self.Property("timer");
+    defer timer_variant.Delete();
+
     const timer_value = timer_variant.ToULongLong();
     const timer: QTimer = .{ .ptr = @ptrFromInt(@as(usize, @intCast(timer_value))) };
 
@@ -232,6 +245,8 @@ fn onEntered(self: QState) callconv(.c) void {
 
 fn onExited(self: QState) callconv(.c) void {
     const light_variant = self.Property("light");
+    defer light_variant.Delete();
+
     const light_value = light_variant.ToULongLong();
     const light: *LightWidget = @ptrFromInt(@as(usize, @intCast(light_value)));
 
