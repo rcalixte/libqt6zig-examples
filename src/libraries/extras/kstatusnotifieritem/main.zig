@@ -55,6 +55,8 @@ pub fn main(init: std.process.Init) !void {
     active_action.OnTriggered(onTriggered);
 
     const sub_menu = QMenu.New3("Sub Menu");
+    defer sub_menu.Delete();
+
     const menu_icon = createIcon(qnamespace_enums.GlobalColor.DarkBlue);
     defer menu_icon.Delete();
 
