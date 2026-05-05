@@ -50,6 +50,8 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
     std.Io.File.stdout().writeStreamingAll(io, results_str) catch @panic("Failed to write results");
 
     for (results) |result| {
+        defer result.Delete();
+
         const value = result.Value();
         defer value.Delete();
 
