@@ -67,7 +67,7 @@ pub fn main(init: std.process.Init) !void {
             const x: i32 = @intCast(i);
             const y: i32 = @intCast(j);
 
-            const color = QColor.New13(x, y * 3, x * 4, 255);
+            const color = QColor.New14(x, y * 3, x * 4, 255);
             defer color.Delete();
 
             image.SetPixelColor(x, y, color);
@@ -89,10 +89,8 @@ pub fn main(init: std.process.Init) !void {
     view.SetScene(scene);
     view.Show();
 
-    status_bar.ShowMessage(
-        \\Click and drag to draw a pixel.
-        \\Use Shift+scroll or keys 0 or 9 to zoom in or out.
-    );
+    status_bar.ShowMessage("Click and drag to draw a pixel. " ++
+        "Use Shift+scroll or keys 0 or 9 to zoom in or out.");
 
     window.SetCentralWidget(view);
     window.Show();
@@ -177,7 +175,7 @@ fn drawPixel(item: QGraphicsPixmapItem, pos: QPointF) void {
     const img = pm.ToImage();
     defer img.Delete();
 
-    const color = QColor.New13(replacement_r, replacement_g, replacement_b, 255);
+    const color = QColor.New14(replacement_r, replacement_g, replacement_b, 255);
     defer color.Delete();
 
     const height = img.Height();
