@@ -23,9 +23,12 @@ pub fn main(init: std.process.Init) !void {
 
     const window = QMainWindow.New2();
     defer window.Delete();
+
     window.SetWindowTitle("Qt 6 KConfigWidgets");
     window.SetMinimumSize2(400, 450);
     manager = KColorSchemeManager.Instance();
+    defer manager.Delete();
+
     const listview = QListView.New(window);
     const manager_model = manager.Model();
     listview.SetModel(manager_model);
