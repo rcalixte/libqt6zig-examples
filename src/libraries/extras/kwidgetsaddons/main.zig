@@ -19,8 +19,10 @@ pub fn main(init: std.process.Init) !void {
         "This is a tooltip",
         "This is a WhatsThis help text.",
     );
+    defer primary_item.Delete();
 
     const secondary_item = KGuiItem.New2("Bye");
+    defer secondary_item.Delete();
 
     const res = KMessageBox.QuestionTwoActions(
         QWidget{ .ptr = null },
