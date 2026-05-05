@@ -65,10 +65,8 @@ pub fn main(init: std.process.Init) !void {
         agent.OnFinished(onFinished);
         agent.OnErrorOccurred(onErrorOccurred);
     } else {
-        const label = QLabel.New3(
-            \\## No Bluetooth adapter detected.
-            \\### Please ensure that your device has a Bluetooth adapter.
-        );
+        const label = QLabel.New3("## No Bluetooth adapter detected.\n" ++
+            "### Please ensure that your device has a Bluetooth adapter.");
         label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
         label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
         label.SetWordWrap(true);
@@ -111,6 +109,7 @@ fn onDeviceDiscovered(_: QBluetoothDeviceDiscoveryAgent, info: QBluetoothDeviceI
     defer allocator.free(name);
 
     const address = info.Address();
+    defer address.Delete();
 
     const address_str = address.ToString(allocator);
     defer allocator.free(address_str);
