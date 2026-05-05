@@ -34,7 +34,7 @@ pub fn main(init: std.process.Init) !void {
     if (file.Open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
         defer file.Close();
 
-        const parent = QWidget.New2();
+        const parent = QWidget.New(widget);
         const form = builder.Load(file, parent);
         layout.AddWidget(form);
         widget.Resize(850, 550);
