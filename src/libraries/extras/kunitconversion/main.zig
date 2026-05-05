@@ -51,6 +51,8 @@ pub fn main(init: std.process.Init) !void {
     defer allocator.free(units);
 
     for (units) |unit| {
+        defer unit.Delete();
+
         const description = unit.Description(allocator);
         defer allocator.free(description);
 
