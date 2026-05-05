@@ -25,7 +25,7 @@ const offset_x: i32 = 200;
 var buf: [4]u8 = undefined;
 var clients: [max_clients]QWebSocket = @splat(.{ .ptr = null });
 var client_num: usize = 0;
-var client_dialogs = [_]*ClientDialog{undefined} ** num_clients;
+var client_dialogs: [num_clients]*ClientDialog = @splat(undefined);
 
 pub const ClientDialog = struct {
     name: []const u8,
@@ -37,7 +37,7 @@ pub const ClientDialog = struct {
 
     pub fn init(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
         var self = try alloc.create(ClientDialog);
-        self.name = try std.fmt.allocPrint(alloc, "{s}", .{num_str});
+        self.name = try alloc.dupe(u8, num_str);
 
         self.dialog = QDialog.New2();
         self.dialog.SetWindowTitle(name);
@@ -85,7 +85,7 @@ pub const ClientDialog = struct {
         self.socket.Open(url);
     }
 
-    pub fn sendMessage(self: *ClientDialog, alloc: std.mem.Allocator) void {
+    fn sendMessage(self: *ClientDialog, alloc: std.mem.Allocator) void {
         const message = self.input.Text(alloc);
         defer alloc.free(message);
         if (message.len == 0) return;
@@ -93,12 +93,12 @@ pub const ClientDialog = struct {
         const trimmed_text = std.mem.trim(u8, message, &std.ascii.whitespace);
         if (trimmed_text.len == 0) return;
 
-        const out_message = std.mem.concat(alloc, u8, &.{ "(", self.name, "): ", trimmed_text }) catch @panic("Failed to concat");
+        const out_message = std.fmt.allocPrint(alloc, "({s}): {s}", .{ self.name, trimmed_text }) catch @panic("Failed to allocPrint");
         defer alloc.free(out_message);
 
         _ = self.socket.SendTextMessage(out_message);
 
-        const self_entry = std.mem.concat(alloc, u8, &.{ ">> ", trimmed_text }) catch @panic("Failed to concat");
+        const self_entry = std.fmt.allocPrint(alloc, ">> {s}", .{trimmed_text}) catch @panic("Failed to allocPrint");
         defer alloc.free(self_entry);
         self.messages.Append(self_entry);
         self.input.Clear();
@@ -182,7 +182,7 @@ pub fn main(init: std.process.Init) !void {
 
     for (0..num_clients) |i| {
         const num_str = try std.fmt.bufPrint(&buf, "{d}", .{i + 1});
-        const name = try std.mem.concat(allocator, u8, &.{ "Qt 6 WebSockets Example Client #", num_str });
+        const name = try std.fmt.allocPrint(allocator, "Qt 6 WebSockets Example Client #{s}", .{num_str});
         defer allocator.free(name);
 
         client_dialogs[i] = try ClientDialog.init(allocator, name, num_str);
