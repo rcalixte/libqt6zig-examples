@@ -30,6 +30,8 @@ pub fn main(init: std.process.Init) !void {
     lineedit.SetCompletionMode(kcompletion_enums.CompletionMode.CompletionPopupAuto);
 
     const completion = KCompletion.New();
+    defer completion.Delete();
+
     completion.SetSoundsEnabled(false);
     lineedit.SetCompletionObject(completion, true);
 
