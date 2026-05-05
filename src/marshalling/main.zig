@@ -116,6 +116,8 @@ pub fn main(init: std.process.Init) !void {
         QKeySequence.FromString("F2"),
         QKeySequence.FromString("F3"),
     };
+    defer for (0..keyarray.len) |i|
+        keyarray[i].Delete();
     const qa = QAction.New();
     defer qa.Delete();
     qa.SetShortcuts(&keyarray);
@@ -123,7 +125,10 @@ pub fn main(init: std.process.Init) !void {
     defer init.gpa.free(shortcuts);
     for (shortcuts, 0..) |shortcut, i| {
         const qkey_tostring = shortcut.ToString(init.gpa);
-        defer init.gpa.free(qkey_tostring);
+        defer {
+            shortcut.Delete();
+            init.gpa.free(qkey_tostring);
+        }
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
             try std.fmt.bufPrint(&buffer, "Shortcuts[{d}]: {s}\n", .{ i, qkey_tostring }),
@@ -158,6 +163,12 @@ pub fn main(init: std.process.Init) !void {
     try input_map.put(init.gpa, "foo", QVariant.New24("FOO"));
     try input_map.put(init.gpa, "bar", QVariant.New24("BAR"));
     try input_map.put(init.gpa, "baz", QVariant.New24("BAZ"));
+    defer {
+        var input_it = input_map.iterator();
+        while (input_it.next()) |entry| {
+            entry.value_ptr.Delete();
+        }
+    }
     const qtobj = QJsonObject.FromVariantMap(init.gpa, input_map);
     defer qtobj.Delete();
     var output_map = qtobj.ToVariantMap(init.gpa);
