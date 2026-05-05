@@ -27,15 +27,36 @@ pub fn main(init: std.process.Init) !void {
     const actions: []const []const u8 = &.{};
     const hints: ArrayMap_constu8_QVariant = .empty;
 
+    const variant_name = QVariant.New24("Qt 6 D-Bus Example");
+    defer variant_name.Delete();
+
+    const variant_id = QVariant.New5(0);
+    defer variant_id.Delete();
+
+    const variant_icon = QVariant.New24("dialog-information");
+    defer variant_icon.Delete();
+
+    const variant_body = QVariant.New24("This is a test notification sent via D-Bus.");
+    defer variant_body.Delete();
+
+    const variant_actions = QVariant.New25(init.gpa, actions);
+    defer variant_actions.Delete();
+
+    const variant_hints = QVariant.New22(init.gpa, hints);
+    defer variant_hints.Delete();
+
+    const variant_timeout = QVariant.New4(-1);
+    defer variant_timeout.Delete();
+
     var arguments = [_]QVariant{
-        QVariant.New24("Qt 6 D-Bus Example"),
-        QVariant.New5(0),
-        QVariant.New24("dialog-information"),
-        QVariant.New24("Qt 6 D-Bus Example"),
-        QVariant.New24("This is a test notification sent via D-Bus."),
-        QVariant.New25(init.gpa, actions),
-        QVariant.New22(init.gpa, hints),
-        QVariant.New4(-1),
+        variant_name,
+        variant_id,
+        variant_icon,
+        variant_name,
+        variant_body,
+        variant_actions,
+        variant_hints,
+        variant_timeout,
     };
 
     message.SetArguments(&arguments);
