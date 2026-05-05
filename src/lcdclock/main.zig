@@ -32,20 +32,20 @@ pub fn main(init: std.process.Init) !void {
 
     lcd.SetStyleSheet("background-color: #ec915c; color: white;");
 
-    show_time(.{ .ptr = null });
+    showTime(.{ .ptr = null });
 
     hbox.AddWidget(lcd);
 
     const timer = QTimer.New2(widget);
     timer.Start(1000);
-    timer.OnTimeout(show_time);
+    timer.OnTimeout(showTime);
 
     widget.Show();
 
     _ = QApplication.Exec();
 }
 
-fn show_time(_: QTimer) callconv(.c) void {
+fn showTime(_: QTimer) callconv(.c) void {
     time = QTime.CurrentTime();
     defer time.Delete();
 
