@@ -91,13 +91,17 @@ pub fn main(init: std.process.Init) !void {
     address_label.SetBuddy(address_edit);
     type_label.SetBuddy(type_combo);
 
-    const relModel = model.RelationModel(type_index);
-    type_combo.SetModel(relModel);
-    type_combo.SetModelColumn(relModel.FieldIndex("description"));
+    const rel_model = model.RelationModel(type_index);
+    defer rel_model.Delete();
+
+    type_combo.SetModel(rel_model);
+    type_combo.SetModelColumn(rel_model.FieldIndex("description"));
 
     mapper = QDataWidgetMapper.New2(widget);
     mapper.SetModel(model);
     const relational_delegate = QStyledItemDelegate.New2(mapper);
+    defer relational_delegate.Delete();
+
     mapper.SetItemDelegate(relational_delegate);
     mapper.AddMapping(name_edit, model.FieldIndex("name"));
     mapper.AddMapping(address_edit, model.FieldIndex("address"));
