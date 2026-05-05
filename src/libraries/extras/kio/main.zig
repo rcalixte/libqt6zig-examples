@@ -16,7 +16,7 @@ pub fn main(init: std.process.Init) !void {
 
     dialog.SetWindowTitle("Qt 6 KIO Example");
 
-    const label = QLabel.New3("Select a file or directory");
+    const label = QLabel.New5("Select a file or directory", dialog);
 
     dialog.SetCustomWidget(label);
 
