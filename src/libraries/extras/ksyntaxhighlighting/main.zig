@@ -33,7 +33,7 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
-    const plaintextedit = QPlainTextEdit.New2();
+    const plaintextedit = QPlainTextEdit.New(window);
 
     const font = QFont.New6("DejaVu Sans Mono", 13);
     defer font.Delete();
@@ -51,19 +51,26 @@ pub fn main(init: std.process.Init) !void {
     plaintextedit.SetPlainText(text);
 
     const document = plaintextedit.Document();
+    defer document.Delete();
+
     const highlighter = KSyntaxHighlighting__SyntaxHighlighter.New2(document);
     defer highlighter.Delete();
 
     const repository = KSyntaxHighlighting__Repository.New();
+    defer repository.Delete();
 
     const theme = switch (plaintextedit.Palette().Color2(qpalette_enums.ColorRole.Base).Lightness()) {
         0...127 => repository.DefaultTheme1(repository_enums.DefaultTheme.DarkTheme),
         128...255 => repository.DefaultTheme1(repository_enums.DefaultTheme.LightTheme),
         else => unreachable,
     };
+    defer theme.Delete();
 
     highlighter.SetTheme(theme);
-    highlighter.SetDefinition(repository.DefinitionForFileName(src_file));
+    const definition = repository.DefinitionForFileName(src_file);
+    defer definition.Delete();
+
+    highlighter.SetDefinition(definition);
 
     window.Show();
 
