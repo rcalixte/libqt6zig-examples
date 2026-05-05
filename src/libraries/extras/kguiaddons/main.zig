@@ -33,7 +33,7 @@ pub fn main(init: std.process.Init) !void {
     label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
     label.SetStyleSheet("font: bold;");
 
-    const validator = KDateValidator.New();
+    const validator = KDateValidator.New2(input);
     input.SetValidator(validator);
 
     const layout = QVBoxLayout.New(widget);
