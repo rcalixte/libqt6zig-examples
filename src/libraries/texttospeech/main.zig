@@ -59,7 +59,13 @@ pub fn main(init: std.process.Init) !void {
 
     _ = QApplication.Exec();
 
-    defer if (voices.len > 0) init.gpa.free(voices);
+    defer {
+        if (voices.len > 0) {
+            for (voices) |voice|
+                voice.Delete();
+            init.gpa.free(voices);
+        }
+    }
 }
 
 fn onEngineSelected(self: QComboBox, index: i32) callconv(.c) void {
@@ -79,7 +85,7 @@ fn onEngineSelected(self: QComboBox, index: i32) callconv(.c) void {
         speech.OnStateChanged(onStateChanged);
 }
 
-fn onEngineReady() callconv(.c) void {
+fn onEngineReady() void {
     if (speech.State() != qtexttospeech_enums.State.Ready) {
         onStateChanged(speech, speech.State());
         return;
@@ -102,6 +108,8 @@ fn onEngineReady() callconv(.c) void {
     defer allocator.free(current_name);
 
     for (locales) |locale| {
+        defer locale.Delete();
+
         const language = QLocale.LanguageToString(allocator, locale.Language());
         defer allocator.free(language);
 
@@ -120,7 +128,7 @@ fn onEngineReady() callconv(.c) void {
         defer allocator.free(locale_name);
 
         if (std.mem.eql(u8, locale_name, current_name))
-            current = locale;
+            current.OperatorAssign(locale);
     }
 
     onRateChanged(ui.rate, ui.rate.Value());
@@ -216,7 +224,11 @@ fn onLocaleChanged(_: QTextToSpeech, locale: QLocale) callconv(.c) void {
     reset();
     ui.voice.Clear();
 
-    if (voices.len > 0) allocator.free(voices);
+    if (voices.len > 0) {
+        for (voices) |voice|
+            voice.Delete();
+        allocator.free(voices);
+    }
 
     voices = speech.AvailableVoices(allocator);
 
