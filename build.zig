@@ -72,8 +72,12 @@ pub fn build(b: *std.Build) !void {
                 try qtlibs_contents.append(b.allocator, line);
             }
 
-            const syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, syslibsfile });
-            const syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
+            var syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, syslibsfile });
+            var syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
+            if (is_macos and syslibs_file == null) {
+                syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "syslibs" });
+                syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
+            }
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
 
             if (syslibs_file) |syslib_file| {
@@ -222,7 +226,7 @@ pub fn build(b: *std.Build) !void {
                 exe.root_module.linkSystemLibrary(lib, .{});
 
         for (main.sys_libraries) |lib|
-            if (is_macos and !std.mem.eql(u8, exe_name, "qscintilla"))
+            if (is_macos and std.mem.startsWith(u8, lib, "Q"))
                 exe.root_module.linkFramework(lib, .{})
             else
                 exe.root_module.linkSystemLibrary(lib, .{});
