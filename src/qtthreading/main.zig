@@ -122,7 +122,7 @@ fn onClicked(self: QPushButton) callconv(.c) void {
 }
 
 const Counter = struct {
-    counter: i32,
+    counter: u32,
     label: QLabel,
     running: bool = false,
     buffer: [32]u8 = undefined,
@@ -132,7 +132,6 @@ const Counter = struct {
     fn run(self: *Counter) !void {
         while (self.running) {
             threading.Async(self, asyncUpdate);
-            self.counter += 1;
             try self.io.sleep(.fromMicroseconds(100), .awake);
         }
     }
@@ -144,6 +143,7 @@ const Counter = struct {
 
     fn asyncUpdate(context: ?*anyopaque) callconv(.c) void {
         const counter: *Counter = @ptrCast(@alignCast(context));
+        counter.counter += 1;
         const text = std.fmt.bufPrint(&counter.buffer, "{d} {d}", .{
             counter.counter,
             std.Io.Clock.real.now(counter.io).toSeconds(),
