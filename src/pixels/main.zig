@@ -67,7 +67,7 @@ pub fn main(init: std.process.Init) !void {
             const x: i32 = @intCast(i);
             const y: i32 = @intCast(j);
 
-            const color = QColor.New14(x, y * 3, x * 4, 255);
+            const color = QColor.New15(x, y * 3, x * 4, 255);
             defer color.Delete();
 
             image.SetPixelColor(x, y, color);
@@ -175,7 +175,7 @@ fn drawPixel(item: QGraphicsPixmapItem, pos: QPointF) void {
     const img = pm.ToImage();
     defer img.Delete();
 
-    const color = QColor.New14(replacement_r, replacement_g, replacement_b, 255);
+    const color = QColor.New15(replacement_r, replacement_g, replacement_b, 255);
     defer color.Delete();
 
     const height = img.Height();
