@@ -1,5 +1,5 @@
 const std = @import("std");
-const host_os = @import("builtin").os.tag;
+const host_os = @import("builtin").target.os.tag;
 
 var buffer: [1024]u8 = undefined;
 var disabled_paths: std.ArrayList([]const u8) = .empty;
@@ -57,7 +57,8 @@ pub fn build(b: *std.Build) !void {
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
             if (!ok) continue;
             const parent_dir = std.Io.Dir.path.dirname(entry.path) orelse continue;
-            if (is_windows and std.mem.containsAtLeast(u8, parent_dir, 2, "\\")) continue;
+            if (is_windows and (std.mem.containsAtLeast(u8, parent_dir, 2, "\\") or
+                std.mem.containsAtLeast(u8, parent_dir, 1, "webengine"))) continue;
             const qtlibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "qtlibs" });
             var qtlibs_file = try b.build_root.handle.openFile(b.graph.io, qtlibs_path, .{});
             defer qtlibs_file.close(b.graph.io);
