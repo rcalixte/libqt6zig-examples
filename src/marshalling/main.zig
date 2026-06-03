@@ -13,6 +13,9 @@ const QKeySequence = qt6.QKeySequence;
 const QAction = qt6.QAction;
 const QFile = qt6.QFile;
 const QObject = qt6.QObject;
+const QColor = qt6.QColor;
+const QLocale = qt6.QLocale;
+const QXmlStreamReader = qt6.QXmlStreamReader;
 const QVariant = qt6.QVariant;
 const QJsonObject = qt6.QJsonObject;
 const QHttpHeaders = qt6.QHttpHeaders;
@@ -156,6 +159,34 @@ pub fn main(init: std.process.Init) !void {
         init.io,
         try std.fmt.bufPrint(&buffer, "Value: {s}\n", .{value}),
     );
+
+    // QLatin1StringView
+    var blue = "blue".*;
+    const color = QColor.New11(&blue);
+    defer color.Delete();
+    const color_name = color.Name(init.gpa);
+    defer init.gpa.free(color_name);
+    try std.Io.File.stdout().writeStreamingAll(
+        init.io,
+        try std.fmt.bufPrint(&buffer, "Color name: {s}\n", .{color_name}),
+    );
+
+    // QStringView
+    const locale = QLocale.CodeToScript("Latn");
+    try std.Io.File.stdout().writeStreamingAll(
+        init.io,
+        try std.fmt.bufPrint(&buffer, "Locale script: {d}\n", .{locale}),
+    );
+    const reader = QXmlStreamReader.New3("<?xml version=\"1.0\"?><foo>bar</foo>");
+    defer reader.Delete();
+    if (reader.ReadNextStartElement()) {
+        const name = reader.Name(init.gpa);
+        defer init.gpa.free(name);
+        try std.Io.File.stdout().writeStreamingAll(
+            init.io,
+            try std.fmt.bufPrint(&buffer, "XML Name: {s}\n", .{name}),
+        );
+    }
 
     // QMap<QString, QVariant>
     var input_map: ArrayMap_constu8_QVariant = .empty;
