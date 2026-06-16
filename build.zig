@@ -1,6 +1,8 @@
 const std = @import("std");
 const host_os = @import("builtin").target.os.tag;
 
+const configureQtExeRootModule = @import("libqt6zig").configureQtExeRootModule;
+
 var buffer: [1024]u8 = undefined;
 var disabled_paths: std.ArrayList([]const u8) = .empty;
 
@@ -28,19 +30,6 @@ pub fn build(b: *std.Build) !void {
             return error.QTDIRNotFound;
         };
     }
-
-    const base_libs = switch (is_macos) {
-        true => [_][]const u8{
-            "QtCore",
-            "QtGui",
-            "QtWidgets",
-        },
-        false => [_][]const u8{
-            "Qt6Core",
-            "Qt6Gui",
-            "Qt6Widgets",
-        },
-    };
 
     const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
 
@@ -165,6 +154,17 @@ pub fn build(b: *std.Build) !void {
 
     const run_all_step = b.step("run", "Build and run all of the examples");
 
+    const win_sys_libs: []const []const u8 = if (is_windows) &.{
+        "avcodec-61",
+        "avformat-61",
+        "avutil-59",
+        "libc++",
+        "libunwind",
+        "opengl32sw",
+        "swresample-5",
+        "swscale-8",
+    } else &.{};
+
     // Create an executable for each main.zig
     main_loop: for (main_files.items) |main| {
         const exe_name = std.Io.Dir.path.basename(main.dir);
@@ -185,46 +185,7 @@ pub fn build(b: *std.Build) !void {
 
         exe.root_module.addImport("libqt6zig", qt6zig.module("libqt6zig"));
 
-        // Link Qt system libraries
-        const sub_paths = [_][]const u8{ "/bin", "/lib", "" };
-
-        for (extra_paths) |path|
-            for (sub_paths) |sub_path| {
-                const extra_path = b.fmt("{s}{s}", .{ path, sub_path });
-                std.Io.Dir.cwd().access(b.graph.io, extra_path, .{}) catch {
-                    continue;
-                };
-                exe.root_module.addLibraryPath(.{ .cwd_relative = extra_path });
-                if (is_macos)
-                    exe.root_module.addFrameworkPath(.{ .cwd_relative = extra_path });
-            };
-
-        if (is_bsd_host)
-            exe.root_module.addLibraryPath(.{ .cwd_relative = "/usr/local/lib/qt6" });
-        if (is_macos) {
-            exe.root_module.addFrameworkPath(.{ .cwd_relative = "/opt/homebrew/Frameworks" });
-            exe.root_module.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
-        }
-        if (is_windows) {
-            const win_bin_dir = win_root ++ "/bin";
-            var ok_bin_dir = true;
-            std.Io.Dir.cwd().access(b.graph.io, win_bin_dir, .{}) catch {
-                if (extra_paths.len == 0) {
-                    std.log.err("'{s}' either does not exist or does not have a 'bin' subdirectory and no extra paths were provided\n", .{win_root});
-                    return error.WinQtBinDirNotFound;
-                } else ok_bin_dir = false;
-            };
-            if (ok_bin_dir)
-                exe.root_module.addLibraryPath(.{ .cwd_relative = win_bin_dir });
-
-            if (main.win_gui) exe.subsystem = .windows;
-        }
-
-        for (base_libs) |lib|
-            if (is_macos)
-                exe.root_module.linkFramework(lib, .{})
-            else
-                exe.root_module.linkSystemLibrary(lib, .{});
+        if (is_windows and main.win_gui) exe.subsystem = .windows;
 
         for (main.sys_libraries) |lib|
             if (is_macos and std.mem.startsWith(u8, lib, "Q"))
@@ -232,25 +193,9 @@ pub fn build(b: *std.Build) !void {
             else
                 exe.root_module.linkSystemLibrary(lib, .{});
 
-        if (host_os == .linux) {
-            exe.root_module.link_libcpp = false;
-
-            const result = try std.process.run(b.allocator, b.graph.io, .{
-                .argv = &.{ "gcc", "--print-file-name=libstdc++.so.6" },
-            });
-            exe.root_module.addObjectFile(.{
-                .cwd_relative = std.mem.trim(u8, result.stdout, &std.ascii.whitespace),
-            });
-
-            exe.root_module.linkSystemLibrary("unwind", .{});
-        }
-
         // Link libqt6zig static libraries
         for (main.qt_libraries) |lib|
             exe.root_module.linkLibrary(qt6zig.artifact(lib));
-
-        // Install the executable
-        b.installArtifact(exe);
 
         // Create a run step
         const exe_install = b.addInstallArtifact(exe, .{});
@@ -263,56 +208,29 @@ pub fn build(b: *std.Build) !void {
         run_step.dependOn(&run_cmd.step);
         run_all_step.dependOn(&run_cmd.step);
 
+        var win_steps = [_]*std.Build.Step{&run_cmd.step};
+        var win_libs: std.ArrayList([]const u8) = .empty;
         if (is_windows) {
-            const win_libs = base_libs ++ .{
-                "avcodec-61",
-                "avformat-61",
-                "avutil-59",
-                "libc++",
-                "libunwind",
-                "opengl32sw",
-                "swresample-5",
-                "swscale-8",
-            };
-
-            for (win_libs) |lib| {
-                const bin_path = b.fmt("bin/{s}.dll", .{lib});
-                const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
-                std.Io.Dir.cwd().access(b.graph.io, dll_path, .{}) catch {
-                    continue;
-                };
-                const install_win_dll = b.addInstallFile(.{ .cwd_relative = dll_path }, bin_path);
-                run_cmd.step.dependOn(&install_win_dll.step);
-            }
-
-            for (main.sys_libraries) |lib| {
-                const bin_path = b.fmt("bin/{s}.dll", .{lib});
-                const dll_path = b.fmt("{s}/{s}", .{ qt_dir, bin_path });
-                std.Io.Dir.cwd().access(b.graph.io, dll_path, .{}) catch {
-                    continue;
-                };
-                const install_win_dll = b.addInstallFile(.{ .cwd_relative = dll_path }, bin_path);
-                run_cmd.step.dependOn(&install_win_dll.step);
-            }
-
-            const plugins_path = b.fmt("{s}/plugins", .{qt_dir});
-            std.Io.Dir.cwd().access(b.graph.io, plugins_path, .{}) catch {
-                continue;
-            };
-            const install_plugins = b.addInstallDirectory(.{
-                .source_dir = .{ .cwd_relative = plugins_path },
-                .install_dir = .prefix,
-                .install_subdir = "bin/plugins",
-            });
-            run_cmd.step.dependOn(&install_plugins.step);
+            try win_libs.ensureTotalCapacityPrecise(b.allocator, main.sys_libraries.len + win_sys_libs.len);
+            for (win_sys_libs) |lib|
+                win_libs.appendAssumeCapacity(lib);
+            for (main.sys_libraries) |lib|
+                win_libs.appendAssumeCapacity(lib);
         }
+
+        // Configure Qt system libraries
+        try configureQtExeRootModule(b, exe, .{
+            .extra_paths = extra_paths,
+            .win_libs = if (is_windows) win_libs.items else &.{},
+            .win_qt_dir = qt_dir,
+            .win_root = qt_dir,
+            .win_steps = if (is_windows) &win_steps else &.{},
+        });
+
+        // Install the executable
+        b.installArtifact(exe);
     }
 }
-
-const is_bsd_host = switch (host_os) {
-    .dragonfly, .freebsd, .netbsd, .openbsd => true,
-    else => false,
-};
 
 const win_root = "C:/Qt/6.8.3/llvm-mingw_64";
 
