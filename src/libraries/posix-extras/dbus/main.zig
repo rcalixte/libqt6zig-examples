@@ -1,7 +1,7 @@
 const std = @import("std");
 const qt6 = @import("libqt6zig");
 const types = qt6.types;
-const QApplication = qt6.QApplication;
+const QCoreApplication = qt6.QCoreApplication;
 const QDBusConnection = qt6.QDBusConnection;
 const QDBusMessage = qt6.QDBusMessage;
 const qdbusmessage_enums = qt6.qdbusmessage_enums;
@@ -15,7 +15,7 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
+    const qapp = QCoreApplication.New(init.arena.allocator(), &argc, argv);
     defer qapp.Delete();
 
     const session_bus = QDBusConnection.SessionBus();
@@ -67,6 +67,6 @@ pub fn main(init: std.process.Init) !void {
     if (reply.Type() != qdbusmessage_enums.MessageType.ReplyMessage) {
         std.Io.File.stdout().writeStreamingAll(init.io, "Failed to send message\n") catch @panic("Failed to print to stdout");
 
-        QApplication.Quit();
+        QCoreApplication.Quit();
     }
 }
