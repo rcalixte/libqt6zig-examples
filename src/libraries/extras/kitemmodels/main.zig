@@ -66,7 +66,7 @@ pub fn main(init: std.process.Init) !void {
 fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(QStandardItem) {
     var row: std.ArrayList(QStandardItem) = try .initCapacity(alloc, labels.len);
     for (labels) |label|
-        try row.append(alloc, QStandardItem.New2(label));
+        row.appendAssumeCapacity(QStandardItem.New2(label));
     return row;
 }
 
