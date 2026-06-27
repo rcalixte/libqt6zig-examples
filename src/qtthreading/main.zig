@@ -12,9 +12,11 @@ const threading = qt6.threading;
 
 // Data for each button, attached via Qt's property system
 const ButtonData = struct {
-    counters: *std.ArrayListUnmanaged(*Counter),
+    counters: *std.ArrayList(*Counter),
     button: QPushButton,
 };
+
+var buffer: [32]u8 = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
@@ -40,7 +42,7 @@ pub fn main(init: std.process.Init) !void {
     window.SetCentralWidget(widget);
 
     // Create a counter and state for each thread
-    var counters: std.ArrayListUnmanaged(*Counter) = .empty;
+    var counters: std.ArrayList(*Counter) = try .initCapacity(init.gpa, thread_count);
     var group: std.Io.Group = .init;
 
     for (0..thread_count) |_| {
@@ -58,7 +60,7 @@ pub fn main(init: std.process.Init) !void {
             .group = &group,
         };
 
-        try counters.append(init.gpa, counter);
+        counters.appendAssumeCapacity(counter);
     }
     defer {
         // First we stop all counters, then destroy them.
@@ -125,7 +127,6 @@ const Counter = struct {
     counter: u32,
     label: QLabel,
     running: bool = false,
-    buffer: [32]u8 = undefined,
     io: std.Io,
     group: *std.Io.Group,
 
@@ -143,8 +144,8 @@ const Counter = struct {
 
     fn asyncUpdate(context: ?*anyopaque) callconv(.c) void {
         const counter: *Counter = @ptrCast(@alignCast(context));
-        counter.counter += 1;
-        const text = std.fmt.bufPrint(&counter.buffer, "{d} {d}", .{
+        counter.counter +%= 1;
+        const text = std.fmt.bufPrint(&buffer, "{d} {d}", .{
             counter.counter,
             std.Io.Clock.real.now(counter.io).toSeconds(),
         }) catch @panic("Failed to bufPrint");
