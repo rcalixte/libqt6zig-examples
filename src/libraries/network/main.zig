@@ -7,7 +7,7 @@ const qdnslookup_enums = qt6.qdnslookup_enums;
 var allocator: std.mem.Allocator = undefined;
 var io: std.Io = undefined;
 
-pub fn main(init: std.process.Init) !void {
+pub fn main(init: std.process.Init) !u8 {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
@@ -24,7 +24,7 @@ pub fn main(init: std.process.Init) !void {
     dns.OnFinished(onFinished);
     dns.Lookup();
 
-    _ = QCoreApplication.Exec();
+    return @intCast(QCoreApplication.Exec());
 }
 
 fn onFinished(dns: QDnsLookup) callconv(.c) void {
@@ -34,10 +34,11 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
         const dns_error = dns.ErrorString(allocator);
         defer allocator.free(dns_error);
 
-        const errorStr = std.fmt.allocPrint(allocator, "DNS lookup failed: {s}\n", .{dns_error}) catch @panic("Failed to allocPrint error(s)");
+        const errorStr = std.fmt.allocPrint(allocator, "\nDNS lookup failed: {s}\n", .{dns_error}) catch @panic("Failed to allocPrint error(s)");
         defer allocator.free(errorStr);
 
         std.Io.File.stdout().writeStreamingAll(io, errorStr) catch @panic("Failed to write error(s)");
+        QCoreApplication.Exit1(dns.Error());
         return;
     }
 
