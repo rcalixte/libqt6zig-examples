@@ -130,15 +130,18 @@ The [lupdate](https://github.com/rcalixte/libqt6zig-examples/tree/master/src/lup
 ### Q4. Do the applications built with this library support native styling or theming?
 
 <table align="center">
-
-| ![endeavour_kde_helloworld](assets/endeavour_kde_helloworld.png) |    ![fedora_kde_helloworld](assets/fedora_kde_helloworld.png)    |
-| :--------------------------------------------------------------: | :--------------------------------------------------------------: |
-|                        EndeavourOS + KDE                         |                           Fedora + KDE                           |
-|  ![freebsd_xfce_helloworld](assets/freebsd_xfce_helloworld.png)  | ![mint_cinnamon_helloworld](assets/mint_cinnamon_helloworld.png) |
-|                          FreeBSD + Xfce                          |                      Linux Mint + Cinnamon                       |
-|         ![macos_helloworld](assets/macos_helloworld.png)         |       ![windows_helloworld](assets/windows_helloworld.png)       |
-|                              macOS                               |                             Windows                              |
-
+  <tr>
+    <td align="center"><img alt="EndeavourOS + KDE" src="assets/endeavour_kde_helloworld.png"><br><b>EndeavourOS + KDE</b></td>
+    <td align="center"><img alt="Fedora + KDE" src="assets/fedora_kde_helloworld.png"><br><b>Fedora + KDE</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img alt="FreeBSD + Xfce" src="assets/freebsd_xfce_helloworld.png"><br><b>FreeBSD + Xfce</b></td>
+    <td align="center"><img alt="Linux Mint + Cinnamon" src="assets/mint_cinnamon_helloworld.png"><br><b>Linux Mint + Cinnamon</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img alt="macOS" src="assets/macos_helloworld.png"><br><b>macOS</b></td>
+    <td align="center"><img alt="Windows" src="assets/windows_helloworld.png"><br><b>Windows</b></td>
+  </tr>
 </table>
 
 Special Thanks
