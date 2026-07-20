@@ -321,9 +321,14 @@ pub fn main(init: std.process.Init) !void {
         var it = app_tab_map.iterator();
         while (it.next()) |entry| {
             const apptab = entry.value_ptr.*;
-            if (apptab.tab.ptr != null)
-                apptab.deinit(init.gpa);
+            if (apptab.tab.ptr != null) {
+                apptab.tab.Delete();
+                apptab.tab.ptr = null;
+                app_tab_map.removeByPtr(entry.key_ptr);
+            }
         }
+        it = app_tab_map.iterator();
+        while (it.next()) |entry| init.gpa.destroy(entry.value_ptr.*);
         app_tab_map.deinit(init.gpa);
         app_window_tab_map.deinit(init.gpa);
     }
