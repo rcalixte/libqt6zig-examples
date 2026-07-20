@@ -3,13 +3,13 @@ const qt6 = @import("libqt6zig");
 const QApplication = qt6.QApplication;
 const QMainWindow = qt6.QMainWindow;
 const KTextEditor__Editor = qt6.KTextEditor__Editor;
-const QDir = qt6.QDir;
 const QUrl = qt6.QUrl;
 const KTextEditor__MainWindow = qt6.KTextEditor__MainWindow;
 const QToolBar = qt6.QToolBar;
 const QAction = qt6.QAction;
 
 var editor: KTextEditor__Editor = undefined;
+const file = "src/libraries/extras/ktexteditor/main.zig";
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
@@ -22,23 +22,14 @@ pub fn main(init: std.process.Init) !void {
     defer window.Delete();
 
     window.SetWindowTitle("Qt 6 KTextEditor Example");
-    window.SetMinimumSize2(1300, 1180);
+    window.SetMinimumSize2(1100, 1020);
 
     editor = KTextEditor__Editor.Instance();
-    defer editor.DeleteLater();
 
     const doc = editor.CreateDocument(window);
-    const dir = QDir.CurrentPath(init.gpa);
-    defer init.gpa.free(dir);
+    defer doc.Delete();
 
-    const file = try std.mem.concat(init.gpa, u8, &.{
-        "file://",
-        dir,
-        "/src/libraries/extras/ktexteditor/main.zig",
-    });
-    defer init.gpa.free(file);
-
-    const url = QUrl.New3(file);
+    const url = QUrl.FromLocalFile(file);
     defer url.Delete();
 
     if (doc.OpenUrl(url)) {

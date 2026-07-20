@@ -1,10 +1,7 @@
 document
 editor
 qapplication
-qdir
-qfont
 qmainwindow
-qobject
 qtoolbar
 qurl
 qwidget
