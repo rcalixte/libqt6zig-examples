@@ -30,7 +30,7 @@ pub fn main(init: std.process.Init) !void {
     defer output.Delete();
 
     player.SetAudioOutput(output);
-    const url = QUrl.New3("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
+    const url = QUrl.FromLocalFile("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
     defer url.Delete();
 
     player.SetSource(url);
