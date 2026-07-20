@@ -20,7 +20,6 @@ pub fn main(init: std.process.Init) !void {
     const model = QAbstractListModel.New();
     defer model.Delete();
 
-    model.OnColumnCount(onColumnCount);
     model.OnRowCount(onRowCount);
     model.OnData(onData);
 
@@ -35,10 +34,6 @@ pub fn main(init: std.process.Init) !void {
 
 fn onRowCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
     return 1000;
-}
-
-fn onColumnCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
-    return 1;
 }
 
 fn onData(_: QAbstractListModel, index: QModelIndex, role: i32) callconv(.c) QVariant {
