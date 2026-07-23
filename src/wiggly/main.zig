@@ -34,6 +34,7 @@ pub const WigglyWidget = struct {
 
     pub fn init(alloc: std.mem.Allocator, text: []const u8) !*WigglyWidget {
         var self = try alloc.create(WigglyWidget);
+        errdefer alloc.destroy(self);
 
         self.step = 0;
         self.text = try std.fmt.bufPrint(&self.buffer, "{s}", .{text});
