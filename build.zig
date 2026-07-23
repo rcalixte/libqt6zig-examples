@@ -31,8 +31,6 @@ pub fn build(b: *std.Build) !void {
         };
     }
 
-    const syslibsfile = if (is_macos) "osx_syslibs" else "syslibs";
-
     // Find all main.zig files
     var dir = try b.build_root.handle.openDir(b.graph.io, "src", .{ .iterate = true });
     defer dir.close(b.graph.io);
@@ -41,6 +39,8 @@ pub fn build(b: *std.Build) !void {
     defer walker.deinit();
 
     var ok = true;
+    var macos_syslibs: std.ArrayList([]const u8) = .empty;
+    var macos_exelibs: std.ArrayList([]const u8) = .empty;
 
     while (try walker.next(b.graph.io)) |entry|
         if (entry.kind == .file and std.mem.eql(u8, entry.basename, "main.zig")) {
@@ -62,26 +62,40 @@ pub fn build(b: *std.Build) !void {
                 try qtlibs_contents.append(b.allocator, line);
             }
 
-            var syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, syslibsfile });
-            var syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
-            if (is_macos and syslibs_file == null) {
-                syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "syslibs" });
-                syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
-            }
+            const syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "syslibs" });
+            const syslibs_file = b.build_root.handle.openFile(b.graph.io, syslibs_path, .{}) catch null;
+            const macos_syslibs_path = b.fmt("{s}/{s}/{s}", .{ "src", parent_dir, "osx_syslibs" });
+            var macos_syslibs_file: ?std.Io.File = null;
+            if (is_macos)
+                macos_syslibs_file = b.build_root.handle.openFile(b.graph.io, macos_syslibs_path, .{}) catch null;
             var syslibs_contents: std.ArrayList([]const u8) = .empty;
 
             if (syslibs_file) |syslib_file| {
                 defer syslib_file.close(b.graph.io);
 
                 contents = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, syslibs_path, b.allocator, .unlimited);
-
                 it = std.mem.tokenizeAny(u8, contents, "\r\n");
                 while (it.next()) |line| {
                     if (std.mem.startsWith(u8, line, "#"))
                         continue;
-                    try syslibs_contents.append(b.allocator, line);
+                    if (is_macos and std.mem.startsWith(u8, line, "Q"))
+                        try macos_syslibs.append(b.allocator, line)
+                    else
+                        try syslibs_contents.append(b.allocator, line);
                 }
             }
+
+            if (is_macos) if (macos_syslibs_file) |syslib_file| {
+                defer syslib_file.close(b.graph.io);
+
+                contents = try std.Io.Dir.cwd().readFileAlloc(b.graph.io, macos_syslibs_path, b.allocator, .unlimited);
+                it = std.mem.tokenizeAny(u8, contents, "\r\n");
+                while (it.next()) |line| {
+                    if (std.mem.startsWith(u8, line, "#"))
+                        continue;
+                    try macos_exelibs.append(b.allocator, line);
+                }
+            };
 
             var win_gui = true;
 
@@ -102,7 +116,10 @@ pub fn build(b: *std.Build) !void {
         } else if (entry.kind == .directory) {
             for (special_dirs) |dir_name| {
                 if (std.mem.containsAtLeast(u8, entry.path, 1, dir_name)) break;
-            } else continue;
+            } else {
+                ok = true;
+                continue;
+            }
 
             var path_it = std.mem.splitScalar(u8, entry.path, '/');
             _ = path_it.first();
@@ -150,6 +167,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .@"extra-paths" = extra_paths,
+        .@"macos-libraries" = try macos_syslibs.toOwnedSlice(b.allocator),
     });
 
     const run_all_step = b.step("run", "Build and run all of the examples");
@@ -221,6 +239,7 @@ pub fn build(b: *std.Build) !void {
         // Configure Qt system libraries
         try configureQtExeRootModule(b, exe, .{
             .extra_paths = extra_paths,
+            .macos_libraries = macos_exelibs.items,
             .win_libs = if (is_windows) win_libs.items else &.{},
             .win_qt_dir = qt_dir,
             .win_root = qt_dir,
