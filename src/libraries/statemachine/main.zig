@@ -106,12 +106,17 @@ pub const TrafficWidget = struct {
 
     pub fn init(alloc: std.mem.Allocator) !*TrafficWidget {
         var self = try alloc.create(TrafficWidget);
+        errdefer alloc.destroy(self);
 
         self.widget = QWidget.New2();
         const layout = QVBoxLayout.New(self.widget);
 
         self.red = try LightWidget.init(alloc, qnamespace_enums.GlobalColor.Red);
+        errdefer self.red.deinit(alloc);
+
         self.yellow = try LightWidget.init(alloc, qnamespace_enums.GlobalColor.Yellow);
+        errdefer self.yellow.deinit(alloc);
+
         self.green = try LightWidget.init(alloc, qnamespace_enums.GlobalColor.Green);
 
         layout.AddWidget(self.red.widget);
