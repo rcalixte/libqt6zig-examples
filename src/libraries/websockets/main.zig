@@ -37,6 +37,8 @@ pub const ClientDialog = struct {
 
     pub fn init(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
         var self = try alloc.create(ClientDialog);
+        errdefer alloc.destroy(self);
+
         self.name = try alloc.dupe(u8, num_str);
 
         self.dialog = QDialog.New2();
