@@ -44,6 +44,8 @@ pub fn main(init: std.process.Init) !void {
     const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
     defer qapp.Delete();
 
+    allocator = init.gpa;
+
     screenshot = QWidget.New2();
     defer screenshot.Delete();
 
