@@ -45,6 +45,14 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn widgetMousePressEvent(_: QWidget, event: QMouseEvent) callconv(.c) void {
+    mousePressEvent(event);
+}
+
+fn labelMousePressEvent(_: QLabel, event: QMouseEvent) callconv(.c) void {
+    mousePressEvent(event);
+}
+
+fn mousePressEvent(event: QMouseEvent) void {
     const mouse = event.Button();
     switch (mouse) {
         qnamespace_enums.MouseButton.LeftButton => label.SetText("## Left mouse button pressed!"),
@@ -61,6 +69,14 @@ fn widgetMousePressEvent(_: QWidget, event: QMouseEvent) callconv(.c) void {
 }
 
 fn widgetKeyPressEvent(_: QWidget, event: QKeyEvent) callconv(.c) void {
+    keyPressEvent(event);
+}
+
+fn labelKeyPressEvent(_: QLabel, event: QKeyEvent) callconv(.c) void {
+    keyPressEvent(event);
+}
+
+fn keyPressEvent(event: QKeyEvent) void {
     const key = event.Key();
     const formatted = std.fmt.bufPrint(
         &buffer,
@@ -68,30 +84,4 @@ fn widgetKeyPressEvent(_: QWidget, event: QKeyEvent) callconv(.c) void {
         .{key},
     ) catch @panic("Buffer full");
     label.SetText(formatted);
-}
-
-fn labelMousePressEvent(self: QLabel, event: QMouseEvent) callconv(.c) void {
-    const mouse = event.Button();
-    switch (mouse) {
-        qnamespace_enums.MouseButton.LeftButton => self.SetText("## Left mouse button pressed!"),
-        qnamespace_enums.MouseButton.RightButton => self.SetText("## Right mouse button pressed!"),
-        else => {
-            const formatted = std.fmt.bufPrint(
-                &buffer,
-                "## Mouse button keycode: {d}",
-                .{mouse},
-            ) catch @panic("Buffer full");
-            self.SetText(formatted);
-        },
-    }
-}
-
-fn labelKeyPressEvent(self: QLabel, event: QKeyEvent) callconv(.c) void {
-    const key = event.Key();
-    const formatted = std.fmt.bufPrint(
-        &buffer,
-        "## You pressed key code: {d}",
-        .{key},
-    ) catch @panic("Buffer full");
-    self.SetText(formatted);
 }
