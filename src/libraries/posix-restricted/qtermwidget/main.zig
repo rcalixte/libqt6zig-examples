@@ -23,6 +23,6 @@ pub fn main(init: std.process.Init) !void {
     _ = QApplication.Exec();
 }
 
-fn onFinished(_: QTermWidget) callconv(.c) void {
-    QApplication.Quit();
+fn onFinished(self: QTermWidget) callconv(.c) void {
+    _ = self.Close();
 }
