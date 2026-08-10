@@ -341,6 +341,12 @@ The following examples are fully CLI-based and therefore do not have screenshots
 
 ---
 
+[![tetrix](src/tetrix/screenshot.png)](src/tetrix)
+
+[tetrix](src/tetrix)
+
+---
+
 [![texttospeech](src/libraries/texttospeech/screenshot.png)](src/libraries/texttospeech)
 
 [texttospeech](src/libraries/texttospeech)
