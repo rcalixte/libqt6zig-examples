@@ -31,118 +31,118 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const combo = QComboBox.New2();
+    const combo = QComboBox.new2();
     const texts = [_][]const u8{ "en", "es", "fr" };
 
-    combo.AddItems(allocator, &texts);
-    combo.OnCurrentTextChanged(onCurrentTextChanged);
+    combo.addItems(allocator, &texts);
+    combo.onCurrentTextChanged(onCurrentTextChanged);
 
-    label = QLabel.New3("L&anguage:");
-    label.SetBuddy(combo);
+    label = .new3("L&anguage:");
+    label.setBuddy(combo);
 
-    window = QMainWindow.New2();
-    defer window.Delete();
+    window = .new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 Translation Example");
-    window.SetMinimumSize2(460, 270);
+    window.setWindowTitle("Qt 6 Translation Example");
+    window.setMinimumSize2(460, 270);
 
-    const widget = QWidget.New2();
+    const widget = QWidget.new2();
 
-    up_button = QPushButton.New3("&Up");
-    down_button = QPushButton.New3("&Down");
-    left_button = QPushButton.New3("&Left");
-    right_button = QPushButton.New3("&Right");
+    up_button = .new3("&Up");
+    down_button = .new3("&Down");
+    left_button = .new3("&Left");
+    right_button = .new3("&Right");
 
-    const gridlayout = QGridLayout.New2();
+    const gridlayout = QGridLayout.new2();
 
-    gridlayout.AddWidget2(up_button, 0, 1);
-    gridlayout.AddWidget2(down_button, 2, 1);
-    gridlayout.AddWidget2(left_button, 1, 0);
-    gridlayout.AddWidget2(right_button, 1, 2);
+    gridlayout.addWidget2(up_button, 0, 1);
+    gridlayout.addWidget2(down_button, 2, 1);
+    gridlayout.addWidget2(left_button, 1, 0);
+    gridlayout.addWidget2(right_button, 1, 2);
 
-    const vboxlayout = QVBoxLayout.New2();
+    const vboxlayout = QVBoxLayout.new2();
 
-    vboxlayout.AddStretch();
-    vboxlayout.AddWidget(label);
-    vboxlayout.AddWidget(combo);
+    vboxlayout.addStretch();
+    vboxlayout.addWidget(label);
+    vboxlayout.addWidget(combo);
 
-    gridlayout.AddLayout(vboxlayout, 3, 0);
+    gridlayout.addLayout(vboxlayout, 3, 0);
 
-    widget.SetLayout(gridlayout);
-    window.SetCentralWidget(widget);
+    widget.setLayout(gridlayout);
+    window.setCentralWidget(widget);
 
-    exit_action = QAction.New5("E&xit", window);
+    exit_action = .new5("E&xit", window);
 
-    const exit_key = QKeySequence.New2("Ctrl+Q");
-    defer exit_key.Delete();
+    const exit_key = QKeySequence.new2("Ctrl+Q");
+    defer exit_key.delete();
 
-    exit_action.SetShortcut(exit_key);
-    exit_action.OnTriggered(onTriggered);
+    exit_action.setShortcut(exit_key);
+    exit_action.onTriggered(onTriggered);
 
-    file_menu = window.MenuBar().AddMenu2("&File");
-    file_menu.AddAction(exit_action);
+    file_menu = window.menuBar().addMenu2("&File");
+    file_menu.addAction(exit_action);
 
-    window.Show();
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onTriggered(_: QAction) callconv(.c) void {
-    _ = window.Close();
+    _ = window.close();
 }
 
 fn onCurrentTextChanged(_: QComboBox, text: [*:0]const u8) callconv(.c) void {
-    const locale = QLocale.New2(std.mem.span(text));
-    defer locale.Delete();
+    const locale = QLocale.new2(std.mem.span(text));
+    defer locale.delete();
 
-    const translator = QTranslator.New();
-    defer translator.Delete();
+    const translator = QTranslator.new();
+    defer translator.delete();
 
-    if (translator.Load42(locale, "lupdate", "_", "src/lupdate")) {
-        _ = QApplication.InstallTranslator(translator);
+    if (translator.load42(locale, "lupdate", "_", "src/lupdate")) {
+        _ = QApplication.installTranslator(translator);
         retranslate();
     }
 }
 
 fn retranslate() void {
-    const label_text = QApplication.Translate(allocator, "Main", "L&anguage:");
+    const label_text = QApplication.translate(allocator, "Main", "L&anguage:");
     defer allocator.free(label_text);
-    label.SetText(label_text);
+    label.setText(label_text);
 
-    const up_text = QApplication.Translate(allocator, "Main", "&Up");
+    const up_text = QApplication.translate(allocator, "Main", "&Up");
     defer allocator.free(up_text);
-    up_button.SetText(up_text);
+    up_button.setText(up_text);
 
-    const down_text = QApplication.Translate(allocator, "Main", "&Down");
+    const down_text = QApplication.translate(allocator, "Main", "&Down");
     defer allocator.free(down_text);
-    down_button.SetText(down_text);
+    down_button.setText(down_text);
 
-    const left_text = QApplication.Translate(allocator, "Main", "&Left");
+    const left_text = QApplication.translate(allocator, "Main", "&Left");
     defer allocator.free(left_text);
-    left_button.SetText(left_text);
+    left_button.setText(left_text);
 
-    const right_text = QApplication.Translate(allocator, "Main", "&Right");
+    const right_text = QApplication.translate(allocator, "Main", "&Right");
     defer allocator.free(right_text);
-    right_button.SetText(right_text);
+    right_button.setText(right_text);
 
-    const exit_text = QApplication.Translate(allocator, "Main", "E&xit");
+    const exit_text = QApplication.translate(allocator, "Main", "E&xit");
     defer allocator.free(exit_text);
-    exit_action.SetText(exit_text);
+    exit_action.setText(exit_text);
 
-    const file_text = QApplication.Translate(allocator, "Main", "&File");
+    const file_text = QApplication.translate(allocator, "Main", "&File");
     defer allocator.free(file_text);
-    file_menu.SetTitle(file_text);
+    file_menu.setTitle(file_text);
 
-    const quit_bind = QApplication.Translate3(allocator, "Main", "Ctrl+Q", "Quit");
+    const quit_bind = QApplication.translate3(allocator, "Main", "Ctrl+Q", "Quit");
     defer allocator.free(quit_bind);
 
-    const exit_key = QKeySequence.New2(quit_bind);
-    defer exit_key.Delete();
+    const exit_key = QKeySequence.new2(quit_bind);
+    defer exit_key.delete();
 
-    exit_action.SetShortcut(exit_key);
+    exit_action.setShortcut(exit_key);
 }

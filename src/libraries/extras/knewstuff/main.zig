@@ -9,24 +9,24 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 KNewStuff Example");
-    widget.SetMinimumSize2(300, 100);
+    widget.setWindowTitle("Qt 6 KNewStuff Example");
+    widget.setMinimumSize2(300, 100);
 
-    const button = KNSWidgets__Button.New(widget);
-    button.SetText("Click me!");
-    button.SetMinimumWidth(100);
+    const button = KNSWidgets__Button.new(widget);
+    button.setText("Click me!");
+    button.setMinimumWidth(100);
 
-    const layout = QVBoxLayout.New2();
-    layout.AddWidget(button);
-    widget.SetLayout(layout);
+    const layout = QVBoxLayout.new2();
+    layout.addWidget(button);
+    widget.setLayout(layout);
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

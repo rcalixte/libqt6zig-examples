@@ -12,39 +12,37 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 KCompletion Example");
-    widget.SetMinimumSize2(300, 200);
+    widget.setWindowTitle("Qt 6 KCompletion Example");
+    widget.setMinimumSize2(300, 200);
 
-    const label = QLabel.New3("Enter the letter 'H':");
+    const vboxlayout = QVBoxLayout.new2();
 
-    const vboxlayout = QVBoxLayout.New2();
-
-    const lineedit = KLineEdit.New3();
+    const lineedit = KLineEdit.new3();
     // Try different completion modes!
-    lineedit.SetCompletionMode(kcompletion_enums.CompletionMode.CompletionPopupAuto);
+    lineedit.setCompletionMode(kcompletion_enums.CompletionMode.CompletionPopupAuto);
 
-    const completion = KCompletion.New();
-    defer completion.Delete();
+    const completion = KCompletion.new();
+    defer completion.delete();
 
-    completion.SetSoundsEnabled(false);
-    lineedit.SetCompletionObject(completion, true);
+    completion.setSoundsEnabled(false);
+    lineedit.setCompletionObject(completion, true);
 
     const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
-    completion.SetItems(init.gpa, &items);
+    completion.setItems(init.gpa, &items);
 
-    vboxlayout.AddStretch();
-    vboxlayout.AddWidget(label);
-    vboxlayout.AddWidget(lineedit);
-    vboxlayout.AddStretch();
-    widget.SetLayout(vboxlayout);
+    vboxlayout.addStretch();
+    vboxlayout.addWidget(QLabel.new3("Enter the letter 'H':"));
+    vboxlayout.addWidget(lineedit);
+    vboxlayout.addStretch();
+    widget.setLayout(vboxlayout);
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

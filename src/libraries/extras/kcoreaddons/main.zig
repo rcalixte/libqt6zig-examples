@@ -20,49 +20,49 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    const widget = QWidget.New2();
-    const layout = QHBoxLayout.New2();
+    const widget = QWidget.new2();
+    const layout = QHBoxLayout.new2();
 
-    window.SetWindowTitle("Qt 6 KCoreAddons Example");
-    window.SetCentralWidget(widget);
-    widget.SetLayout(layout);
+    window.setWindowTitle("Qt 6 KCoreAddons Example");
+    window.setCentralWidget(widget);
+    widget.setLayout(layout);
 
-    edit = QTextEdit.New2();
-    edit.SetAcceptRichText(false);
+    edit = .new2();
+    edit.setAcceptRichText(false);
 
-    layout.AddWidget(edit);
+    layout.addWidget(edit);
 
-    htmlview = QTextBrowser.New2();
-    layout.AddWidget(htmlview);
+    htmlview = .new2();
+    layout.addWidget(htmlview);
 
-    timer = QTimer.New2(qapp);
-    timer.SetSingleShot(true);
-    timer.SetInterval(1000);
-    timer.OnTimeout(onTimeout);
-    edit.OnTextChanged(onTextChanged);
+    timer = .new2(qapp);
+    timer.setSingleShot(true);
+    timer.setInterval(1000);
+    timer.onTimeout(onTimeout);
+    edit.onTextChanged(onTextChanged);
 
-    window.Show();
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onTimeout(_: QTimer) callconv(.c) void {
-    const plaintext = edit.ToPlainText(allocator);
+    const plaintext = edit.toPlainText(allocator);
     defer allocator.free(plaintext);
     const options = ktexttohtml_enums.Option.HighlightText;
-    const html = KTextToHTML.ConvertToHtml(allocator, plaintext, &options, 4096, 255);
+    const html = KTextToHTML.convertToHtml(allocator, plaintext, &options, 4096, 255);
     defer allocator.free(html);
-    htmlview.SetHtml(html);
+    htmlview.setHtml(html);
 }
 
 fn onTextChanged(_: QTextEdit) callconv(.c) void {
-    timer.Start2();
+    timer.start2();
 }

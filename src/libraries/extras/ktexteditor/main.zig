@@ -15,38 +15,38 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 KTextEditor Example");
-    window.SetMinimumSize2(1100, 1020);
+    window.setWindowTitle("Qt 6 KTextEditor Example");
+    window.setMinimumSize2(950, 1020);
 
-    editor = KTextEditor__Editor.Instance();
+    editor = .instance();
 
-    const doc = editor.CreateDocument(window);
-    defer doc.Delete();
+    const doc = editor.createDocument(window);
+    defer doc.delete();
 
-    const url = QUrl.FromLocalFile(file);
-    defer url.Delete();
+    const url = QUrl.fromLocalFile(file);
+    defer url.delete();
 
-    if (doc.OpenUrl(url)) {
-        doc.SetModifiedOnDiskWarning(true);
-        const view = doc.CreateView(window, KTextEditor__MainWindow{ .ptr = null });
-        const toolbar = QToolBar.New3();
-        _ = toolbar.AddAction2("Configure");
-        toolbar.OnActionTriggered(toolbarTriggered);
-        window.AddToolBar2(toolbar);
-        window.SetCentralWidget(view);
+    if (doc.openUrl(url)) {
+        doc.setModifiedOnDiskWarning(true);
+        const view = doc.createView(window, KTextEditor__MainWindow{ .ptr = null });
+        const toolbar = QToolBar.new3();
+        _ = toolbar.addAction2("Configure");
+        toolbar.onActionTriggered(toolbarTriggered);
+        window.addToolBar2(toolbar);
+        window.setCentralWidget(view);
 
-        window.Show();
+        window.show();
 
-        _ = QApplication.Exec();
+        _ = QApplication.exec();
     }
 }
 
 fn toolbarTriggered(self: QToolBar, _: QAction) callconv(.c) void {
-    editor.ConfigDialog(self);
+    editor.configDialog(self);
 }

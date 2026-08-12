@@ -18,46 +18,46 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 KConfigWidgets");
-    window.SetMinimumSize2(400, 450);
-    manager = KColorSchemeManager.Instance();
-    defer manager.Delete();
+    window.setWindowTitle("Qt 6 KConfigWidgets");
+    window.setMinimumSize2(400, 450);
+    manager = .instance();
+    defer manager.delete();
 
-    const listview = QListView.New(window);
-    const manager_model = manager.Model();
-    listview.SetModel(manager_model);
-    listview.OnClicked(onClicked);
+    const listview = QListView.new(window);
+    const manager_model = manager.model();
+    listview.setModel(manager_model);
+    listview.onClicked(onClicked);
 
-    const box = QDialogButtonBox.New7(qdialogbuttonbox_enums.StandardButton.Close, window);
-    box.OnRejected(onRejected);
+    const box = QDialogButtonBox.new7(qdialogbuttonbox_enums.StandardButton.Close, window);
+    box.onRejected(onRejected);
 
-    const widget = QWidget.New2();
-    const layout = QVBoxLayout.New(widget);
-    layout.AddWidget(listview);
-    layout.AddWidget(box);
+    const widget = QWidget.new2();
+    const layout = QVBoxLayout.new(widget);
+    layout.addWidget(listview);
+    layout.addWidget(box);
 
-    window.SetCentralWidget(widget);
+    window.setCentralWidget(widget);
 
-    const menu = QMenu.New4("Menu", window);
-    const manager_menu = KColorSchemeMenu.CreateMenu(manager, window);
-    menu.AddAction(manager_menu);
-    _ = window.MenuBar().AddMenu(menu);
+    const menu = QMenu.new4("Menu", window);
+    const manager_menu = KColorSchemeMenu.createMenu(manager, window);
+    menu.addAction(manager_menu);
+    _ = window.menuBar().addMenu(menu);
 
-    window.Show();
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onClicked(_: QListView, index: QModelIndex) callconv(.c) void {
-    manager.ActivateScheme(index);
+    manager.activateScheme(index);
 }
 
 fn onRejected(_: QDialogButtonBox) callconv(.c) void {
-    QApplication.Quit();
+    QApplication.quit();
 }

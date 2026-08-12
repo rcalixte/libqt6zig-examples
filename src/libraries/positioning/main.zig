@@ -19,37 +19,37 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 Positioning Example");
-    window.Resize(300, 120);
+    window.setWindowTitle("Qt 6 Positioning Example");
+    window.resize(300, 120);
 
-    const widget = QWidget.New2();
+    const widget = QWidget.new2();
 
-    const lat = QDoubleSpinBox.New2();
-    lat.SetObjectName("lat");
-    lat.SetRange(-90, 90);
-    lat.SetDecimals(5);
-    lat.SetValue(0);
-    lat.OnValueChanged(onValueChanged);
+    const lat = QDoubleSpinBox.new2();
+    lat.setObjectName("lat");
+    lat.setRange(-90, 90);
+    lat.setDecimals(5);
+    lat.setValue(0);
+    lat.onValueChanged(onValueChanged);
 
-    const lon = QDoubleSpinBox.New2();
-    lon.SetObjectName("lon");
-    lon.SetRange(-180, 180);
-    lon.SetDecimals(5);
-    lon.SetValue(0);
-    lon.OnValueChanged(onValueChanged);
+    const lon = QDoubleSpinBox.new2();
+    lon.setObjectName("lon");
+    lon.setRange(-180, 180);
+    lon.setDecimals(5);
+    lon.setValue(0);
+    lon.onValueChanged(onValueChanged);
 
-    coord = QGeoCoordinate.New2(lat.Value(), lon.Value());
-    defer coord.Delete();
+    coord = .new2(lat.value(), lon.value());
+    defer coord.delete();
 
-    const geotext = coord.ToString1(
+    const geotext = coord.toString1(
         allocator,
         qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
     );
@@ -58,40 +58,41 @@ pub fn main(init: std.process.Init) !void {
     const text = try std.mem.concat(allocator, u8, &.{ "### ", geotext });
     defer allocator.free(text);
 
-    label = QLabel.New3(text);
-    label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    label = .new3(text);
+    label.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
 
-    const layout = QFormLayout.New2();
-    layout.SetFormAlignment(qnamespace_enums.AlignmentFlag.AlignHCenter);
-    layout.SetSpacing(10);
-    layout.AddRow3("Latitude:", lat);
-    layout.AddRow3("Longitude:", lon);
-    layout.AddWidget(label);
+    const layout = QFormLayout.new2();
+    layout.setFormAlignment(qnamespace_enums.AlignmentFlag.AlignHCenter);
+    layout.setSpacing(10);
+    layout.addRow3("Latitude:", lat);
+    layout.addRow3("Longitude:", lon);
+    layout.addWidget(label);
 
-    widget.SetLayout(layout);
-    window.SetCentralWidget(widget);
-    window.Show();
+    widget.setLayout(layout);
+    window.setCentralWidget(widget);
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onValueChanged(self: QDoubleSpinBox, value: f64) callconv(.c) void {
-    const name = self.ObjectName(allocator);
+    const name = self.objectName(allocator);
     defer allocator.free(name);
 
     if (std.mem.eql(u8, name, "lat"))
-        coord.SetLatitude(value)
+        coord.setLatitude(value)
     else if (std.mem.eql(u8, name, "lon"))
-        coord.SetLongitude(value);
+        coord.setLongitude(value);
 
-    const geotext = coord.ToString1(
+    const geotext = coord.toString1(
         allocator,
         qgeocoordinate_enums.CoordinateFormat.DegreesWithHemisphere,
     );
     defer allocator.free(geotext);
 
-    const text = std.mem.concat(allocator, u8, &.{ "### ", geotext }) catch @panic("Failed to concat");
+    const text = std.mem.concat(allocator, u8, &.{ "### ", geotext }) catch
+        @panic("Failed to concat");
     defer allocator.free(text);
 
-    label.SetText(text);
+    label.setText(text);
 }

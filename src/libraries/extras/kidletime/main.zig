@@ -13,42 +13,42 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 KIdleTime Example");
-    widget.SetFixedSize2(550, 150);
+    widget.setWindowTitle("Qt 6 KIdleTime Example");
+    widget.setFixedSize2(550, 150);
 
-    const layout = QVBoxLayout.New2();
-    label = QLabel.New2();
-    label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
-    label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-    label.SetText("### This text will stay here until you have been idle for 5 seconds.");
+    const layout = QVBoxLayout.new2();
+    label = .new2();
+    label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    label.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    label.setText("### This text will stay here until you have been idle for 5 seconds.");
 
-    const idle_time = KIdleTime.Instance();
-    idle_time.CatchNextResumeEvent();
-    idle_time.SimulateUserActivity();
-    idle_time.OnResumingFromIdle(onResumingFromIdle);
-    idle_time.OnTimeoutReached(onTimeoutReached);
+    const idle_time = KIdleTime.instance();
+    idle_time.catchNextResumeEvent();
+    idle_time.simulateUserActivity();
+    idle_time.onResumingFromIdle(onResumingFromIdle);
+    idle_time.onTimeoutReached(onTimeoutReached);
 
-    layout.AddStretch();
-    layout.AddWidget(label);
-    layout.AddStretch();
-    widget.SetLayout(layout);
+    layout.addStretch();
+    layout.addWidget(label);
+    layout.addStretch();
+    widget.setLayout(layout);
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onResumingFromIdle(self: KIdleTime) callconv(.c) void {
-    self.RemoveAllIdleTimeouts();
-    _ = self.AddIdleTimeout(5000);
+    self.removeAllIdleTimeouts();
+    _ = self.addIdleTimeout(5000);
 }
 
 fn onTimeoutReached(_: KIdleTime, _: i32, _: i32) callconv(.c) void {
-    label.SetText("## Timeout reached!");
+    label.setText("## Timeout reached!");
 }

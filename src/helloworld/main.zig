@@ -14,34 +14,34 @@ pub fn main(init: std.process.Init) !void {
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
     // The c_allocator is an option here too, but the debug allocator is not recommended for this instance
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     // Create a new widget and defer cleanup
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
     // We don't need to free/delete the button, it's a child of the widget
-    const button = QPushButton.New5("Hello world!", widget);
-    button.SetFixedWidth(320);
+    const button = QPushButton.new5("Hello world!", widget);
+    button.setFixedWidth(320);
     // Connect the button to the callback function
-    button.OnClicked(onClicked);
+    button.onClicked(onClicked);
 
     // Display the widget
-    widget.Show();
+    widget.show();
 
     // Start the event loop
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 
     try std.Io.File.stdout().writeStreamingAll(init.io, "OK!\n");
 }
 
 fn onClicked(self: QPushButton) callconv(.c) void {
-    counter += 1;
+    counter +%= 1;
     const formatted = std.fmt.bufPrint(
         &buffer,
         "You have clicked the button {d} time(s)",
         .{counter},
     ) catch @panic("Failed to bufPrint");
-    self.SetText(formatted);
+    self.setText(formatted);
 }

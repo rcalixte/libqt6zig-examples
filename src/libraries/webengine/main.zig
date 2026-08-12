@@ -8,18 +8,18 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const webengine = QWebEngineView.New2();
-    defer webengine.Delete();
+    const webengine = QWebEngineView.new2();
+    defer webengine.delete();
 
-    const url = QUrl.New3("https://github.com/rcalixte/libqt6zig-examples");
-    defer url.Delete();
+    const url = QUrl.new3("https://github.com/rcalixte/libqt6zig-examples");
+    defer url.delete();
 
-    webengine.SetUrl(url);
-    webengine.SetGeometry(100, 100, 640, 480);
-    webengine.SetVisible(true);
+    webengine.setUrl(url);
+    webengine.setGeometry(100, 100, 640, 480);
+    webengine.setVisible(true);
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

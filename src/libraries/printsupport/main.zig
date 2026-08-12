@@ -4,27 +4,28 @@ const QApplication = qt6.QApplication;
 const QPushButton = qt6.QPushButton;
 const QPrintDialog = qt6.QPrintDialog;
 
-var button: QPushButton = undefined;
+var dialog: QPrintDialog = undefined;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    button = QPushButton.New3("QPrintSupport sample");
-    defer button.Delete();
+    const button = QPushButton.new3("QPrintSupport sample");
+    defer button.delete();
 
-    button.SetFixedWidth(320);
-    button.OnPressed(onPressed);
+    dialog = .new(button);
 
-    button.Show();
+    button.setFixedWidth(320);
+    button.onPressed(onPressed);
 
-    _ = QApplication.Exec();
+    button.show();
+
+    _ = QApplication.exec();
 }
 
 fn onPressed(_: QPushButton) callconv(.c) void {
-    const dialog = QPrintDialog.New(button);
-    dialog.Show();
+    dialog.show();
 }

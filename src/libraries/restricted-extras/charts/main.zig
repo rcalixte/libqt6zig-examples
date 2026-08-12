@@ -10,13 +10,13 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const series = QLineSeries.New();
-    defer series.Delete();
+    const series = QLineSeries.new();
+    defer series.delete();
 
-    series.SetName("Sine Wave");
+    series.setName("Sine Wave");
 
     var x: f64 = 0;
     var y: f64 = 0;
@@ -26,18 +26,18 @@ pub fn main(init: std.process.Init) !void {
         x = i / 10000;
         y = @sin(1 / x) * x;
         if (std.math.isNan(y)) y = 0;
-        series.Append(x, y);
+        series.append(x, y);
     }
 
-    const chart = QChart.New();
-    chart.AddSeries(series);
-    chart.CreateDefaultAxes();
+    const chart = QChart.new();
+    chart.addSeries(series);
+    chart.createDefaultAxes();
 
-    const chart_view = QChartView.New3(chart);
-    chart_view.SetWindowTitle("Qt 6 Charts Example");
-    chart_view.Resize(650, 400);
-    chart_view.SetRenderHint(qpainter_enums.RenderHint.Antialiasing);
-    chart_view.Show();
+    const chart_view = QChartView.new3(chart);
+    chart_view.setWindowTitle("Qt 6 Charts Example");
+    chart_view.resize(650, 400);
+    chart_view.setRenderHint(qpainter_enums.RenderHint.Antialiasing);
+    chart_view.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

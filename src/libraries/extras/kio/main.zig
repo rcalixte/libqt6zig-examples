@@ -8,17 +8,17 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const dialog = KFileCustomDialog.New2();
-    defer dialog.Delete();
+    const dialog = KFileCustomDialog.new2();
+    defer dialog.delete();
 
-    dialog.SetWindowTitle("Qt 6 KIO Example");
+    dialog.setWindowTitle("Qt 6 KIO Example");
 
-    const label = QLabel.New5("Select a file or directory", dialog);
+    const label = QLabel.new5("Select a file or directory", dialog);
 
-    dialog.SetCustomWidget(label);
+    dialog.setCustomWidget(label);
 
-    _ = dialog.Exec();
+    _ = dialog.exec();
 }

@@ -12,73 +12,68 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const wizard = QWizard.New2();
-    defer wizard.Delete();
+    const wizard = QWizard.new2();
+    defer wizard.delete();
 
     const intro_page = createIntroPage();
-    _ = wizard.AddPage(intro_page);
+    _ = wizard.addPage(intro_page);
 
     const registration_page = createRegistrationPage();
-    _ = wizard.AddPage(registration_page);
+    _ = wizard.addPage(registration_page);
 
     const conclusion_page = createConclusionPage();
-    _ = wizard.AddPage(conclusion_page);
+    _ = wizard.addPage(conclusion_page);
 
-    wizard.SetWindowTitle("TrivialWizard");
-    wizard.Show();
+    wizard.setWindowTitle("Qt 6 Trivial Wizard Example");
+    wizard.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 pub fn createIntroPage() QWizardPage {
-    const page = QWizardPage.New2();
-    page.SetTitle("Introduction");
-    const text = "This wizard will help you register your copy of Super Product Two";
-    const label = QLabel.New5(text, page);
-    label.SetWordWrap(true);
+    const page = QWizardPage.new2();
+    page.setTitle("Introduction");
 
-    const layout = QVBoxLayout.New2();
-    layout.AddWidget(label);
-    page.SetLayout(layout);
+    const text = "This wizard will help you register your copy of Super Product Two";
+    const label = QLabel.new5(text, page);
+    label.setWordWrap(true);
+
+    const layout = QVBoxLayout.new2();
+    layout.addWidget(label);
+    page.setLayout(layout);
 
     return page;
 }
 
 pub fn createRegistrationPage() QWizardPage {
-    const page = QWizardPage.New2();
-    page.SetTitle("Registration");
-    page.SetSubTitle("Please fill both fields");
+    const page = QWizardPage.new2();
+    page.setTitle("Registration");
+    page.setSubTitle("Please fill both fields");
 
-    const name_label = QLabel.New5("Name:", page);
-    const name_edit = QLineEdit.New(page);
-
-    const email_label = QLabel.New5("Email address:", page);
-    const email_edit = QLineEdit.New(page);
-
-    const layout = QGridLayout.New(page);
-    layout.AddWidget2(name_label, 0, 0);
-    layout.AddWidget2(name_edit, 0, 1);
-    layout.AddWidget2(email_label, 1, 0);
-    layout.AddWidget2(email_edit, 1, 1);
-    page.SetLayout(layout);
+    const layout = QGridLayout.new(page);
+    layout.addWidget2(QLabel.new5("Name:", page), 0, 0);
+    layout.addWidget2(QLineEdit.new(page), 0, 1);
+    layout.addWidget2(QLabel.new5("Email address:", page), 1, 0);
+    layout.addWidget2(QLineEdit.new(page), 1, 1);
+    page.setLayout(layout);
 
     return page;
 }
 
 pub fn createConclusionPage() QWizardPage {
-    const page = QWizardPage.New2();
-    page.SetTitle("Conclusion");
+    const page = QWizardPage.new2();
+    page.setTitle("Conclusion");
 
     const success = "You are now successfully registered. Have a nice day!";
-    const label = QLabel.New5(success, page);
-    label.SetWordWrap(true);
+    const label = QLabel.new5(success, page);
+    label.setWordWrap(true);
 
-    const layout = QVBoxLayout.New2();
-    layout.AddWidget(label);
-    page.SetLayout(layout);
+    const layout = QVBoxLayout.new2();
+    layout.addWidget(label);
+    page.setLayout(layout);
 
     return page;
 }

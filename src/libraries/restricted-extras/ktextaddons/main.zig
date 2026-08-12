@@ -17,43 +17,43 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 KTextAddons Example");
-    window.Resize(800, 600);
+    window.setWindowTitle("Qt 6 KTextAddons Example");
+    window.resize(800, 600);
 
-    const widget = QWidget.New(window);
-    const layout = QVBoxLayout.New(widget);
-    textedit = QTextEdit.New(widget);
-    textedit.SetPlaceholderText("Type or paste text here and use the toolbar button to translate");
-    layout.AddWidget2(textedit, 1);
+    const widget = QWidget.new(window);
+    const layout = QVBoxLayout.new(widget);
+    textedit = .new(widget);
+    textedit.setPlaceholderText("Type or paste text here and use the toolbar button to translate");
+    layout.addWidget2(textedit, 1);
 
-    translator = TextTranslator__TranslatorWidget.New(widget);
-    translator.Hide();
-    layout.AddWidget(translator);
+    translator = .new(widget);
+    translator.hide();
+    layout.addWidget(translator);
 
-    const toolbar = window.AddToolBar3("Tools");
-    const action = toolbar.AddAction2("Translate");
-    action.OnTriggered(onTriggered);
+    const toolbar = window.addToolBar3("Tools");
+    const action = toolbar.addAction2("Translate");
+    action.onTriggered(onTriggered);
 
-    window.SetCentralWidget(widget);
-    window.Show();
+    window.setCentralWidget(widget);
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onTriggered(_: QAction) callconv(.c) void {
-    const text = textedit.ToPlainText(allocator);
+    const text = textedit.toPlainText(allocator);
     defer allocator.free(text);
 
     if (text.len == 0) return;
 
-    translator.SetTextToTranslate(text);
-    translator.Show();
+    translator.setTextToTranslate(text);
+    translator.show();
 }

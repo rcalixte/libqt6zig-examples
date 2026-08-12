@@ -25,70 +25,70 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 KUnitConversion Example");
-    widget.SetFixedSize2(450, 300);
+    widget.setWindowTitle("Qt 6 KUnitConversion Example");
+    widget.setFixedSize2(450, 300);
 
-    const layout = QVBoxLayout.New(widget);
-    const converter = KUnitConversion__Converter.New();
-    defer converter.Delete();
+    const layout = QVBoxLayout.new(widget);
+    const converter = KUnitConversion__Converter.new();
+    defer converter.delete();
 
     // Update the category type to change the units!
-    const category = converter.Category2(unit_enums.CategoryId.LengthCategory);
-    defer category.Delete();
+    const category = converter.category2(unit_enums.CategoryId.LengthCategory);
+    defer category.delete();
 
-    from = QComboBox.New2();
-    to = QComboBox.New2();
+    from = .new2();
+    to = .new2();
 
-    const units = category.Units(allocator);
+    const units = category.units(allocator);
     defer allocator.free(units);
 
     for (units) |unit| {
-        defer unit.Delete();
+        defer unit.delete();
 
-        const description = unit.Description(allocator);
+        const description = unit.description(allocator);
         defer allocator.free(description);
 
-        const id = unit.Id();
-        const data = QVariant.New4(id);
-        defer data.Delete();
+        const id = unit.id();
+        const data = QVariant.new4(id);
+        defer data.delete();
 
-        from.AddItem22(description, data);
-        to.AddItem22(description, data);
+        from.addItem22(description, data);
+        to.addItem22(description, data);
     }
 
-    input = QLineEdit.New2();
-    input.SetPlaceholderText("Enter a value");
+    input = .new2();
+    input.setPlaceholderText("Enter a value");
 
-    result = QLabel.New3("### Result:");
-    result.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-    result.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    result = .new3("### Result:");
+    result.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    result.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
 
-    layout.AddWidget(QLabel.New3("From:"));
-    layout.AddWidget(from);
-    layout.AddWidget(input);
-    layout.AddStretch();
-    layout.AddWidget(QLabel.New3("To:"));
-    layout.AddWidget(to);
-    layout.AddStretch();
-    layout.AddWidget(result);
+    layout.addWidget(QLabel.new3("From:"));
+    layout.addWidget(from);
+    layout.addWidget(input);
+    layout.addStretch();
+    layout.addWidget(QLabel.new3("To:"));
+    layout.addWidget(to);
+    layout.addStretch();
+    layout.addWidget(result);
 
-    from.OnCurrentIndexChanged(onComboChanged);
-    to.OnCurrentIndexChanged(onComboChanged);
-    input.OnTextChanged(onTextChanged);
+    from.onCurrentIndexChanged(onComboChanged);
+    to.onCurrentIndexChanged(onComboChanged);
+    input.onTextChanged(onTextChanged);
 
-    input.SetFocus();
+    input.setFocus();
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onComboChanged(_: QComboBox, _: i32) callconv(.c) void {
@@ -96,37 +96,38 @@ fn onComboChanged(_: QComboBox, _: i32) callconv(.c) void {
 }
 
 fn onTextChanged(_: QLineEdit, _: [*:0]const u8) callconv(.c) void {
-    const text = input.Text(allocator);
+    const text = input.text(allocator);
     defer allocator.free(text);
 
     if (std.mem.eql(u8, text, "")) {
-        result.SetText("### Result:");
+        result.setText("### Result:");
         return;
     }
 
     const value = std.fmt.parseFloat(f64, text) catch {
-        result.SetText("### Invalid input");
+        result.setText("### Invalid input");
         return;
     };
 
-    const from_data = from.CurrentData();
-    defer from_data.Delete();
+    const from_data = from.currentData();
+    defer from_data.delete();
 
-    const from_id = from_data.ToInt();
+    const from_id = from_data.toInt();
 
-    const to_data = to.CurrentData();
-    defer to_data.Delete();
+    const to_data = to.currentData();
+    defer to_data.delete();
 
-    const to_id = to_data.ToInt();
+    const to_id = to_data.toInt();
 
-    const converted_obj = KUnitConversion__Value.New4(value, from_id);
-    defer converted_obj.Delete();
+    const converted_obj = KUnitConversion__Value.new4(value, from_id);
+    defer converted_obj.delete();
 
-    const converted_value = converted_obj.ConvertTo2(to_id);
-    defer converted_value.Delete();
+    const converted_value = converted_obj.convertTo2(to_id);
+    defer converted_value.delete();
 
-    const converted_text = converted_value.ToString(allocator);
+    const converted_text = converted_value.toString(allocator);
     defer allocator.free(converted_text);
 
-    result.SetText(std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch @panic("Failed to bufPrint"));
+    result.setText(std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch
+        @panic("Failed to bufPrint"));
 }

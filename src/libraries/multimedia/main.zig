@@ -13,43 +13,46 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QCoreApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QCoreApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     io = init.io;
 
-    const player = QMediaPlayer.New();
-    defer player.Delete();
+    const player = QMediaPlayer.new();
+    defer player.delete();
 
-    if (player.Error() != qmediaplayer_enums.Error.NoError) {
+    if (player.error0() != qmediaplayer_enums.Error.NoError) {
         try std.Io.File.stdout().writeStreamingAll(init.io, "Failed to create player.\n");
         return;
     }
 
-    const output = QAudioOutput.New();
-    defer output.Delete();
+    const output = QAudioOutput.new();
+    defer output.delete();
 
-    player.SetAudioOutput(output);
-    const url = QUrl.FromLocalFile("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
-    defer url.Delete();
+    player.setAudioOutput(output);
+    const url = QUrl.fromLocalFile("src/libraries/multimedia/pixabay-public-domain-strong-hit-36455.mp3");
+    defer url.delete();
 
-    player.SetSource(url);
-    output.SetVolume(50);
+    player.setSource(url);
+    output.setVolume(50);
 
-    player.OnPlaybackStateChanged(onPlaybackStateChanged);
+    player.onPlaybackStateChanged(onPlaybackStateChanged);
 
     try std.Io.File.stdout().writeStreamingAll(init.io, "Playback starting...\n");
-    player.Play();
+    player.play();
 
-    _ = QCoreApplication.Exec();
+    _ = QCoreApplication.exec();
 }
 
 fn onPlaybackStateChanged(_: QMediaPlayer, state: i32) callconv(.c) void {
-    const play_str = std.fmt.bufPrint(&buffer, "Playback state: {d}\n", .{state}) catch @panic("Playback state stdout error");
-    std.Io.File.stdout().writeStreamingAll(io, play_str) catch @panic("Failed to write playback state");
+    const play_str = std.fmt.bufPrint(&buffer, "Playback state: {d}\n", .{state}) catch
+        @panic("Playback state stdout error");
+    std.Io.File.stdout().writeStreamingAll(io, play_str) catch
+        @panic("Failed to write playback state");
 
     if (state == qmediaplayer_enums.PlaybackState.StoppedState) {
-        std.Io.File.stdout().writeStreamingAll(io, "Playback complete.\n") catch @panic("Playback complete stdout error");
-        QCoreApplication.Exit();
+        std.Io.File.stdout().writeStreamingAll(io, "Playback complete.\n") catch
+            @panic("Playback complete stdout error");
+        QCoreApplication.exit();
     }
 }

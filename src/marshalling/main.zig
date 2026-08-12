@@ -31,42 +31,42 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     // Bool
-    const b = QCheckBox.New2();
-    defer b.Delete();
-    b.SetChecked(true);
+    const b = QCheckBox.new2();
+    defer b.delete();
+    b.setChecked(true);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Checked: {any}\n", .{b.IsChecked()}),
+        try std.fmt.bufPrint(&buffer, "Checked: {any}\n", .{b.isChecked()}),
     );
 
     // Int
-    const s = QSize.New3();
-    defer s.Delete();
-    s.SetWidth(128);
+    const s = QSize.new3();
+    defer s.delete();
+    s.setWidth(128);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Width: {d}\n", .{s.Width()}),
+        try std.fmt.bufPrint(&buffer, "Width: {d}\n", .{s.width()}),
     );
 
     // Int by reference
-    const size = QSize.New4(32, 32);
-    defer size.Delete();
-    const r = size.Rheight();
+    const size = QSize.new4(32, 32);
+    defer size.delete();
+    const r = size.rheight();
     r.?.* = 64;
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Height: {d}\n", .{size.Height()}),
+        try std.fmt.bufPrint(&buffer, "Height: {d}\n", .{size.height()}),
     );
 
     // QString
-    const w = QWidget.New2();
-    defer w.Delete();
-    w.SetToolTip("Sample text");
-    const tooltip = w.ToolTip(init.gpa);
+    const w = QWidget.new2();
+    defer w.delete();
+    w.setToolTip("Sample text");
+    const tooltip = w.toolTip(init.gpa);
     defer init.gpa.free(tooltip);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
@@ -75,21 +75,22 @@ pub fn main(init: std.process.Init) !void {
 
     // QList<int>
     var seq = [_]i32{ 10, 20, 30, 40, 50 };
-    const li = QVersionNumber.New2(&seq);
-    defer li.Delete();
-    const segs = li.Segments(init.gpa);
+    const li = QVersionNumber.new2(&seq);
+    defer li.delete();
+    const segs = li.segments(init.gpa);
     defer init.gpa.free(segs);
-    try std.Io.File.stdout().writeStreamingAll(
-        init.io,
-        try std.fmt.bufPrint(&buffer, "Segments: {any}\n", .{segs}),
-    );
+    for (segs, 0..) |seg, i|
+        try std.Io.File.stdout().writeStreamingAll(
+            init.io,
+            try std.fmt.bufPrint(&buffer, "Segment {d}: {d}\n", .{ i, seg }),
+        );
 
     // QStringList
-    const c = QInputDialog.New2();
-    defer c.Delete();
+    const c = QInputDialog.new2();
+    defer c.delete();
     const items = [_][]const u8{ "foo", "bar", "baz", "quux" };
-    c.SetComboBoxItems(init.gpa, &items);
-    const combo_items = c.ComboBoxItems(init.gpa);
+    c.setComboBoxItems(init.gpa, &items);
+    const combo_items = c.comboBoxItems(init.gpa);
     defer init.gpa.free(combo_items);
     for (combo_items, 0..) |item, i| {
         defer init.gpa.free(item);
@@ -100,10 +101,10 @@ pub fn main(init: std.process.Init) !void {
     }
 
     // QStringList callback
-    const table = QTableWidget.New2();
-    defer table.Delete();
-    table.OnMimeTypes(onMimeTypes);
-    const table_mimetypes = table.MimeTypes(init.gpa);
+    const table = QTableWidget.new2();
+    defer table.delete();
+    table.onMimeTypes(onMimeTypes);
+    const table_mimetypes = table.mimeTypes(init.gpa);
     defer init.gpa.free(table_mimetypes);
     for (table_mimetypes, 0..) |item, i| {
         defer init.gpa.free(item);
@@ -115,21 +116,21 @@ pub fn main(init: std.process.Init) !void {
 
     // QList<Qt type>
     var keyarray = [_]QKeySequence{
-        QKeySequence.FromString("F1"),
-        QKeySequence.FromString("F2"),
-        QKeySequence.FromString("F3"),
+        QKeySequence.fromString("F1"),
+        QKeySequence.fromString("F2"),
+        QKeySequence.fromString("F3"),
     };
     defer for (0..keyarray.len) |i|
-        keyarray[i].Delete();
-    const qa = QAction.New();
-    defer qa.Delete();
-    qa.SetShortcuts(&keyarray);
-    const shortcuts = qa.Shortcuts(init.gpa);
+        keyarray[i].delete();
+    const qa = QAction.new();
+    defer qa.delete();
+    qa.setShortcuts(&keyarray);
+    const shortcuts = qa.shortcuts(init.gpa);
     defer init.gpa.free(shortcuts);
     for (shortcuts, 0..) |shortcut, i| {
-        const qkey_tostring = shortcut.ToString(init.gpa);
+        const qkey_tostring = shortcut.toString(init.gpa);
         defer {
-            shortcut.Delete();
+            shortcut.delete();
             init.gpa.free(qkey_tostring);
         }
         try std.Io.File.stdout().writeStreamingAll(
@@ -140,9 +141,9 @@ pub fn main(init: std.process.Init) !void {
 
     // QByteArray
     const f_input = "foo bar baz";
-    const bat = QFile.EncodeName(init.gpa, f_input);
+    const bat = QFile.encodeName(init.gpa, f_input);
     defer init.gpa.free(bat);
-    const f_output = QFile.DecodeName(init.gpa, bat);
+    const f_output = QFile.decodeName(init.gpa, bat);
     defer init.gpa.free(f_output);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
@@ -150,10 +151,10 @@ pub fn main(init: std.process.Init) !void {
     );
 
     // QAnyStringView
-    const object = QObject.New();
-    defer object.Delete();
-    object.SetObjectName("QAnyStringView Name");
-    const value = object.ObjectName(init.gpa);
+    const object = QObject.new();
+    defer object.delete();
+    object.setObjectName("QAnyStringView Name");
+    const value = object.objectName(init.gpa);
     defer init.gpa.free(value);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
@@ -162,9 +163,9 @@ pub fn main(init: std.process.Init) !void {
 
     // QLatin1StringView
     var blue = "blue".*;
-    const color = QColor.New11(&blue);
-    defer color.Delete();
-    const color_name = color.Name(init.gpa);
+    const color = QColor.new11(&blue);
+    defer color.delete();
+    const color_name = color.name(init.gpa);
     defer init.gpa.free(color_name);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
@@ -172,15 +173,15 @@ pub fn main(init: std.process.Init) !void {
     );
 
     // QStringView
-    const locale = QLocale.CodeToScript("Latn");
+    const locale = QLocale.codeToScript("Latn");
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
         try std.fmt.bufPrint(&buffer, "Locale script: {d}\n", .{locale}),
     );
-    const reader = QXmlStreamReader.New3("<?xml version=\"1.0\"?><foo>bar</foo>");
-    defer reader.Delete();
-    if (reader.ReadNextStartElement()) {
-        const name = reader.Name(init.gpa);
+    const reader = QXmlStreamReader.new3("<?xml version=\"1.0\"?><foo>bar</foo>");
+    defer reader.delete();
+    if (reader.readNextStartElement()) {
+        const name = reader.name(init.gpa);
         defer init.gpa.free(name);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
@@ -191,26 +192,25 @@ pub fn main(init: std.process.Init) !void {
     // QMap<QString, QVariant>
     var input_map: ArrayMap_constu8_QVariant = .empty;
     defer input_map.deinit(init.gpa);
-    try input_map.put(init.gpa, "foo", QVariant.New24("FOO"));
-    try input_map.put(init.gpa, "bar", QVariant.New24("BAR"));
-    try input_map.put(init.gpa, "baz", QVariant.New24("BAZ"));
+    try input_map.put(init.gpa, "foo", QVariant.new24("FOO"));
+    try input_map.put(init.gpa, "bar", QVariant.new24("BAR"));
+    try input_map.put(init.gpa, "baz", QVariant.new24("BAZ"));
     defer {
         var input_it = input_map.iterator();
-        while (input_it.next()) |entry| {
-            entry.value_ptr.Delete();
-        }
+        while (input_it.next()) |entry|
+            entry.value_ptr.delete();
     }
-    const qtobj = QJsonObject.FromVariantMap(init.gpa, input_map);
-    defer qtobj.Delete();
-    var output_map = qtobj.ToVariantMap(init.gpa);
+    const qtobj = QJsonObject.fromVariantMap(init.gpa, input_map);
+    defer qtobj.delete();
+    var output_map = qtobj.toVariantMap(init.gpa);
     defer output_map.deinit(init.gpa);
     var it = output_map.iterator();
     while (it.next()) |entry| {
         const key = entry.key_ptr.*;
         defer init.gpa.free(key);
         const val = entry.value_ptr.*;
-        defer val.Delete();
-        const value_str = val.ToString(init.gpa);
+        defer val.delete();
+        const value_str = val.toString(init.gpa);
         defer init.gpa.free(value_str);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
@@ -231,9 +231,9 @@ pub fn main(init: std.process.Init) !void {
     const key = "Accept";
     try multi_map.put(init.gpa, key, map_value);
     defer multi_map.deinit(init.gpa);
-    const qheaders = QHttpHeaders.FromMultiMap(init.gpa, multi_map);
-    defer qheaders.Delete();
-    var headers = qheaders.ToMultiMap(init.gpa);
+    const qheaders = QHttpHeaders.fromMultiMap(init.gpa, multi_map);
+    defer qheaders.delete();
+    var headers = qheaders.toMultiMap(init.gpa);
     defer headers.deinit(init.gpa);
     var value_it = headers.iterator();
     while (value_it.next()) |entry| {
@@ -259,10 +259,11 @@ pub fn main(init: std.process.Init) !void {
     }
 
     // Qt function pointer
-    const easing = QEasingCurve.New();
-    defer easing.Delete();
-    easing.SetCustomType(easingFunction);
-    const easingFunc = easing.CustomType() orelse @panic("Failed to get easing function");
+    const easing = QEasingCurve.new();
+    defer easing.delete();
+    easing.setCustomType(easingFunction);
+    const easingFunc = easing.customType() orelse
+        @panic("Failed to get easing function");
     for (0..3) |i|
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
@@ -275,7 +276,8 @@ fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     const n: usize = 3;
     const list: [*:null]?[*:0]const u8 = switch (builtin.os.tag == .windows) {
         true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
-        false => c_allocator.allocSentinel(?[*:0]const u8, n, null) catch @panic("Failed to allocate memory"),
+        false => c_allocator.allocSentinel(?[*:0]const u8, n, null) catch
+            @panic("Failed to allocate memory"),
     };
     list[0] = "image/gif";
     list[1] = "image/jpeg";

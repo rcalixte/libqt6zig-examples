@@ -10,21 +10,21 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const primary_item = KGuiItem.New7(
+    const primary_item = KGuiItem.new7(
         "Hello",
         "view-filter",
         "This is a tooltip",
         "This is a WhatsThis help text.",
     );
-    defer primary_item.Delete();
+    defer primary_item.delete();
 
-    const secondary_item = KGuiItem.New2("Bye");
-    defer secondary_item.Delete();
+    const secondary_item = KGuiItem.new2("Bye");
+    defer secondary_item.delete();
 
-    const res = KMessageBox.QuestionTwoActions(
+    const res = KMessageBox.questionTwoActions(
         QWidget{ .ptr = null },
         "Description to tell you to click<br />on <b>either</b> button",
         "Qt 6 KMessageBox Example",
@@ -35,7 +35,10 @@ pub fn main(init: std.process.Init) !void {
     );
 
     switch (res) {
-        kmessagebox_enums.ButtonCode.PrimaryAction => try std.Io.File.stdout().writeStreamingAll(init.io, "You clicked Hello\n"),
+        kmessagebox_enums.ButtonCode.PrimaryAction => try std.Io.File.stdout().writeStreamingAll(
+            init.io,
+            "You clicked Hello\n",
+        ),
         else => try std.Io.File.stdout().writeStreamingAll(init.io, "You clicked Bye\n"),
     }
 }

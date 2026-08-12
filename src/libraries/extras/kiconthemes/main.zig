@@ -7,18 +7,18 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const button = KIconButton.New2();
-    defer button.Delete();
+    const button = KIconButton.new2();
+    defer button.delete();
 
-    button.SetWindowTitle("Qt 6 KIconThemes Example");
-    button.SetText("Click to open the chooser dialog");
-    button.SetMinimumSize2(320, 70);
-    button.SetIconSize(64);
+    button.setWindowTitle("Qt 6 KIconThemes Example");
+    button.setText("Click to open the chooser dialog");
+    button.setMinimumSize2(320, 70);
+    button.setIconSize(64);
 
-    button.Show();
+    button.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

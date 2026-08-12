@@ -15,44 +15,41 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.DeleteLater();
+    const widget = QWidget.new2();
+    defer widget.deleteLater();
 
-    widget.SetWindowTitle("Qt 6 Sonnet Example");
+    widget.setWindowTitle("Qt 6 Sonnet Example");
 
-    const combo = Sonnet__DictionaryComboBox.New2();
-    const textedit1 = QTextEdit.New2();
-    textedit1.SetText("This is a sample buffer. Whih this thingg will be checkin for misstakes. Whih, Enviroment, covermant. Whih.");
+    const combo = Sonnet__DictionaryComboBox.new2();
+    const textedit1 = QTextEdit.new2();
+    textedit1.setText("This is a sample buffer. Whih this thingg will be checkin for misstakes." ++
+        " Whih, Enviroment, covermant. Whih.");
 
-    const installer1 = Sonnet__SpellCheckDecorator.New(textedit1);
-    highlighter1 = installer1.Highlighter();
+    highlighter1 = Sonnet__SpellCheckDecorator.new(textedit1).highlighter();
+    highlighter1.setCurrentLanguage("en_US");
 
-    highlighter1.SetCurrentLanguage("en_US");
+    const textedit2 = QTextEdit.new2();
+    textedit2.setText("John Doe said:\n> Hello how aree you?\nI am ffine thanks");
 
-    const textedit2 = QTextEdit.New2();
-    textedit2.SetText("John Doe said:\n> Hello how aree you?\nI am ffine thanks");
+    highlighter2 = Sonnet__SpellCheckDecorator.new(textedit2).highlighter();
+    highlighter2.setCurrentLanguage("en_US");
 
-    const installer2 = Sonnet__SpellCheckDecorator.New(textedit2);
-    highlighter2 = installer2.Highlighter();
+    combo.onDictionaryChanged(onDictionaryChanged);
 
-    highlighter2.SetCurrentLanguage("en_US");
+    const layout = QVBoxLayout.new(widget);
+    layout.addWidget(combo);
+    layout.addWidget(textedit1);
+    layout.addWidget(textedit2);
 
-    combo.OnDictionaryChanged(onDictionaryChanged);
+    widget.show();
 
-    const layout = QVBoxLayout.New(widget);
-    layout.AddWidget(combo);
-    layout.AddWidget(textedit1);
-    layout.AddWidget(textedit2);
-
-    widget.Show();
-
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onDictionaryChanged(_: Sonnet__DictionaryComboBox, dictionary: [*:0]const u8) callconv(.c) void {
-    highlighter1.SetCurrentLanguage(std.mem.span(dictionary));
-    highlighter2.SetCurrentLanguage(std.mem.span(dictionary));
+    highlighter1.setCurrentLanguage(std.mem.span(dictionary));
+    highlighter2.setCurrentLanguage(std.mem.span(dictionary));
 }

@@ -13,8 +13,8 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     const row_0_items = [_][]const u8{ "A0", "B0", "C0", "D0" };
     var row_0 = try makeStandardItemsList(init.gpa, &row_0_items);
@@ -30,47 +30,47 @@ pub fn main(init: std.process.Init) !void {
 
     const labels = [_][]const u8{ "H1", "H2", "H3", "H4" };
 
-    const source = QStandardItemModel.New();
-    defer source.Delete();
+    const source = QStandardItemModel.new();
+    defer source.delete();
 
-    source.InsertRow(0, row_0.items);
-    source.InsertRow(1, row_1.items);
-    source.InsertRow(2, row_2.items);
-    source.SetHorizontalHeaderLabels(init.gpa, &labels);
+    source.insertRow(0, row_0.items);
+    source.insertRow(1, row_1.items);
+    source.insertRow(2, row_2.items);
+    source.setHorizontalHeaderLabels(init.gpa, &labels);
 
-    proxy = KRearrangeColumnsProxyModel.New();
-    defer proxy.Delete();
+    proxy = .new();
+    defer proxy.delete();
 
     var columns = [_]i32{ 2, 3, 1, 0 };
-    proxy.SetSourceColumns(&columns);
-    proxy.SetSourceModel(source);
+    proxy.setSourceColumns(&columns);
+    proxy.setSourceModel(source);
 
-    const treeview = QTreeView.New2();
-    defer treeview.Delete();
+    const treeview = QTreeView.new2();
+    defer treeview.delete();
 
-    treeview.SetWindowTitle("Qt 6 KItemModels Example");
-    treeview.SetMinimumSize2(410, 100);
-    treeview.SetModel(proxy);
+    treeview.setWindowTitle("Qt 6 KItemModels Example");
+    treeview.setMinimumSize2(410, 100);
+    treeview.setModel(proxy);
 
-    treeview.Show();
+    treeview.show();
 
-    const timer = QTimer.New();
-    defer timer.Delete();
+    const timer = QTimer.new();
+    defer timer.delete();
 
-    timer.Start(1000);
-    timer.OnTimeout(timerCallback);
+    timer.start(1000);
+    timer.onTimeout(timerCallback);
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(QStandardItem) {
     var row: std.ArrayList(QStandardItem) = try .initCapacity(alloc, labels.len);
     for (labels) |label|
-        row.appendAssumeCapacity(QStandardItem.New2(label));
+        row.appendAssumeCapacity(.new2(label));
     return row;
 }
 
 fn timerCallback(_: QTimer) callconv(.c) void {
     var columns = [_]i32{ 2, 1, 0, 3 };
-    proxy.SetSourceColumns(&columns);
+    proxy.setSourceColumns(&columns);
 }

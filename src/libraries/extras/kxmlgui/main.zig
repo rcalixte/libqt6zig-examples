@@ -8,14 +8,14 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const dialog = KShortcutsDialog.New2();
-    dialog.SetWindowTitle("Qt 6 KXmlGui Example");
-    dialog.SetMinimumSize2(400, 450);
-    dialog.SetAttribute(qnamespace_enums.WidgetAttribute.WA_DeleteOnClose);
+    const dialog = KShortcutsDialog.new2();
+    dialog.setWindowTitle("Qt 6 KXmlGui Example");
+    dialog.setMinimumSize2(400, 450);
+    dialog.setAttribute(qnamespace_enums.WidgetAttribute.WA_DeleteOnClose);
 
     // Empty shortcut dialog
-    _ = dialog.Configure();
+    _ = dialog.configure();
 }

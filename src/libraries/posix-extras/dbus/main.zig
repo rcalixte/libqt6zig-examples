@@ -15,38 +15,43 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QCoreApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QCoreApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const session_bus = QDBusConnection.SessionBus();
-    defer session_bus.Delete();
+    const session_bus = QDBusConnection.sessionBus();
+    defer session_bus.delete();
 
-    const message = QDBusMessage.CreateMethodCall(bus_name, bus_path, bus_name, "Notify");
-    defer message.Delete();
+    const message = QDBusMessage.createMethodCall(
+        bus_name,
+        bus_path,
+        bus_name,
+        "Notify",
+    );
+    defer message.delete();
 
     const actions: []const []const u8 = &.{};
     const hints: ArrayMap_constu8_QVariant = .empty;
 
-    const variant_name = QVariant.New24("Qt 6 D-Bus Example");
-    defer variant_name.Delete();
+    const variant_name = QVariant.new24("Qt 6 D-Bus Example");
+    defer variant_name.delete();
 
-    const variant_id = QVariant.New5(0);
-    defer variant_id.Delete();
+    const variant_id = QVariant.new5(0);
+    defer variant_id.delete();
 
-    const variant_icon = QVariant.New24("dialog-information");
-    defer variant_icon.Delete();
+    const variant_icon = QVariant.new24("dialog-information");
+    defer variant_icon.delete();
 
-    const variant_body = QVariant.New24("This is a test notification sent via D-Bus.");
-    defer variant_body.Delete();
+    const variant_body = QVariant.new24("This is a test notification sent via D-Bus.");
+    defer variant_body.delete();
 
-    const variant_actions = QVariant.New25(init.gpa, actions);
-    defer variant_actions.Delete();
+    const variant_actions = QVariant.new25(init.gpa, actions);
+    defer variant_actions.delete();
 
-    const variant_hints = QVariant.New22(init.gpa, hints);
-    defer variant_hints.Delete();
+    const variant_hints = QVariant.new22(init.gpa, hints);
+    defer variant_hints.delete();
 
-    const variant_timeout = QVariant.New4(-1);
-    defer variant_timeout.Delete();
+    const variant_timeout = QVariant.new4(-1);
+    defer variant_timeout.delete();
 
     var arguments = [_]QVariant{
         variant_name,
@@ -59,14 +64,15 @@ pub fn main(init: std.process.Init) !void {
         variant_timeout,
     };
 
-    message.SetArguments(&arguments);
+    message.setArguments(&arguments);
 
-    const reply = session_bus.Call(message);
-    defer reply.Delete();
+    const reply = session_bus.call(message);
+    defer reply.delete();
 
-    if (reply.Type() != qdbusmessage_enums.MessageType.ReplyMessage) {
-        std.Io.File.stdout().writeStreamingAll(init.io, "Failed to send message\n") catch @panic("Failed to print to stdout");
+    if (reply.type0() != qdbusmessage_enums.MessageType.ReplyMessage) {
+        std.Io.File.stdout().writeStreamingAll(init.io, "Failed to send message\n") catch
+            @panic("Failed to print to stdout");
 
-        QCoreApplication.Quit();
+        QCoreApplication.quit();
     }
 }

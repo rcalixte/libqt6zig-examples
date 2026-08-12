@@ -16,44 +16,44 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 PackageKit Example");
-    widget.Resize(300, 200);
+    widget.setWindowTitle("Qt 6 PackageKit Example");
+    widget.resize(300, 200);
 
-    const layout = QVBoxLayout.New2();
-    const button = QPushButton.New3("Check for updates");
-    status_label = QLabel.New2();
-    status_label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    const layout = QVBoxLayout.new2();
+    const button = QPushButton.new3("Check for updates");
+    status_label = .new2();
+    status_label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
 
-    layout.AddStretch();
-    layout.AddWidget(status_label);
-    layout.AddStretch();
-    layout.AddWidget(button);
-    layout.AddStretch();
-    widget.SetLayout(layout);
+    layout.addStretch();
+    layout.addWidget(status_label);
+    layout.addStretch();
+    layout.addWidget(button);
+    layout.addStretch();
+    widget.setLayout(layout);
 
-    button.OnClicked(checkForUpdates);
+    button.onClicked(checkForUpdates);
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn checkForUpdates(_: QPushButton) callconv(.c) void {
-    status_label.SetText("Checking for updates...");
+    status_label.setText("Checking for updates...");
 
-    const transaction = PackageKit__Daemon.GetUpdates();
-    transaction.OnFinished(transactionFinished);
+    const transaction = PackageKit__Daemon.getUpdates();
+    transaction.onFinished(transactionFinished);
 }
 
 fn transactionFinished(_: PackageKit__Transaction, status: i32, _: u32) callconv(.c) void {
     if (status == transaction_enums.Exit.ExitSuccess)
-        status_label.SetText("✅ Update check successful!")
+        status_label.setText("✅ Update check successful!")
     else
-        status_label.SetText("❌ Update check failed!");
+        status_label.setText("❌ Update check failed!");
 }

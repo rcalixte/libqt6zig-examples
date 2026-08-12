@@ -7,13 +7,13 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const svg = QSvgWidget.New3("assets/libqt6zig-examples.svg");
-    defer svg.Delete();
+    const svg = QSvgWidget.new3("assets/libqt6zig-examples.svg");
+    defer svg.delete();
 
-    svg.Show();
+    svg.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

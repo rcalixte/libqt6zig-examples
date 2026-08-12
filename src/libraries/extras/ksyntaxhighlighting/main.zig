@@ -17,62 +17,62 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 KSyntaxHighlighting Example");
-    window.SetMinimumSize2(1550, 750);
+    window.setWindowTitle("Qt 6 KSyntaxHighlighting Example");
+    window.setMinimumSize2(1150, 750);
 
-    const file = QFile.New4(src_file, window);
+    const file = QFile.new4(src_file, window);
 
-    if (!file.Open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
+    if (!file.open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
         try std.Io.File.stdout().writeStreamingAll(init.io, "\nFailed to open file: \t" ++ src_file ++ "\n");
         return;
     }
 
-    const plaintextedit = QPlainTextEdit.New(window);
+    const plaintextedit = QPlainTextEdit.new(window);
 
-    const font = QFont.New6("DejaVu Sans Mono", 13);
-    defer font.Delete();
+    const font = QFont.new6("DejaVu Sans Mono", 13);
+    defer font.delete();
 
-    plaintextedit.SetFont(font);
+    plaintextedit.setFont(font);
 
-    window.SetCentralWidget(plaintextedit);
+    window.setCentralWidget(plaintextedit);
 
-    const text = file.ReadAll(init.gpa);
+    const text = file.readAll(init.gpa);
     defer {
         init.gpa.free(text);
-        file.Close();
+        file.close();
     }
 
-    plaintextedit.SetPlainText(text);
+    plaintextedit.setPlainText(text);
 
-    const document = plaintextedit.Document();
-    defer document.Delete();
+    const document = plaintextedit.document();
+    defer document.delete();
 
-    const highlighter = KSyntaxHighlighting__SyntaxHighlighter.New2(document);
-    defer highlighter.Delete();
+    const highlighter = KSyntaxHighlighting__SyntaxHighlighter.new2(document);
+    defer highlighter.delete();
 
-    const repository = KSyntaxHighlighting__Repository.New();
-    defer repository.Delete();
+    const repository = KSyntaxHighlighting__Repository.new();
+    defer repository.delete();
 
-    const theme = switch (plaintextedit.Palette().Color2(qpalette_enums.ColorRole.Base).Lightness()) {
-        0...127 => repository.DefaultTheme1(repository_enums.DefaultTheme.DarkTheme),
-        128...255 => repository.DefaultTheme1(repository_enums.DefaultTheme.LightTheme),
+    const theme = switch (plaintextedit.palette().color2(qpalette_enums.ColorRole.Base).lightness()) {
+        0...127 => repository.defaultTheme1(repository_enums.DefaultTheme.DarkTheme),
+        128...255 => repository.defaultTheme1(repository_enums.DefaultTheme.LightTheme),
         else => unreachable,
     };
-    defer theme.Delete();
+    defer theme.delete();
 
-    highlighter.SetTheme(theme);
-    const definition = repository.DefinitionForFileName(src_file);
-    defer definition.Delete();
+    highlighter.setTheme(theme);
+    const definition = repository.definitionForFileName(src_file);
+    defer definition.delete();
 
-    highlighter.SetDefinition(definition);
+    highlighter.setDefinition(definition);
 
-    window.Show();
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

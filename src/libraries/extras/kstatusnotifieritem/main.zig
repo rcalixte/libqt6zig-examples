@@ -25,127 +25,127 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    status_notifier_item = KStatusNotifierItem.New2("org.libqt6zig.kstatusnotifieritemexample");
-    defer status_notifier_item.Delete();
+    status_notifier_item = .new2("org.libqt6zig.kstatusnotifieritemexample");
+    defer status_notifier_item.delete();
 
     const red_icon = createIcon(qnamespace_enums.GlobalColor.Red);
-    defer red_icon.Delete();
+    defer red_icon.delete();
 
-    status_notifier_item.SetIconByPixmap(red_icon);
-    status_notifier_item.SetCategory(kstatusnotifieritem_enums.ItemCategory.Communications);
-    status_notifier_item.SetStatus(kstatusnotifieritem_enums.ItemStatus.Active);
-    status_notifier_item.SetToolTipTitle(title);
+    status_notifier_item.setIconByPixmap(red_icon);
+    status_notifier_item.setCategory(kstatusnotifieritem_enums.ItemCategory.Communications);
+    status_notifier_item.setStatus(kstatusnotifieritem_enums.ItemStatus.Active);
+    status_notifier_item.setToolTipTitle(title);
 
     const green_icon = createIcon(qnamespace_enums.GlobalColor.Green);
-    defer green_icon.Delete();
+    defer green_icon.delete();
 
-    const menu = QMenu.New2();
-    const attention_action = menu.AddAction3(green_icon, "NeedsAttention");
-    attention_action.OnTriggered(onTriggered);
+    const menu = QMenu.new2();
+    const attention_action = menu.addAction3(green_icon, "NeedsAttention");
+    attention_action.onTriggered(onTriggered);
 
     const magenta_icon = createIcon(qnamespace_enums.GlobalColor.Magenta);
-    defer magenta_icon.Delete();
+    defer magenta_icon.delete();
 
-    const active_action = menu.AddAction3(magenta_icon, "Active");
-    active_action.OnTriggered(onTriggered);
+    const active_action = menu.addAction3(magenta_icon, "Active");
+    active_action.onTriggered(onTriggered);
 
-    const sub_menu = QMenu.New3("Sub Menu");
-    defer sub_menu.Delete();
+    const sub_menu = QMenu.new3("Sub Menu");
+    defer sub_menu.delete();
 
     const menu_icon = createIcon(qnamespace_enums.GlobalColor.DarkBlue);
-    defer menu_icon.Delete();
+    defer menu_icon.delete();
 
-    sub_menu.SetIcon(menu_icon);
+    sub_menu.setIcon(menu_icon);
 
     const yellow_icon = createIcon(qnamespace_enums.GlobalColor.Yellow);
-    defer yellow_icon.Delete();
+    defer yellow_icon.delete();
 
-    const sub_action = sub_menu.AddAction3(yellow_icon, "Passive");
-    sub_action.OnTriggered(onTriggered);
+    const sub_action = sub_menu.addAction3(yellow_icon, "Passive");
+    sub_action.onTriggered(onTriggered);
 
-    _ = menu.AddMenu(sub_menu);
-    status_notifier_item.SetContextMenu(menu);
-    status_notifier_item.OnActivateRequested(onActivateRequested);
-    status_notifier_item.OnSecondaryActivateRequested(onSecondaryActivateRequested);
-    status_notifier_item.OnScrollRequested(onScrollRequested);
+    _ = menu.addMenu(sub_menu);
+    status_notifier_item.setContextMenu(menu);
+    status_notifier_item.onActivateRequested(onActivateRequested);
+    status_notifier_item.onSecondaryActivateRequested(onSecondaryActivateRequested);
+    status_notifier_item.onScrollRequested(onScrollRequested);
 
-    _ = QMessageBox.Information(
+    _ = QMessageBox.information(
         QWidget{ .ptr = null },
         title,
         "Check your system tray for the status notifier item icon.\n\n" ++
             "In order to quit the example, close the text edit window or quit via the system tray menu.",
     );
 
-    text_edit = QTextEdit.New3("Logged activity:");
-    defer text_edit.Delete();
+    text_edit = .new3("Logged activity:");
+    defer text_edit.delete();
 
-    text_edit.SetReadOnly(true);
-    text_edit.SetMinimumSize2(400, 300);
-    text_edit.SetWindowTitle(title);
-    text_edit.OnCloseEvent(onCloseEvent);
+    text_edit.setReadOnly(true);
+    text_edit.setMinimumSize2(400, 300);
+    text_edit.setWindowTitle(title);
+    text_edit.onCloseEvent(onCloseEvent);
 
-    text_edit.Show();
+    text_edit.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn createIcon(color: i32) QIcon {
-    const pixmap = QPixmap.New2(16, 16);
-    defer pixmap.Delete();
+    const pixmap = QPixmap.new2(16, 16);
+    defer pixmap.delete();
 
-    const fill_color = QColor.New4(color);
-    defer fill_color.Delete();
+    const fill_color = QColor.new4(color);
+    defer fill_color.delete();
 
-    pixmap.Fill1(fill_color);
+    pixmap.fill1(fill_color);
 
-    return QIcon.New2(pixmap);
+    return .new2(pixmap);
 }
 
 fn onTriggered(self: QAction) callconv(.c) void {
-    const text = self.Text(allocator);
+    const text = self.text(allocator);
     defer allocator.free(text);
 
     if (std.mem.eql(u8, text, "NeedsAttention")) {
         const icon = createIcon(qnamespace_enums.GlobalColor.Blue);
-        defer icon.Delete();
+        defer icon.delete();
 
-        status_notifier_item.SetIconByPixmap(icon);
-        status_notifier_item.SetStatus(kstatusnotifieritem_enums.ItemStatus.NeedsAttention);
+        status_notifier_item.setIconByPixmap(icon);
+        status_notifier_item.setStatus(kstatusnotifieritem_enums.ItemStatus.NeedsAttention);
     } else if (std.mem.eql(u8, text, "Active")) {
         const icon = createIcon(qnamespace_enums.GlobalColor.Red);
-        defer icon.Delete();
+        defer icon.delete();
 
-        status_notifier_item.SetIconByPixmap(icon);
-        status_notifier_item.SetStatus(kstatusnotifieritem_enums.ItemStatus.Active);
+        status_notifier_item.setIconByPixmap(icon);
+        status_notifier_item.setStatus(kstatusnotifieritem_enums.ItemStatus.Active);
     } else if (std.mem.eql(u8, text, "Passive"))
-        status_notifier_item.SetStatus(kstatusnotifieritem_enums.ItemStatus.Passive);
+        status_notifier_item.setStatus(kstatusnotifieritem_enums.ItemStatus.Passive);
 }
 
 fn onActivateRequested(_: KStatusNotifierItem, active: bool, pos: QPoint) callconv(.c) void {
     const text = std.fmt.allocPrint(
         allocator,
         "Activated: active = {any}, pos = ({d}, {d})",
-        .{ active, pos.X(), pos.Y() },
+        .{ active, pos.x(), pos.y() },
     ) catch @panic("Failed to allocPrint");
     defer allocator.free(text);
 
-    text_edit.Append(text);
+    text_edit.append(text);
 }
 
 fn onSecondaryActivateRequested(_: KStatusNotifierItem, pos: QPoint) callconv(.c) void {
     const text = std.fmt.allocPrint(
         allocator,
         "Secondary Activated: pos = ({d}, {d})",
-        .{ pos.X(), pos.Y() },
+        .{ pos.x(), pos.y() },
     ) catch @panic("Failed to allocPrint");
     defer allocator.free(text);
 
-    text_edit.Append(text);
+    text_edit.append(text);
 }
 
 fn onScrollRequested(_: KStatusNotifierItem, delta: i32, orientation: i32) callconv(.c) void {
@@ -160,9 +160,9 @@ fn onScrollRequested(_: KStatusNotifierItem, delta: i32, orientation: i32) callc
     ) catch @panic("Failed to allocPrint");
     defer allocator.free(text);
 
-    text_edit.Append(text);
+    text_edit.append(text);
 }
 
 fn onCloseEvent(_: QTextEdit, _: QCloseEvent) callconv(.c) void {
-    QApplication.Quit();
+    QApplication.quit();
 }

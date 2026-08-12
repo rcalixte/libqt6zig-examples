@@ -19,82 +19,82 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const document = Poppler__Document.Load(file_path);
-    defer document.Delete();
+    const document = Poppler__Document.load(file_path);
+    defer document.delete();
 
-    if (document.ptr == null or document.IsLocked()) {
+    if (document.ptr == null or document.isLocked()) {
         if (document.ptr != null)
-            document.Delete();
+            document.delete();
         std.log.err("Failed to load document: {s}", .{file_path});
         return;
     }
 
-    const num_pages = document.NumPages();
+    const num_pages = document.numPages();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 Poppler Example");
-    widget.Resize(1200, 700);
+    widget.setWindowTitle("Qt 6 Poppler Example");
+    widget.resize(1200, 700);
 
-    const layout = QVBoxLayout.New(widget);
+    const layout = QVBoxLayout.new(widget);
 
-    const scroll_area = QScrollArea.New(widget);
-    scroll_area.SetWidgetResizable(true);
+    const scroll_area = QScrollArea.new(widget);
+    scroll_area.setWidgetResizable(true);
 
-    const container = QWidget.New2();
+    const container = QWidget.new2();
 
-    const page_layout = QVBoxLayout.New(container);
-    _ = page_layout.SetAlignment(container, qnamespace_enums.AlignmentFlag.AlignHCenter);
+    const page_layout = QVBoxLayout.new(container);
+    _ = page_layout.setAlignment(container, qnamespace_enums.AlignmentFlag.AlignHCenter);
 
-    scroll_area.SetWidget(container);
-    layout.AddWidget(scroll_area);
+    scroll_area.setWidget(container);
+    layout.addWidget(scroll_area);
 
     var i: usize = 0;
     while (i < num_pages) : (i += 1) {
-        const page = document.Page(@intCast(i));
-        defer page.Delete();
+        const page = document.page(@intCast(i));
+        defer page.delete();
 
         if (page.ptr == null) {
             std.log.err("Failed to load page: {d}", .{i});
             return;
         }
 
-        var image = page.RenderToImage22(dpi, dpi);
-        defer image.Delete();
+        var image = page.renderToImage22(dpi, dpi);
+        defer image.delete();
 
-        if (image.HasAlphaChannel()) {
-            const size = image.Size();
-            defer size.Delete();
+        if (image.hasAlphaChannel()) {
+            const size = image.size();
+            defer size.delete();
 
-            const background = QImage.New2(size, qimage_enums.Format.Format_RGB32);
-            background.Fill3(qnamespace_enums.GlobalColor.White);
+            const background = QImage.new2(size, qimage_enums.Format.Format_RGB32);
+            background.fill3(qnamespace_enums.GlobalColor.White);
 
-            const painter = QPainter.New2(background);
-            defer painter.Delete();
+            const painter = QPainter.new2(background);
+            defer painter.delete();
 
-            painter.DrawImage9(0, 0, image);
+            painter.drawImage9(0, 0, image);
 
-            image.Delete();
+            image.delete();
             image = background;
         }
 
-        const label = QLabel.New2();
+        const label = QLabel.new2();
 
-        const pixmap = QPixmap.FromImage(image);
-        defer pixmap.Delete();
+        const pixmap = QPixmap.fromImage(image);
+        defer pixmap.delete();
 
-        label.SetPixmap(pixmap);
-        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
-        label.SetStyleSheet("border: 1px solid #ccc; background-color: white;");
+        label.setPixmap(pixmap);
+        label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        label.setStyleSheet("border: 1px solid #ccc; background-color: white;");
 
-        page_layout.AddWidget(label);
+        page_layout.addWidget(label);
     }
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

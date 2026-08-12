@@ -35,79 +35,82 @@ pub const ClientDialog = struct {
     input: QLineEdit,
     button: QPushButton,
 
-    pub fn init(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
+    pub fn create(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
         var self = try alloc.create(ClientDialog);
         errdefer alloc.destroy(self);
 
         self.name = try alloc.dupe(u8, num_str);
 
-        self.dialog = QDialog.New2();
-        self.dialog.SetWindowTitle(name);
-        self.dialog.SetMinimumSize2(400, 300);
+        self.dialog = .new2();
+        self.dialog.setWindowTitle(name);
+        self.dialog.setMinimumSize2(400, 300);
 
-        self.socket = QWebSocket.New();
-        self.socket.SetParent(self.dialog);
+        self.socket = .new();
+        self.socket.setParent(self.dialog);
 
-        self.messages = QTextEdit.New(self.dialog);
-        self.messages.SetReadOnly(true);
+        self.messages = .new(self.dialog);
+        self.messages.setReadOnly(true);
 
-        self.input = QLineEdit.New(self.dialog);
-        self.input.SetPlaceholderText("Enter your message here");
-        self.input.SetEnabled(false);
+        self.input = .new(self.dialog);
+        self.input.setPlaceholderText("Enter your message here");
+        self.input.setEnabled(false);
 
-        self.button = QPushButton.New5("Send", self.dialog);
-        self.button.SetEnabled(false);
+        self.button = .new5("Send", self.dialog);
+        self.button.setEnabled(false);
 
-        const layout = QVBoxLayout.New2();
-        const inputLayout = QHBoxLayout.New2();
+        const layout = QVBoxLayout.new2();
+        const inputLayout = QHBoxLayout.new2();
 
-        layout.AddWidget(self.messages);
-        inputLayout.AddWidget(self.input);
-        inputLayout.AddWidget(self.button);
-        layout.AddLayout(inputLayout);
-        self.dialog.SetLayout(layout);
+        layout.addWidget(self.messages);
+        inputLayout.addWidget(self.input);
+        inputLayout.addWidget(self.button);
+        layout.addLayout(inputLayout);
+        self.dialog.setLayout(layout);
 
-        self.socket.OnConnected(onClientConnected);
-        self.socket.OnTextMessageReceived(onClientMessageReceived);
-        self.socket.OnErrorOccurred(onClientErrorOccurred);
-        self.dialog.OnCloseEvent(onClientCloseEvent);
-        self.button.OnClicked(onSendClicked);
+        self.socket.onConnected(onClientConnected);
+        self.socket.onTextMessageReceived(onClientMessageReceived);
+        self.socket.onErrorOccurred(onClientErrorOccurred);
+        self.dialog.onCloseEvent(onClientCloseEvent);
+        self.button.onClicked(onSendClicked);
 
         return self;
     }
 
     pub fn connectToServer(self: *ClientDialog, alloc: std.mem.Allocator) void {
-        self.messages.Append("Connecting...");
-        const ws = std.fmt.allocPrint(alloc, "ws://localhost:{d}", .{local_port}) catch @panic("Failed to allocPrint");
+        self.messages.append("Connecting...");
+        const ws = std.fmt.allocPrint(alloc, "ws://localhost:{d}", .{local_port}) catch
+            @panic("Failed to allocPrint");
         defer alloc.free(ws);
 
-        const url = QUrl.New3(ws);
-        defer url.Delete();
+        const url = QUrl.new3(ws);
+        defer url.delete();
 
-        self.socket.Open(url);
+        self.socket.open(url);
     }
 
     fn sendMessage(self: *ClientDialog, alloc: std.mem.Allocator) void {
-        const message = self.input.Text(alloc);
+        const message = self.input.text(alloc);
         defer alloc.free(message);
         if (message.len == 0) return;
 
         const trimmed_text = std.mem.trim(u8, message, &std.ascii.whitespace);
         if (trimmed_text.len == 0) return;
 
-        const out_message = std.fmt.allocPrint(alloc, "({s}): {s}", .{ self.name, trimmed_text }) catch @panic("Failed to allocPrint");
+        const out_message = std.fmt.allocPrint(alloc, "({s}): {s}", .{ self.name, trimmed_text }) catch
+            @panic("Failed to allocPrint");
         defer alloc.free(out_message);
 
-        _ = self.socket.SendTextMessage(out_message);
+        _ = self.socket.sendTextMessage(out_message);
 
-        const self_entry = std.fmt.allocPrint(alloc, ">> {s}", .{trimmed_text}) catch @panic("Failed to allocPrint");
+        const self_entry = std.fmt.allocPrint(alloc, ">> {s}", .{trimmed_text}) catch
+            @panic("Failed to allocPrint");
         defer alloc.free(self_entry);
-        self.messages.Append(self_entry);
-        self.input.Clear();
+        self.messages.append(self_entry);
+        self.input.clear();
     }
 
-    pub fn deinit(self: *ClientDialog, alloc: std.mem.Allocator) void {
-        self.dialog.DeleteLater();
+    pub fn destroy(self: *ClientDialog, alloc: std.mem.Allocator) void {
+        self.dialog.deleteLater();
         allocator.free(self.name);
         alloc.destroy(self);
     }
@@ -115,10 +118,10 @@ pub const ClientDialog = struct {
     fn onClientConnected(self: QWebSocket) callconv(.c) void {
         for (client_dialogs) |client|
             if (@as(?*anyopaque, self.ptr) == @as(?*anyopaque, client.socket.ptr)) {
-                client.messages.Append("Connected!");
-                client.input.SetEnabled(true);
-                client.button.SetEnabled(true);
-                client.input.SetFocus();
+                client.messages.append("Connected!");
+                client.input.setEnabled(true);
+                client.button.setEnabled(true);
+                client.input.setFocus();
                 return;
             };
     }
@@ -126,28 +129,28 @@ pub const ClientDialog = struct {
     fn onClientMessageReceived(self: QWebSocket, message: [*:0]const u8) callconv(.c) void {
         for (client_dialogs) |client|
             if (@as(?*anyopaque, self.ptr) == @as(?*anyopaque, client.socket.ptr)) {
-                client.messages.Append(std.mem.span(message));
+                client.messages.append(std.mem.span(message));
                 return;
             };
     }
 
     fn onClientErrorOccurred(self: QWebSocket, _: i32) callconv(.c) void {
-        const err_str = self.ErrorString(allocator);
+        const err_str = self.errorString(allocator);
         defer allocator.free(err_str);
 
         for (client_dialogs) |client|
             if (@as(?*anyopaque, self.ptr) == @as(?*anyopaque, client.socket.ptr)) {
-                client.messages.Append("= Error =");
-                client.messages.Append(err_str);
+                client.messages.append("= Error =");
+                client.messages.append(err_str);
                 return;
             };
     }
 
     fn onClientCloseEvent(_: QDialog, event: QCloseEvent) callconv(.c) void {
         for (client_dialogs) |client| {
-            client.socket.Close();
-            client.socket.Delete();
-            client.dialog.SuperCloseEvent(event);
+            client.socket.close();
+            client.socket.delete();
+            client.dialog.superCloseEvent(event);
         }
     }
 
@@ -164,19 +167,22 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const server = QWebSocketServer.New("Example Qt WebSockets Server", qwebsocketserver_enums.SslMode.NonSecureMode);
-    defer server.Delete();
+    const server = QWebSocketServer.new(
+        "Example Qt WebSockets Server",
+        qwebsocketserver_enums.SslMode.NonSecureMode,
+    );
+    defer server.delete();
 
-    const localhost = qhostaddress.New7(qhostaddress_enums.SpecialAddress.LocalHostIPv6);
-    defer localhost.Delete();
+    const localhost = qhostaddress.new7(qhostaddress_enums.SpecialAddress.LocalHostIPv6);
+    defer localhost.delete();
 
-    if (!server.Listen2(localhost, local_port)) {
-        const err_str = server.ErrorString(allocator);
+    if (!server.listen2(localhost, local_port)) {
+        const err_str = server.errorString(allocator);
         defer allocator.free(err_str);
         std.log.err("Failed to listen on port {d}: {s}\n", .{ local_port, err_str });
         return;
@@ -187,15 +193,15 @@ pub fn main(init: std.process.Init) !void {
         const name = try std.fmt.allocPrint(allocator, "Qt 6 WebSockets Example Client #{s}", .{num_str});
         defer allocator.free(name);
 
-        client_dialogs[i] = try ClientDialog.init(allocator, name, num_str);
+        client_dialogs[i] = try .create(allocator, name, num_str);
 
         client_dialogs[i].connectToServer(allocator);
 
-        client_dialogs[i].dialog.Show();
-        const width = client_dialogs[i].dialog.Width();
+        client_dialogs[i].dialog.show();
+        const width = client_dialogs[i].dialog.width();
         const mult: i32 = @intCast(i);
-        const y = client_dialogs[i].dialog.Y();
-        client_dialogs[i].dialog.Move(offset_x + (width + 10) * mult, y);
+        const y = client_dialogs[i].dialog.y();
+        client_dialogs[i].dialog.move(offset_x + (width + 10) * mult, y);
     }
 
     defer {
@@ -204,26 +210,26 @@ pub fn main(init: std.process.Init) !void {
                 clients[i].ptr = null;
         }
         for (client_dialogs) |client|
-            client.deinit(allocator);
+            client.destroy(allocator);
     }
 
-    server.OnNewConnection(onNewConnection);
+    server.onNewConnection(onNewConnection);
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onNewConnection(self: QWebSocketServer) callconv(.c) void {
-    const client = self.NextPendingConnection();
+    const client = self.nextPendingConnection();
     if (client_num >= clients.len) {
-        client.Close();
+        client.close();
         return;
     }
 
     clients[client_num] = client;
     client_num += 1;
 
-    client.OnTextMessageReceived(onServerMessageReceived);
-    client.OnDisconnected(onServerDisconnected);
+    client.onTextMessageReceived(onServerMessageReceived);
+    client.onDisconnected(onServerDisconnected);
 }
 
 fn onServerMessageReceived(self: QWebSocket, message: [*:0]const u8) callconv(.c) void {
@@ -232,10 +238,10 @@ fn onServerMessageReceived(self: QWebSocket, message: [*:0]const u8) callconv(.c
     for (clients) |client| {
         if (client.ptr == null or @as(?*anyopaque, self.ptr) == @as(?*anyopaque, client.ptr)) continue;
 
-        _ = client.SendTextMessage(msg);
+        _ = client.sendTextMessage(msg);
     }
 }
 
 fn onServerDisconnected(self: QWebSocket) callconv(.c) void {
-    self.DeleteLater();
+    self.deleteLater();
 }

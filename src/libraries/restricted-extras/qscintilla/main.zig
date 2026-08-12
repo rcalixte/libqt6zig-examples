@@ -7,14 +7,14 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const area = QsciScintilla.New2();
-    defer area.Delete();
+    const area = QsciScintilla.new2();
+    defer area.delete();
 
-    area.SetFixedSize2(640, 480);
-    area.Show();
+    area.setFixedSize2(640, 480);
+    area.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

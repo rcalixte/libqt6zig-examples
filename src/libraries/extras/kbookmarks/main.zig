@@ -9,17 +9,17 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const manager = KBookmarkManager.New("assets/example.xml");
-    defer manager.Delete();
+    const manager = KBookmarkManager.new("assets/example.xml");
+    defer manager.delete();
 
-    const dialog = KBookmarkDialog.New(manager);
-    defer dialog.Delete();
+    const dialog = KBookmarkDialog.new(manager);
+    defer dialog.delete();
 
-    const url = QUrl.New3("https://github.com/rcalixte/libqt6zig-examples");
-    defer url.Delete();
+    const url = QUrl.new3("https://github.com/rcalixte/libqt6zig-examples");
+    defer url.delete();
 
-    _ = dialog.AddBookmark("Qt 6 examples for Zig", url, "www");
+    _ = dialog.addBookmark("Qt 6 examples for Zig", url, "www");
 }

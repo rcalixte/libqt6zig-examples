@@ -12,42 +12,42 @@ const QLabel = qt6.QLabel;
 const form_path = "src/libraries/uitools/design.ui";
 
 pub fn main(init: std.process.Init) !void {
-    QApplication.SetAttribute(qnamespace_enums.ApplicationAttribute.AA_ShareOpenGLContexts);
+    QApplication.setAttribute(qnamespace_enums.ApplicationAttribute.AA_ShareOpenGLContexts);
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 UI Tools Example");
+    widget.setWindowTitle("Qt 6 UI Tools Example");
 
-    const layout = QVBoxLayout.New(widget);
+    const layout = QVBoxLayout.new(widget);
 
-    const loader = QUiLoader.New();
-    defer loader.Delete();
+    const loader = QUiLoader.new();
+    defer loader.delete();
 
-    const file = QFile.New2(form_path);
-    defer file.Delete();
+    const file = QFile.new2(form_path);
+    defer file.delete();
 
-    if (file.Open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
-        defer file.Close();
+    if (file.open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
+        defer file.close();
 
-        const parent = QWidget.New(widget);
-        const form = loader.Load2(file, parent);
-        layout.AddWidget(form);
-        widget.Resize(1000, 550);
+        const parent = QWidget.new(widget);
+        const form = loader.load2(file, parent);
+        layout.addWidget(form);
+        widget.resize(1000, 550);
     } else {
-        const label = QLabel.New5("### Failed to open form file: " ++ form_path, widget);
-        label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
-        layout.AddWidget(label);
-        widget.Resize(550, 100);
+        const label = QLabel.new5("### Failed to open form file: " ++ form_path, widget);
+        label.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+        label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        layout.addWidget(label);
+        widget.resize(550, 100);
     }
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

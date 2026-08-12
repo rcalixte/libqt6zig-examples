@@ -17,77 +17,77 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const pixmap = QPixmap.New4("assets/libqt6zig-examples.png");
-    defer pixmap.Delete();
+    const pixmap = QPixmap.new4("assets/libqt6zig-examples.png");
+    defer pixmap.delete();
 
-    const splash = QSplashScreen.New4(pixmap, qnamespace_enums.WindowType.WindowStaysOnTopHint);
-    defer splash.Delete();
+    const splash = QSplashScreen.new4(pixmap, qnamespace_enums.WindowType.WindowStaysOnTopHint);
+    defer splash.delete();
 
-    splash.OnMousePressEvent(onMousePressEvent);
+    splash.onMousePressEvent(onMousePressEvent);
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Hello world");
+    widget.setWindowTitle("Hello world");
 
-    const button = QPushButton.New5("Hello world!", widget);
-    button.SetFixedWidth(320);
-    button.OnClicked(onClicked);
+    const button = QPushButton.new5("Hello world!", widget);
+    button.setFixedWidth(320);
+    button.onClicked(onClicked);
 
-    splash.Show();
+    splash.show();
 
-    const timer = QTimer.New();
-    defer timer.Delete();
+    const timer = QTimer.new();
+    defer timer.delete();
 
-    const splash_qv = QVariant.New7(@intFromPtr(splash.ptr));
-    defer splash_qv.Delete();
+    const splash_qv = QVariant.new7(@intFromPtr(splash.ptr));
+    defer splash_qv.delete();
 
-    _ = timer.SetProperty("splash", splash_qv);
+    _ = timer.setProperty("splash", splash_qv);
 
-    const widget_qv = QVariant.New7(@intFromPtr(widget.ptr));
-    defer widget_qv.Delete();
+    const widget_qv = QVariant.new7(@intFromPtr(widget.ptr));
+    defer widget_qv.delete();
 
-    _ = timer.SetProperty("widget", widget_qv);
+    _ = timer.setProperty("widget", widget_qv);
 
-    timer.Start(3000);
-    timer.OnTimeout(onTimeout);
+    timer.start(3000);
+    timer.onTimeout(onTimeout);
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 
     std.debug.print("OK!\n", .{});
 }
 
 fn onClicked(self: QPushButton) callconv(.c) void {
-    counter += 1;
+    counter +%= 1;
     const formatted = std.fmt.bufPrint(
         &buffer,
         "You have clicked the button {d} time(s)",
         .{counter},
     ) catch @panic("Failed to bufPrint");
-    self.SetText(formatted);
+    self.setText(formatted);
 }
 
 fn onMousePressEvent(_: QSplashScreen, _: QMouseEvent) callconv(.c) void {}
 
 fn onTimeout(self: QTimer) callconv(.c) void {
-    const splash_qv = self.Property("splash");
-    defer splash_qv.Delete();
+    const splash_qv = self.property("splash");
+    defer splash_qv.delete();
 
-    const splash_i = splash_qv.ToLongLong();
+    const splash_i = splash_qv.toLongLong();
 
-    const widget_qv = self.Property("widget");
-    defer widget_qv.Delete();
+    const widget_qv = self.property("widget");
+    defer widget_qv.delete();
 
-    const widget_i = widget_qv.ToLongLong();
+    const widget_i = widget_qv.toLongLong();
 
     const s: QSplashScreen = .{ .ptr = @ptrFromInt(@as(usize, @intCast(splash_i))) };
-    _ = s.Close();
+    _ = s.close();
 
     const w: QWidget = .{ .ptr = @ptrFromInt(@as(usize, @intCast(widget_i))) };
-    w.Show();
+    w.show();
 
-    self.Stop();
+    self.stop();
 }

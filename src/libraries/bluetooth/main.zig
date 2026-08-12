@@ -27,114 +27,117 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 Bluetooth Example");
-    widget.SetMinimumSize2(400, 400);
+    widget.setWindowTitle("Qt 6 Bluetooth Example");
+    widget.setMinimumSize2(400, 400);
 
-    const local_device = QBluetoothLocalDevice.New();
-    defer local_device.Delete();
+    const local_device = QBluetoothLocalDevice.new();
+    defer local_device.delete();
 
-    const layout = QVBoxLayout.New(widget);
+    const layout = QVBoxLayout.new(widget);
 
-    if (local_device.IsValid()) {
-        toggle = QCheckBox.New3("Bluetooth enabled");
-        toggle.SetChecked(true);
+    if (local_device.isValid()) {
+        toggle = .new3("Bluetooth enabled");
+        toggle.setChecked(true);
 
-        button = QPushButton.New3("Scan for devices");
-        list = QListWidget.New2();
-        status = QLabel.New3("Ready.");
+        button = .new3("Scan for devices");
+        list = .new2();
+        status = .new3("Ready.");
 
-        layout.AddWidget(toggle);
-        layout.AddWidget(button);
-        layout.AddWidget(list);
-        layout.AddWidget(status);
+        layout.addWidget(toggle);
+        layout.addWidget(button);
+        layout.addWidget(list);
+        layout.addWidget(status);
 
-        agent = QBluetoothDeviceDiscoveryAgent.New3(widget);
-        agent.SetLowEnergyDiscoveryTimeout(3000);
+        agent = .new3(widget);
+        agent.setLowEnergyDiscoveryTimeout(3000);
 
-        toggle.OnToggled(onToggled);
-        button.OnClicked(onClicked);
-        agent.OnDeviceDiscovered(onDeviceDiscovered);
-        agent.OnFinished(onFinished);
-        agent.OnErrorOccurred(onErrorOccurred);
+        toggle.onToggled(onToggled);
+        button.onClicked(onClicked);
+        agent.onDeviceDiscovered(onDeviceDiscovered);
+        agent.onFinished(onFinished);
+        agent.onErrorOccurred(onErrorOccurred);
     } else {
-        const label = QLabel.New3("## No Bluetooth adapter detected.\n" ++
+        const label = QLabel.new3("## No Bluetooth adapter detected.\n" ++
             "### Please ensure that your device has a Bluetooth adapter.");
-        label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-        label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
-        label.SetWordWrap(true);
-        layout.AddWidget(label);
+        label.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+        label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+        label.setWordWrap(true);
+        layout.addWidget(label);
     }
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onToggled(_: QCheckBox, checked: bool) callconv(.c) void {
-    button.SetEnabled(checked);
-    list.SetEnabled(checked);
+    button.setEnabled(checked);
+    list.setEnabled(checked);
 
-    if (!checked and agent.IsActive())
-        agent.Stop();
+    if (!checked and agent.isActive())
+        agent.stop();
 
     const text = switch (checked) {
         true => "Bluetooth enabled.",
         false => "Bluetooth disabled.",
     };
-    status.SetText(text);
+    status.setText(text);
 }
 
 fn onClicked(self: QPushButton) callconv(.c) void {
-    if (agent.IsActive())
+    if (agent.isActive())
         return;
 
-    list.Clear();
-    status.SetText("Scanning...");
-    self.SetEnabled(false);
-    agent.Start2(
-        qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.ClassicMethod | qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.LowEnergyMethod,
+    list.clear();
+    status.setText("Scanning...");
+    self.setEnabled(false);
+    agent.start2(
+        qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.ClassicMethod |
+            qbluetoothdevicediscoveryagent_enums.DiscoveryMethod.LowEnergyMethod,
     );
 }
 
 fn onDeviceDiscovered(_: QBluetoothDeviceDiscoveryAgent, info: QBluetoothDeviceInfo) callconv(.c) void {
-    const name = info.Name(allocator);
+    const name = info.name(allocator);
     defer allocator.free(name);
 
-    const address = info.Address();
-    defer address.Delete();
+    const address = info.address();
+    defer address.delete();
 
-    const address_str = address.ToString(allocator);
+    const address_str = address.toString(allocator);
     defer allocator.free(address_str);
 
     const title = switch (name.len) {
         0 => "Unknown",
-        else => std.fmt.bufPrint(&buffer, "{s} ({s})", .{ name, address_str }) catch @panic("Failed to bufPrint"),
+        else => std.fmt.bufPrint(&buffer, "{s} ({s})", .{ name, address_str }) catch
+            @panic("Failed to bufPrint"),
     };
 
-    list.AddItem(title);
+    list.addItem(title);
 }
 
 fn onFinished(_: QBluetoothDeviceDiscoveryAgent) callconv(.c) void {
-    button.SetEnabled(toggle.IsChecked());
+    button.setEnabled(toggle.isChecked());
 
     const text = "Scan complete - {d} device(s) found.";
-    const formatted = std.fmt.bufPrint(&buffer, text, .{list.Count()}) catch @panic("Failed to bufPrint");
-    status.SetText(formatted);
+    const formatted = std.fmt.bufPrint(&buffer, text, .{list.count()}) catch
+        @panic("Failed to bufPrint");
+    status.setText(formatted);
 }
 
 fn onErrorOccurred(self: QBluetoothDeviceDiscoveryAgent, _: i32) callconv(.c) void {
-    button.SetEnabled(toggle.IsChecked());
+    button.setEnabled(toggle.isChecked());
 
-    const error_text = self.ErrorString(allocator);
+    const error_text = self.errorString(allocator);
     defer allocator.free(error_text);
 
-    status.SetText(error_text);
+    status.setText(error_text);
 }

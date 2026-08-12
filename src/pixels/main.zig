@@ -36,123 +36,123 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 Pixel Editor Example");
-    window.Resize(490, 520);
-    window.SetMinimumSize2(360, 450);
+    window.setWindowTitle("Qt 6 Pixel Editor Example");
+    window.resize(490, 520);
+    window.setMinimumSize2(360, 450);
 
-    status_bar = QStatusBar.New(window);
-    window.SetStatusBar(status_bar);
+    status_bar = .new(window);
+    window.setStatusBar(status_bar);
 
-    scene = QGraphicsScene.New();
-    defer scene.Delete();
+    scene = .new();
+    defer scene.delete();
 
-    view = QGraphicsView.New2();
-    defer view.Delete();
+    view = .new2();
+    defer view.delete();
 
-    scene.OnKeyPressEvent(sceneKeyPressEvent);
-    scene.OnWheelEvent(sceneWheelEvent);
-    view.OnResizeEvent(viewResizeEvent);
+    scene.onKeyPressEvent(sceneKeyPressEvent);
+    scene.onWheelEvent(sceneWheelEvent);
+    view.onResizeEvent(viewResizeEvent);
 
-    const image = QImage.New3(dx, dy, qimage_enums.Format.Format_ARGB32);
-    defer image.Delete();
+    const image = QImage.new3(dx, dy, qimage_enums.Format.Format_ARGB32);
+    defer image.delete();
 
     for (0..dx) |i|
         for (0..dy) |j| {
             const x: i32 = @intCast(i);
             const y: i32 = @intCast(j);
 
-            const color = QColor.New15(x, y * 3, x * 4, 255);
-            defer color.Delete();
+            const color = QColor.new15(x, y * 3, x * 4, 255);
+            defer color.delete();
 
-            image.SetPixelColor(x, y, color);
+            image.setPixelColor(x, y, color);
         };
 
-    const pixmap = QPixmap.FromImage(image);
-    defer pixmap.Delete();
+    const pixmap = QPixmap.fromImage(image);
+    defer pixmap.delete();
 
-    const item = QGraphicsPixmapItem.New2(pixmap);
-    defer item.Delete();
+    const item = QGraphicsPixmapItem.new2(pixmap);
+    defer item.delete();
 
-    item.SetAcceptHoverEvents(true);
+    item.setAcceptHoverEvents(true);
 
-    item.OnMouseMoveEvent(itemMouseEvent);
-    item.OnMousePressEvent(itemMouseEvent);
-    item.OnHoverMoveEvent(itemHoverMoveEvent);
+    item.onMouseMoveEvent(itemMouseEvent);
+    item.onMousePressEvent(itemMouseEvent);
+    item.onHoverMoveEvent(itemHoverMoveEvent);
 
-    scene.AddItem(item);
-    view.SetScene(scene);
-    view.Show();
+    scene.addItem(item);
+    view.setScene(scene);
+    view.show();
 
-    status_bar.ShowMessage("Click and drag to draw a pixel. " ++
+    status_bar.showMessage("Click and drag to draw a pixel. " ++
         "Use Shift+scroll or keys 0 or 9 to zoom in or out.");
 
-    window.SetCentralWidget(view);
-    window.Show();
+    window.setCentralWidget(view);
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn sceneKeyPressEvent(_: QGraphicsScene, event: QKeyEvent) callconv(.c) void {
-    const key = event.Key();
+    const key = event.key();
     switch (key) {
-        qnamespace_enums.Key.Key_0 => view.Scale(zoom_in_scale, zoom_in_scale),
-        qnamespace_enums.Key.Key_9 => view.Scale(zoom_out_scale, zoom_out_scale),
+        qnamespace_enums.Key.Key_0 => view.scale(zoom_in_scale, zoom_in_scale),
+        qnamespace_enums.Key.Key_9 => view.scale(zoom_out_scale, zoom_out_scale),
         else => {},
     }
 }
 
 fn sceneWheelEvent(_: QGraphicsScene, event: QGraphicsSceneWheelEvent) callconv(.c) void {
-    if ((QApplication.QueryKeyboardModifiers() & qnamespace_enums.KeyboardModifier.ShiftModifier) != 0)
-        if (event.Delta() > 0)
-            view.Scale(zoom_in_scale, zoom_in_scale)
+    if ((QApplication.queryKeyboardModifiers() & qnamespace_enums.KeyboardModifier.ShiftModifier) != 0)
+        if (event.delta() > 0)
+            view.scale(zoom_in_scale, zoom_in_scale)
         else
-            view.Scale(zoom_out_scale, zoom_out_scale);
+            view.scale(zoom_out_scale, zoom_out_scale);
 }
 
 fn viewResizeEvent(self: QGraphicsView, _: QResizeEvent) callconv(.c) void {
-    const rect = scene.ItemsBoundingRect();
-    defer rect.Delete();
+    const rect = scene.itemsBoundingRect();
+    defer rect.delete();
 
-    self.FitInView22(rect, qnamespace_enums.AspectRatioMode.KeepAspectRatio);
+    self.fitInView22(rect, qnamespace_enums.AspectRatioMode.KeepAspectRatio);
 }
 
 fn itemMouseEvent(self: QGraphicsPixmapItem, event: QGraphicsSceneMouseEvent) callconv(.c) void {
-    const pos = event.Pos();
-    defer pos.Delete();
+    const pos = event.pos();
+    defer pos.delete();
 
     drawPixel(self, pos);
 }
 
 fn itemHoverMoveEvent(self: QGraphicsPixmapItem, event: QGraphicsSceneHoverEvent) callconv(.c) void {
-    const pos = event.Pos();
-    defer pos.Delete();
+    const pos = event.pos();
+    defer pos.delete();
 
-    const x: i32 = @trunc(pos.X());
-    const y: i32 = @trunc(pos.Y());
+    const x: i32 = @trunc(pos.x());
+    const y: i32 = @trunc(pos.y());
 
-    const pm = self.Pixmap();
-    defer pm.Delete();
+    const pm = self.pixmap();
+    defer pm.delete();
 
-    const img = pm.ToImage();
-    defer img.Delete();
+    const img = pm.toImage();
+    defer img.delete();
 
-    const height = img.Height();
-    const width = img.Width();
+    const height = img.height();
+    const width = img.width();
 
     if (x < 0 or y < 0 or x >= width or y >= height) return;
 
-    const color = img.PixelColor(x, y);
-    defer color.Delete();
+    const color = img.pixelColor(x, y);
+    defer color.delete();
 
-    const r = color.Red();
-    const g = color.Green();
-    const b = color.Blue();
+    const r = color.red();
+    const g = color.green();
+    const b = color.blue();
 
     const msg = std.fmt.bufPrint(&buffer, "x: {d}, y: {d}, r: {d}, g: {d}, b: {d}", .{
         x,
@@ -162,24 +162,24 @@ fn itemHoverMoveEvent(self: QGraphicsPixmapItem, event: QGraphicsSceneHoverEvent
         b,
     }) catch @panic("Failed to bufPrint");
 
-    status_bar.ShowMessage(msg);
+    status_bar.showMessage(msg);
 }
 
 fn drawPixel(item: QGraphicsPixmapItem, pos: QPointF) void {
-    const x: i32 = @trunc(pos.X());
-    const y: i32 = @trunc(pos.Y());
+    const x: i32 = @trunc(pos.x());
+    const y: i32 = @trunc(pos.y());
 
-    const pm = item.Pixmap();
-    defer pm.Delete();
+    const pm = item.pixmap();
+    defer pm.delete();
 
-    const img = pm.ToImage();
-    defer img.Delete();
+    const img = pm.toImage();
+    defer img.delete();
 
-    const color = QColor.New15(replacement_r, replacement_g, replacement_b, 255);
-    defer color.Delete();
+    const color = QColor.new15(replacement_r, replacement_g, replacement_b, 255);
+    defer color.delete();
 
-    const height = img.Height();
-    const width = img.Width();
+    const height = img.height();
+    const width = img.width();
 
     if (x < 0 or y < 0 or x >= width or y >= height) return;
 
@@ -191,12 +191,12 @@ fn drawPixel(item: QGraphicsPixmapItem, pos: QPointF) void {
         replacement_b,
     }) catch @panic("Failed to bufPrint");
 
-    status_bar.ShowMessage(msg);
+    status_bar.showMessage(msg);
 
-    img.SetPixelColor(x, y, color);
+    img.setPixelColor(x, y, color);
 
-    const pm2 = QPixmap.FromImage(img);
-    defer pm2.Delete();
+    const pm2 = QPixmap.fromImage(img);
+    defer pm2.delete();
 
-    item.SetPixmap(pm2);
+    item.setPixmap(pm2);
 }

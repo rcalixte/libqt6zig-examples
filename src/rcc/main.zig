@@ -12,8 +12,8 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     var ok = rcc.init();
     if (!ok)
@@ -27,49 +27,49 @@ pub fn main(init: std.process.Init) !void {
             ) catch @panic("Failed to stdout deinit\n");
     }
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetMinimumSize2(650, 150);
+    widget.setMinimumSize2(650, 150);
 
-    const hbox = QHBoxLayout.New(widget);
+    const hbox = QHBoxLayout.new(widget);
 
-    const radio1 = QRadioButton.New2();
-    radio1.SetToolTip("Qt");
-    const icon1 = QIcon.New4(":/images/qt.png");
-    defer icon1.Delete();
-    radio1.SetIcon(icon1);
-    const size1 = QSize.New4(50, 50);
-    defer size1.Delete();
-    radio1.SetIconSize(size1);
+    const radio1 = QRadioButton.new2();
+    radio1.setToolTip("Qt");
+    const icon1 = QIcon.new4(":/images/qt.png");
+    defer icon1.delete();
+    radio1.setIcon(icon1);
+    const size1 = QSize.new4(50, 50);
+    defer size1.delete();
+    radio1.setIconSize(size1);
 
-    const radio2 = QRadioButton.New2();
-    radio2.SetToolTip("Zig");
-    const icon2 = QIcon.New4(":/images/zig.png");
-    defer icon2.Delete();
-    radio2.SetIcon(icon2);
-    const size2 = QSize.New4(50, 50);
-    defer size2.Delete();
-    radio2.SetIconSize(size2);
+    const radio2 = QRadioButton.new2();
+    radio2.setToolTip("Zig");
+    const icon2 = QIcon.new4(":/images/zig.png");
+    defer icon2.delete();
+    radio2.setIcon(icon2);
+    const size2 = QSize.new4(50, 50);
+    defer size2.delete();
+    radio2.setIconSize(size2);
 
-    const radio3 = QRadioButton.New2();
-    radio3.SetToolTip("libqt6zig");
-    const icon3 = QIcon.New4(":/images/libqt6zig.png");
-    defer icon3.Delete();
-    radio3.SetIcon(icon3);
-    const size3 = QSize.New4(120, 40);
-    defer size3.Delete();
-    radio3.SetIconSize(size3);
+    const radio3 = QRadioButton.new2();
+    radio3.setToolTip("libqt6zig");
+    const icon3 = QIcon.new4(":/images/libqt6zig.png");
+    defer icon3.delete();
+    radio3.setIcon(icon3);
+    const size3 = QSize.new4(120, 40);
+    defer size3.delete();
+    radio3.setIconSize(size3);
 
-    hbox.AddStretch();
-    hbox.AddWidget(radio1);
-    hbox.AddStretch();
-    hbox.AddWidget(radio2);
-    hbox.AddStretch();
-    hbox.AddWidget(radio3);
-    hbox.AddStretch();
+    hbox.addStretch();
+    hbox.addWidget(radio1);
+    hbox.addStretch();
+    hbox.addWidget(radio2);
+    hbox.addStretch();
+    hbox.addWidget(radio3);
+    hbox.addStretch();
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

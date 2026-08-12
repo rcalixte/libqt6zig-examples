@@ -35,82 +35,83 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
     io = init.io;
 
-    const listwidget = QListWidget.New2();
-    defer listwidget.Delete();
+    const listwidget = QListWidget.new2();
+    defer listwidget.delete();
 
-    listwidget.SetWindowTitle("Qt 6 KFileMetaData Example");
-    listwidget.Resize(500, 250);
-    listwidget.SetSpacing(5);
+    listwidget.setWindowTitle("Qt 6 KFileMetaData Example");
+    listwidget.resize(500, 250);
+    listwidget.setSpacing(5);
 
-    const size = QSize.New4(200, 200);
-    defer size.Delete();
+    const size = QSize.new4(200, 200);
+    defer size.delete();
 
-    listwidget.SetIconSize(size);
-    listwidget.SetViewMode(qlistview_enums.ViewMode.IconMode);
+    listwidget.setIconSize(size);
+    listwidget.setViewMode(qlistview_enums.ViewMode.IconMode);
 
-    const icon = QIcon.New4(filename);
-    defer icon.Delete();
+    const icon = QIcon.new4(filename);
+    defer icon.delete();
 
-    const item = QListWidgetItem.New3(icon, "Image Properties");
-    defer item.Delete();
+    const item = QListWidgetItem.new3(icon, "Image Properties");
+    defer item.delete();
 
-    listwidget.AddItem2(item);
+    listwidget.addItem2(item);
 
-    const object = QObject.New();
-    defer object.Delete();
+    const object = QObject.new();
+    defer object.delete();
 
-    const pngextractor = KFileMetaData__ExtractorPlugin.New(object);
-    pngextractor.OnMimetypes(onMimeTypes);
-    pngextractor.OnExtract(onExtract);
+    const pngextractor = KFileMetaData__ExtractorPlugin.new(object);
+    pngextractor.onMimetypes(onMimeTypes);
+    pngextractor.onExtract(onExtract);
 
-    const result = KFileMetaData__SimpleExtractionResult.New(filename);
-    defer result.Delete();
+    const result = KFileMetaData__SimpleExtractionResult.new(filename);
+    defer result.delete();
 
-    pngextractor.Extract(result);
+    pngextractor.extract(result);
 
-    var properties = result.Properties(allocator);
+    var properties = result.properties(allocator);
     defer properties.deinit(allocator);
 
     var it = properties.iterator();
     while (it.next()) |entry| {
         const key = entry.key_ptr.*;
         for (0..entry.value_ptr.*.len) |j| {
-            const value_str = entry.value_ptr.*[j].ToString(allocator);
+            const value_str = entry.value_ptr.*[j].toString(allocator);
             defer {
                 allocator.free(value_str);
-                entry.value_ptr.*[j].Delete();
+                entry.value_ptr.*[j].delete();
                 allocator.free(entry.value_ptr.*);
             }
 
-            const info = KFileMetaData__PropertyInfo.New2(key);
-            defer info.Delete();
+            const info = KFileMetaData__PropertyInfo.new2(key);
+            defer info.delete();
 
-            const name = info.DisplayName(allocator);
+            const name = info.displayName(allocator);
             defer allocator.free(name);
 
             const text = try std.mem.concat(allocator, u8, &.{ name, ": ", value_str });
             defer allocator.free(text);
 
-            listwidget.AddItem(text);
+            listwidget.addItem(text);
         }
     }
 
-    listwidget.Show();
+    listwidget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     const n: usize = 1;
     const list: [*:null]?[*:0]const u8 = switch (builtin.os.tag == .windows) {
         true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
-        false => std.heap.c_allocator.allocSentinel(?[*:0]const u8, n, null) catch @panic("Failed to allocate memory"),
+        false => std.heap.c_allocator.allocSentinel(?[*:0]const u8, n, null) catch
+            @panic("Failed to allocate memory"),
     };
 
     list[0] = "image/png";
@@ -121,23 +122,29 @@ fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
 
 fn onExtract(_: KFileMetaData__ExtractorPlugin, result: KFileMetaData__ExtractionResult) callconv(.c) void {
     var format = "png".*;
-    const reader = QImageReader.New5(filename, &format);
-    defer reader.Delete();
+    const reader = QImageReader.new5(filename, &format);
+    defer reader.delete();
 
-    if (!reader.CanRead()) {
-        std.Io.File.stdout().writeStreamingAll(io, "Unable to read input image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during read");
+    if (!reader.canRead()) {
+        std.Io.File.stdout().writeStreamingAll(
+            io,
+            "Unable to read input image: '" ++ filename ++ "'\n",
+        ) catch @panic("onExtract stdout error during read");
         return;
     }
 
-    result.AddType(types_enums.Type.Image);
+    result.addType(types_enums.Type.Image);
 
-    if ((result.InputFlags() & extractionresult_enums.Flag.ExtractMetaData) == 0) {
-        std.Io.File.stdout().writeStreamingAll(io, "Unable to extract metadata from image: '" ++ filename ++ "'\n") catch @panic("onExtract stdout error during extraction");
+    if ((result.inputFlags() & extractionresult_enums.Flag.ExtractMetaData) == 0) {
+        std.Io.File.stdout().writeStreamingAll(
+            io,
+            "Unable to extract metadata from image: '" ++ filename ++ "'\n",
+        ) catch @panic("onExtract stdout error during extraction");
         return;
     }
 
     for (text_mapping) |mapping| {
-        const value = reader.Text(
+        const value = reader.text(
             allocator,
             mapping.key,
         );
@@ -145,9 +152,9 @@ fn onExtract(_: KFileMetaData__ExtractorPlugin, result: KFileMetaData__Extractio
 
         if (value.len == 0) continue;
 
-        const variant = QVariant.New24(value);
-        defer variant.Delete();
+        const variant = QVariant.new24(value);
+        defer variant.delete();
 
-        result.Add(mapping.property, variant);
+        result.add(mapping.property, variant);
     }
 }

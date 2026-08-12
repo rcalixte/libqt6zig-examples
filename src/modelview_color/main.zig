@@ -14,22 +14,22 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const model = QAbstractListModel.New();
-    defer model.Delete();
+    const model = QAbstractListModel.new();
+    defer model.delete();
 
-    model.OnRowCount(onRowCount);
-    model.OnData(onData);
+    model.onRowCount(onRowCount);
+    model.onData(onData);
 
-    const listview = QListView.New2();
-    defer listview.Delete();
+    const listview = QListView.new2();
+    defer listview.delete();
 
-    listview.SetModel(model);
-    listview.Show();
+    listview.setModel(model);
+    listview.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn onRowCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
@@ -38,28 +38,29 @@ fn onRowCount(_: QAbstractListModel, _: QModelIndex) callconv(.c) i32 {
 
 fn onData(_: QAbstractListModel, index: QModelIndex, role: i32) callconv(.c) QVariant {
     switch (role) {
-        qnamespace_enums.ItemDataRole.ForegroundRole => if (@mod(index.Row(), 2) == 0) {
-            const color = QColor.New5(0, 0, 0);
-            defer color.Delete();
-            return color.ToQVariant();
+        qnamespace_enums.ItemDataRole.ForegroundRole => if (@mod(index.row(), 2) == 0) {
+            const color = QColor.new5(0, 0, 0);
+            defer color.delete();
+            return color.toQVariant();
         } else {
-            const color = QColor.New5(255, 0, 0);
-            defer color.Delete();
-            return color.ToQVariant();
+            const color = QColor.new5(255, 0, 0);
+            defer color.delete();
+            return color.toQVariant();
         },
-        qnamespace_enums.ItemDataRole.BackgroundRole => if (@mod(index.Row(), 2) == 0) {
-            const color = QColor.New5(255, 255, 255);
-            defer color.Delete();
-            return color.ToQVariant();
+        qnamespace_enums.ItemDataRole.BackgroundRole => if (@mod(index.row(), 2) == 0) {
+            const color = QColor.new5(255, 255, 255);
+            defer color.delete();
+            return color.toQVariant();
         } else {
-            const color = QColor.New5(80, 80, 80);
-            defer color.Delete();
-            return color.ToQVariant();
+            const color = QColor.new5(80, 80, 80);
+            defer color.delete();
+            return color.toQVariant();
         },
         qnamespace_enums.ItemDataRole.DisplayRole => {
-            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{index.Row()}) catch @panic("failed to bufPrint");
-            return QVariant.New24(str);
+            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{index.row()}) catch
+                @panic("failed to bufPrint");
+            return .new24(str);
         },
-        else => return QVariant.New(),
+        else => return .new(),
     }
 }

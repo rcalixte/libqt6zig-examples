@@ -15,33 +15,33 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetFixedWidth(400);
-    widget.SetFixedHeight(100);
-    widget.OnMousePressEvent(widgetMousePressEvent);
-    widget.OnKeyPressEvent(widgetKeyPressEvent);
+    widget.setFixedWidth(400);
+    widget.setFixedHeight(100);
+    widget.onMousePressEvent(widgetMousePressEvent);
+    widget.onKeyPressEvent(widgetKeyPressEvent);
 
-    label = QLabel.New3("### Press any key or click the mouse here!");
-    label.SetFocusPolicy(qnamespace_enums.FocusPolicy.StrongFocus);
-    label.SetTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-    label.SetAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
-    label.OnMousePressEvent(labelMousePressEvent);
-    label.OnKeyPressEvent(labelKeyPressEvent);
+    label = .new3("### Press any key or click the mouse here!");
+    label.setFocusPolicy(qnamespace_enums.FocusPolicy.StrongFocus);
+    label.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
+    label.onMousePressEvent(labelMousePressEvent);
+    label.onKeyPressEvent(labelKeyPressEvent);
 
-    const layout = QVBoxLayout.New2();
-    layout.AddStretch();
-    layout.AddWidget(label);
-    layout.AddStretch();
-    widget.SetLayout(layout);
+    const layout = QVBoxLayout.new2();
+    layout.addStretch();
+    layout.addWidget(label);
+    layout.addStretch();
+    widget.setLayout(layout);
 
-    widget.Show();
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn widgetMousePressEvent(_: QWidget, event: QMouseEvent) callconv(.c) void {
@@ -53,17 +53,17 @@ fn labelMousePressEvent(_: QLabel, event: QMouseEvent) callconv(.c) void {
 }
 
 fn mousePressEvent(event: QMouseEvent) void {
-    const mouse = event.Button();
+    const mouse = event.button();
     switch (mouse) {
-        qnamespace_enums.MouseButton.LeftButton => label.SetText("## Left mouse button pressed!"),
-        qnamespace_enums.MouseButton.RightButton => label.SetText("## Right mouse button pressed!"),
+        qnamespace_enums.MouseButton.LeftButton => label.setText("## Left mouse button pressed!"),
+        qnamespace_enums.MouseButton.RightButton => label.setText("## Right mouse button pressed!"),
         else => {
             const formatted = std.fmt.bufPrint(
                 &buffer,
                 "## Mouse button keycode: {d}",
                 .{mouse},
             ) catch @panic("Buffer full");
-            label.SetText(formatted);
+            label.setText(formatted);
         },
     }
 }
@@ -77,11 +77,11 @@ fn labelKeyPressEvent(_: QLabel, event: QKeyEvent) callconv(.c) void {
 }
 
 fn keyPressEvent(event: QKeyEvent) void {
-    const key = event.Key();
+    const key = event.key();
     const formatted = std.fmt.bufPrint(
         &buffer,
         "## You pressed key code: {d}",
         .{key},
     ) catch @panic("Buffer full");
-    label.SetText(formatted);
+    label.setText(formatted);
 }

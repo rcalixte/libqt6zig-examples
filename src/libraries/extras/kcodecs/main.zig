@@ -11,35 +11,33 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const charsets = KCharsets.Charsets();
+    const charsets = KCharsets.charsets();
 
-    const names = charsets.AvailableEncodingNames(init.gpa);
+    const names = charsets.availableEncodingNames(init.gpa);
     defer {
         for (names) |name|
             init.gpa.free(name);
         init.gpa.free(names);
     }
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 KCharsets");
-    widget.SetMinimumSize2(300, 400);
+    widget.setWindowTitle("Qt 6 KCharsets");
+    widget.setMinimumSize2(300, 400);
 
-    const vboxlayout = QVBoxLayout.New2();
-    const label = QLabel.New3("Available Encodings:");
-    const listwidget = QListWidget.New2();
+    const vboxlayout = QVBoxLayout.new2();
+    const listwidget = QListWidget.new2();
+    listwidget.addItems(init.gpa, names);
 
-    listwidget.AddItems(init.gpa, names);
+    vboxlayout.addWidget(QLabel.new3("Available Encodings:"));
+    vboxlayout.addWidget(listwidget);
+    widget.setLayout(vboxlayout);
 
-    vboxlayout.AddWidget(label);
-    vboxlayout.AddWidget(listwidget);
-    widget.SetLayout(vboxlayout);
+    widget.show();
 
-    widget.Show();
-
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

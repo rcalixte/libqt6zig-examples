@@ -12,34 +12,34 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const window = QMainWindow.New2();
-    defer window.Delete();
+    const window = QMainWindow.new2();
+    defer window.delete();
 
-    window.SetWindowTitle("Qt 6 OpenGL Example");
-    window.SetMinimumSize2(400, 400);
+    window.setWindowTitle("Qt 6 OpenGL Example");
+    window.setMinimumSize2(400, 400);
 
-    const glwidget = QOpenGLWidget.New2();
+    const glwidget = QOpenGLWidget.new2();
 
-    glwidget.OnInitializeGL(initializeGL);
-    glwidget.OnResizeGL(resizeGL);
+    glwidget.onInitializeGL(initializeGL);
+    glwidget.onResizeGL(resizeGL);
 
-    window.SetCentralWidget(glwidget);
+    window.setCentralWidget(glwidget);
 
-    window.Show();
+    window.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }
 
 fn initializeGL() callconv(.c) void {
-    glfuncs = QOpenGLContext.CurrentContext().ExtraFunctions();
+    glfuncs = QOpenGLContext.currentContext().extraFunctions();
 
-    glfuncs.InitializeOpenGLFunctions();
-    glfuncs.GlClearColor(0.92, 0.57, 0.36, 1);
+    glfuncs.initializeOpenGLFunctions();
+    glfuncs.glClearColor(0.92, 0.57, 0.36, 1);
 }
 
 fn resizeGL(_: QOpenGLWidget, width: i32, height: i32) callconv(.c) void {
-    glfuncs.GlViewport(0, 0, width, height);
+    glfuncs.glViewport(0, 0, width, height);
 }

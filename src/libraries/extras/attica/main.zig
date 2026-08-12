@@ -12,74 +12,74 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
-    const project = Attica__Project.New();
-    defer project.Delete();
+    const project = Attica__Project.new();
+    defer project.delete();
 
-    project.SetDescription("Qt 6 for Zig");
-    project.SetName("libqt6zig");
-    project.SetVersion("6.8.2");
-    project.SetUrl("https://github.com/rcalixte/libqt6zig");
-    project.SetLicense("MIT");
+    project.setDescription("Qt 6 for Zig");
+    project.setName("libqt6zig");
+    project.setVersion("6.8.2");
+    project.setUrl("https://github.com/rcalixte/libqt6zig");
+    project.setLicense("MIT");
 
-    const widget = QWidget.New2();
-    defer widget.Delete();
+    const widget = QWidget.new2();
+    defer widget.delete();
 
-    widget.SetWindowTitle("Qt 6 Attica Example");
-    widget.SetMinimumSize2(350, 250);
+    widget.setWindowTitle("Qt 6 Attica Example");
+    widget.setMinimumSize2(350, 250);
 
-    const desc = QLabel.New3("Description:");
-    desc.SetTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const desc_text = project.Description(init.gpa);
+    const desc = QLabel.new3("Description:");
+    desc.setTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
+    const desc_text = project.description(init.gpa);
     defer init.gpa.free(desc_text);
-    const desc_edit = QLineEdit.New3(desc_text);
-    desc_edit.SetReadOnly(true);
+    const desc_edit = QLineEdit.new3(desc_text);
+    desc_edit.setReadOnly(true);
 
-    const name = QLabel.New3("Name:");
-    name.SetTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const name_text = project.Name(init.gpa);
+    const name = QLabel.new3("Name:");
+    name.setTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
+    const name_text = project.name(init.gpa);
     defer init.gpa.free(name_text);
-    const name_edit = QLineEdit.New3(name_text);
-    name_edit.SetReadOnly(true);
+    const name_edit = QLineEdit.new3(name_text);
+    name_edit.setReadOnly(true);
 
-    const version = QLabel.New3("Version:");
-    version.SetTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const version_text = project.Version(init.gpa);
+    const version = QLabel.new3("Version:");
+    version.setTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
+    const version_text = project.version(init.gpa);
     defer init.gpa.free(version_text);
-    const version_edit = QLineEdit.New3(version_text);
-    version_edit.SetReadOnly(true);
+    const version_edit = QLineEdit.new3(version_text);
+    version_edit.setReadOnly(true);
 
-    const url = QLabel.New3("URL:");
-    url.SetTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const url_text = project.Url(init.gpa);
+    const url = QLabel.new3("URL:");
+    url.setTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
+    const url_text = project.url(init.gpa);
     defer init.gpa.free(url_text);
-    const url_edit = QLineEdit.New3(url_text);
-    url_edit.SetReadOnly(true);
+    const url_edit = QLineEdit.new3(url_text);
+    url_edit.setReadOnly(true);
 
-    const lic = QLabel.New3("License:");
-    lic.SetTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
-    const lic_text = project.License(init.gpa);
+    const lic = QLabel.new3("License:");
+    lic.setTextInteractionFlags(qnamespace_enums.TextInteractionFlag.NoTextInteraction);
+    const lic_text = project.license(init.gpa);
     defer init.gpa.free(lic_text);
-    const lic_edit = QLineEdit.New3(lic_text);
-    lic_edit.SetReadOnly(true);
+    const lic_edit = QLineEdit.new3(lic_text);
+    lic_edit.setReadOnly(true);
 
-    const layout = QGridLayout.New2();
+    const layout = QGridLayout.new2();
 
-    layout.AddWidget2(desc, 0, 0);
-    layout.AddWidget2(desc_edit, 0, 1);
-    layout.AddWidget2(name, 1, 0);
-    layout.AddWidget2(name_edit, 1, 1);
-    layout.AddWidget2(version, 2, 0);
-    layout.AddWidget2(version_edit, 2, 1);
-    layout.AddWidget2(url, 3, 0);
-    layout.AddWidget2(url_edit, 3, 1);
-    layout.AddWidget2(lic, 4, 0);
-    layout.AddWidget2(lic_edit, 4, 1);
+    layout.addWidget2(desc, 0, 0);
+    layout.addWidget2(desc_edit, 0, 1);
+    layout.addWidget2(name, 1, 0);
+    layout.addWidget2(name_edit, 1, 1);
+    layout.addWidget2(version, 2, 0);
+    layout.addWidget2(version_edit, 2, 1);
+    layout.addWidget2(url, 3, 0);
+    layout.addWidget2(url_edit, 3, 1);
+    layout.addWidget2(lic, 4, 0);
+    layout.addWidget2(lic_edit, 4, 1);
 
-    widget.SetLayout(layout);
-    widget.Show();
+    widget.setLayout(layout);
+    widget.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 }

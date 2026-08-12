@@ -23,15 +23,15 @@ pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
     var argc: i32 = @intCast(argv.len);
-    const qapp = QApplication.New(init.arena.allocator(), &argc, argv);
-    defer qapp.Delete();
+    const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
+    defer qapp.delete();
 
     allocator = init.gpa;
 
     ui = try MainWindow.create(init.gpa);
     defer ui.destroy(init.gpa);
 
-    const engines = QTextToSpeech.AvailableEngines(init.gpa);
+    const engines = QTextToSpeech.availableEngines(init.gpa);
     defer {
         for (engines) |engine|
             init.gpa.free(engine);
@@ -39,226 +39,228 @@ pub fn main(init: std.process.Init) !void {
     }
 
     for (engines) |engine| {
-        const engine_variant = QVariant.New24(engine);
-        defer engine_variant.Delete();
+        const engine_variant = QVariant.new24(engine);
+        defer engine_variant.delete();
 
-        ui.engine.AddItem22(engine, engine_variant);
+        ui.engine.addItem22(engine, engine_variant);
     }
 
-    ui.engine.SetCurrentIndex(0);
+    ui.engine.setCurrentIndex(0);
     onEngineSelected(ui.engine, 0);
 
-    ui.pitch.OnValueChanged(onPitchChanged);
-    ui.rate.OnValueChanged(onRateChanged);
-    ui.volume.OnValueChanged(onVolumeChanged);
-    ui.engine.OnCurrentIndexChanged(onEngineSelected);
-    ui.language.OnCurrentIndexChanged(onLanguageSelected);
-    ui.voice.OnCurrentIndexChanged(onVoiceSelected);
+    ui.pitch.onValueChanged(onPitchChanged);
+    ui.rate.onValueChanged(onRateChanged);
+    ui.volume.onValueChanged(onVolumeChanged);
+    ui.engine.onCurrentIndexChanged(onEngineSelected);
+    ui.language.onCurrentIndexChanged(onLanguageSelected);
+    ui.voice.onCurrentIndexChanged(onVoiceSelected);
 
-    ui.MainWindow.Show();
+    ui.MainWindow.show();
 
-    _ = QApplication.Exec();
+    _ = QApplication.exec();
 
     defer {
         if (voices.len > 0) {
             for (voices) |voice|
-                voice.Delete();
+                voice.delete();
             init.gpa.free(voices);
         }
     }
 }
 
 fn onEngineSelected(self: QComboBox, index: i32) callconv(.c) void {
-    const variant = self.ItemData(index);
-    defer variant.Delete();
+    const variant = self.itemData(index);
+    defer variant.delete();
 
-    const engine_name = variant.ToString(allocator);
+    const engine_name = variant.toString(allocator);
     defer allocator.free(engine_name);
 
-    if (speech.ptr != null) speech.Delete();
+    if (speech.ptr != null) speech.delete();
 
-    speech = QTextToSpeech.New5(engine_name, ui.MainWindow);
+    speech = .new5(engine_name, ui.MainWindow);
 
-    if (speech.State() == qtexttospeech_enums.State.Ready)
+    if (speech.state() == qtexttospeech_enums.State.Ready)
         onEngineReady()
     else
-        speech.OnStateChanged(onStateChanged);
+        speech.onStateChanged(onStateChanged);
 }
 
 fn onEngineReady() void {
-    if (speech.State() != qtexttospeech_enums.State.Ready) {
-        onStateChanged(speech, speech.State());
+    if (speech.state() != qtexttospeech_enums.State.Ready) {
+        onStateChanged(speech, speech.state());
         return;
     }
 
-    ui.pauseButton.SetEnabled(false);
-    ui.resumeButton.SetEnabled(false);
+    ui.pauseButton.setEnabled(false);
+    ui.resumeButton.setEnabled(false);
 
-    const blocker = QSignalBlocker.New(ui.language);
-    defer blocker.Delete();
+    const blocker = QSignalBlocker.new(ui.language);
+    defer blocker.delete();
 
-    ui.language.Clear();
-    const locales = speech.AvailableLocales(allocator);
+    ui.language.clear();
+    const locales = speech.availableLocales(allocator);
     defer allocator.free(locales);
 
-    var current = speech.Locale();
-    defer current.Delete();
+    var current = speech.locale();
+    defer current.delete();
 
-    const current_name = current.Name(allocator);
+    const current_name = current.name(allocator);
     defer allocator.free(current_name);
 
     for (locales) |locale| {
-        defer locale.Delete();
+        defer locale.delete();
 
-        const language = QLocale.LanguageToString(allocator, locale.Language());
+        const language = QLocale.languageToString(allocator, locale.language());
         defer allocator.free(language);
 
-        const territory = QLocale.TerritoryToString(allocator, locale.Territory());
+        const territory = QLocale.territoryToString(allocator, locale.territory());
         defer allocator.free(territory);
 
-        const name = std.mem.concat(allocator, u8, &.{ language, " (", territory, ")" }) catch @panic("Failed to concat");
+        const name = std.mem.concat(allocator, u8, &.{ language, " (", territory, ")" }) catch
+            @panic("Failed to concat");
         defer allocator.free(name);
 
-        const variant = QVariant.New21(locale);
-        defer variant.Delete();
+        const variant = QVariant.new21(locale);
+        defer variant.delete();
 
-        ui.language.AddItem22(name, variant);
+        ui.language.addItem22(name, variant);
 
-        const locale_name = locale.Name(allocator);
+        const locale_name = locale.name(allocator);
         defer allocator.free(locale_name);
 
         if (std.mem.eql(u8, locale_name, current_name))
-            current.OperatorAssign(locale);
+            current.operatorAssign(locale);
     }
 
-    onRateChanged(ui.rate, ui.rate.Value());
-    onPitchChanged(ui.pitch, ui.pitch.Value());
-    onVolumeChanged(ui.volume, ui.volume.Value());
+    onRateChanged(ui.rate, ui.rate.value());
+    onPitchChanged(ui.pitch, ui.pitch.value());
+    onVolumeChanged(ui.volume, ui.volume.value());
 
-    ui.speakButton.OnClicked(onSpeakClicked);
-    ui.stopButton.OnClicked(onStopClicked);
-    ui.pauseButton.OnClicked(onPauseClicked);
-    ui.resumeButton.OnClicked(onResumeClicked);
+    ui.speakButton.onClicked(onSpeakClicked);
+    ui.stopButton.onClicked(onStopClicked);
+    ui.pauseButton.onClicked(onPauseClicked);
+    ui.resumeButton.onClicked(onResumeClicked);
 
-    speech.OnStateChanged(onStateChanged);
-    speech.OnLocaleChanged(onLocaleChanged);
+    speech.onStateChanged(onStateChanged);
+    speech.onLocaleChanged(onLocaleChanged);
 
-    blocker.Unblock();
+    blocker.unblock();
     onLocaleChanged(speech, current);
 }
 
 fn onStateChanged(_: QTextToSpeech, state: i32) callconv(.c) void {
     switch (state) {
-        qtexttospeech_enums.State.Speaking => ui.statusbar.ShowMessage("Speech started..."),
-        qtexttospeech_enums.State.Ready => ui.statusbar.ShowMessage2("Speech stopped...", 2000),
-        qtexttospeech_enums.State.Paused => ui.statusbar.ShowMessage("Speech paused..."),
-        else => ui.statusbar.ShowMessage("Speech error!"),
+        qtexttospeech_enums.State.Speaking => ui.statusbar.showMessage("Speech started..."),
+        qtexttospeech_enums.State.Ready => ui.statusbar.showMessage2("Speech stopped...", 2000),
+        qtexttospeech_enums.State.Paused => ui.statusbar.showMessage("Speech paused..."),
+        else => ui.statusbar.showMessage("Speech error!"),
     }
 
-    ui.pauseButton.SetEnabled(state == qtexttospeech_enums.State.Speaking);
-    ui.resumeButton.SetEnabled(state == qtexttospeech_enums.State.Paused);
-    ui.stopButton.SetEnabled(state == qtexttospeech_enums.State.Speaking or state == qtexttospeech_enums.State.Paused);
+    ui.pauseButton.setEnabled(state == qtexttospeech_enums.State.Speaking);
+    ui.resumeButton.setEnabled(state == qtexttospeech_enums.State.Paused);
+    ui.stopButton.setEnabled(state == qtexttospeech_enums.State.Speaking or state == qtexttospeech_enums.State.Paused);
 }
 
 fn onPitchChanged(_: QSlider, value: i32) callconv(.c) void {
-    speech.SetPitch(value);
+    speech.setPitch(value);
     reset();
 }
 
 fn onRateChanged(_: QSlider, value: i32) callconv(.c) void {
-    speech.SetRate(value);
+    speech.setRate(value);
     reset();
 }
 
 fn onVolumeChanged(_: QSlider, value: i32) callconv(.c) void {
-    speech.SetVolume(value);
+    speech.setVolume(value);
     reset();
 }
 
 fn onLanguageSelected(self: QComboBox, index: i32) callconv(.c) void {
-    const variant = self.ItemData(index);
-    defer variant.Delete();
+    const variant = self.itemData(index);
+    defer variant.delete();
 
-    const locale = variant.ToLocale();
-    defer locale.Delete();
+    const locale = variant.toLocale();
+    defer locale.delete();
 
-    speech.SetLocale(locale);
+    speech.setLocale(locale);
     reset();
 }
 
 fn onVoiceSelected(_: QComboBox, index: i32) callconv(.c) void {
     if (voices.len <= index) return;
 
-    speech.SetVoice(voices[@intCast(index)]);
+    speech.setVoice(voices[@intCast(index)]);
     reset();
 }
 
 fn onSpeakClicked(_: QPushButton) callconv(.c) void {
-    const text = ui.plainTextEdit.ToPlainText(allocator);
+    const text = ui.plainTextEdit.toPlainText(allocator);
     defer allocator.free(text);
 
-    speech.Say(text);
+    speech.say(text);
 }
 
 fn onStopClicked(_: QPushButton) callconv(.c) void {
-    speech.Stop();
+    speech.stop();
 }
 
 fn onPauseClicked(_: QPushButton) callconv(.c) void {
-    speech.Pause();
+    speech.pause();
 }
 
 fn onResumeClicked(_: QPushButton) callconv(.c) void {
-    speech.Resume();
+    speech.resume0();
 }
 
 fn onLocaleChanged(_: QTextToSpeech, locale: QLocale) callconv(.c) void {
-    const variant = QVariant.New21(locale);
-    defer variant.Delete();
+    const variant = QVariant.new21(locale);
+    defer variant.delete();
 
-    ui.language.SetCurrentIndex(ui.language.FindData(variant));
+    ui.language.setCurrentIndex(ui.language.findData(variant));
 
-    const blocker = QSignalBlocker.New(ui.voice);
-    defer blocker.Delete();
+    const blocker = QSignalBlocker.new(ui.voice);
+    defer blocker.delete();
 
     reset();
-    ui.voice.Clear();
+    ui.voice.clear();
 
     if (voices.len > 0) {
         for (voices) |voice|
-            voice.Delete();
+            voice.delete();
         allocator.free(voices);
     }
 
-    voices = speech.AvailableVoices(allocator);
+    voices = speech.availableVoices(allocator);
 
-    const current = speech.Voice();
-    defer current.Delete();
+    const current = speech.voice();
+    defer current.delete();
 
-    const current_name = current.Name(allocator);
+    const current_name = current.name(allocator);
     defer allocator.free(current_name);
 
     for (voices) |voice| {
-        const name = voice.Name(allocator);
+        const name = voice.name(allocator);
         defer allocator.free(name);
 
-        const gender_name = QVoice.GenderName(allocator, voice.Gender());
+        const gender_name = QVoice.genderName(allocator, voice.gender());
         defer allocator.free(gender_name);
 
-        const age_name = QVoice.AgeName(allocator, voice.Age());
+        const age_name = QVoice.ageName(allocator, voice.age());
         defer allocator.free(age_name);
 
-        const item = std.mem.concat(allocator, u8, &.{ name, " - ", gender_name, " - ", age_name }) catch @panic("Failed to concat");
+        const item = std.mem.concat(allocator, u8, &.{ name, " - ", gender_name, " - ", age_name }) catch
+            @panic("Failed to concat");
         defer allocator.free(item);
 
-        ui.voice.AddItem(item);
+        ui.voice.addItem(item);
 
-        if (std.mem.eql(u8, name, current_name)) ui.voice.SetCurrentIndex(ui.voice.Count() - 1);
+        if (std.mem.eql(u8, name, current_name)) ui.voice.setCurrentIndex(ui.voice.count() - 1);
     }
 }
 
 fn reset() void {
-    ui.pauseButton.SetEnabled(false);
-    ui.resumeButton.SetEnabled(false);
-    speech.Stop();
+    ui.pauseButton.setEnabled(false);
+    ui.resumeButton.setEnabled(false);
+    speech.stop();
 }
