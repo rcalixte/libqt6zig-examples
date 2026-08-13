@@ -28,7 +28,7 @@ const AppWindowMap = std.AutoHashMapUnmanaged(QTabWidget, *AppWindow);
 
 var app_tab_map: AppTabMap = .empty;
 var app_window_tab_map: AppWindowMap = .empty;
-var main_window: *AppWindow = undefined;
+var app_window: *AppWindow = undefined;
 
 pub const AppTab = struct {
     tab: QWidget,
@@ -60,6 +60,11 @@ pub const AppTab = struct {
         panes.setSizes(&sizes);
 
         return ret;
+    }
+
+    pub fn destroy(self: *AppTab, alloc: std.mem.Allocator) void {
+        self.tab.delete();
+        alloc.destroy(self);
     }
 
     pub fn updateOutlineForContent(self: *AppTab, content: []const u8) void {
@@ -102,13 +107,6 @@ pub const AppTab = struct {
             prev_line = line;
             line_number += 1;
         }
-    }
-
-    pub fn destroy(self: *AppTab, alloc: std.mem.Allocator) void {
-        // Clean up tab widget which will clean up the child objects too
-        self.tab.delete();
-        self.tab.ptr = null;
-        alloc.destroy(self);
     }
 
     pub fn handleJumpToBookmark(self: QListWidget, current: QListWidgetItem, _: QListWidgetItem) callconv(.c) void {
@@ -221,9 +219,13 @@ pub const AppWindow = struct {
         ret.createTabWithContents(alloc, "README.md", @embedFile("README.md"));
 
         try app_window_tab_map.put(alloc, ret.tabs, ret);
-        main_window = ret;
 
         return ret;
+    }
+
+    pub fn destroy(self: *AppWindow, alloc: std.mem.Allocator) void {
+        self.w.delete();
+        alloc.destroy(self);
     }
 
     pub fn createTabWithContents(
@@ -268,21 +270,21 @@ pub const AppWindow = struct {
     }
 
     pub fn handleCloseCurrentTab(_: QAction) callconv(.c) void {
-        if (main_window.tabs.ptr != null) {
-            const current_index = main_window.tabs.currentIndex();
+        if (app_window.tabs.ptr != null) {
+            const current_index = app_window.tabs.currentIndex();
             if (current_index >= 0)
-                handleTabClose(main_window.tabs, current_index);
+                handleTabClose(app_window.tabs, current_index);
         }
     }
 
     pub fn handleNewTab(_: QAction) callconv(.c) void {
-        main_window.createTabWithContents(allocator, "New Document", "");
+        app_window.createTabWithContents(allocator, "New Document", "");
     }
 
     pub fn handleFileOpen(_: QAction) callconv(.c) void {
         const fname = QFileDialog.getOpenFileName4(
             allocator,
-            main_window.w,
+            app_window.w,
             "Open markdown file...",
             "",
             "Markdown files (*.md *.txt);;All Files (*)",
@@ -301,7 +303,7 @@ pub const AppWindow = struct {
             @panic("Failed to read file");
         defer allocator.free(contents);
 
-        main_window.createTabWithContents(allocator, std.Io.Dir.path.basename(fname), contents);
+        app_window.createTabWithContents(allocator, std.Io.Dir.path.basename(fname), contents);
     }
 
     pub fn handleExit(_: QAction) callconv(.c) void {
@@ -323,26 +325,16 @@ pub fn main(init: std.process.Init) !void {
     allocator = init.gpa;
     io = init.io;
 
+    app_window = try .create(init.gpa);
     defer {
-        var it = app_tab_map.iterator();
-        while (it.next()) |entry| {
-            const apptab = entry.value_ptr.*;
-            if (apptab.tab.ptr != null) {
-                apptab.tab.delete();
-                apptab.tab.ptr = null;
-                app_tab_map.removeByPtr(entry.key_ptr);
-            }
-        }
-        it = app_tab_map.iterator();
-        while (it.next()) |entry| init.gpa.destroy(entry.value_ptr.*);
+        while (app_window.tabs.count() > 0)
+            AppWindow.handleTabClose(app_window.tabs, 0);
+        app_window.destroy(init.gpa);
         app_tab_map.deinit(init.gpa);
         app_window_tab_map.deinit(init.gpa);
     }
 
-    const app = try AppWindow.create(init.gpa);
-    defer init.gpa.destroy(app);
-
-    app.w.show();
+    app_window.w.show();
 
     _ = QApplication.exec();
 }
