@@ -341,6 +341,12 @@ The following examples are fully CLI-based and therefore do not have screenshots
 
 ---
 
+[![systemtray](src/systemtray/screenshot.png)](src/systemtray)
+
+[systemtray](src/systemtray)
+
+---
+
 [![tetrix](src/tetrix/screenshot.png)](src/tetrix)
 
 [tetrix](src/tetrix)
