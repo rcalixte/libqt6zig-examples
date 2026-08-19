@@ -28,46 +28,40 @@ const AppWindowMap = std.AutoHashMapUnmanaged(QTabWidget, *AppWindow);
 
 var app_tab_map: AppTabMap = .empty;
 var app_window_tab_map: AppWindowMap = .empty;
-var app_window: *AppWindow = undefined;
+var app_window: AppWindow = .{};
 
 pub const AppTab = struct {
-    tab: QWidget,
-    outline: QListWidget,
-    text_area: QTextEdit,
+    tab: QWidget = undefined,
+    outline: QListWidget = undefined,
+    text_area: QTextEdit = undefined,
 
-    pub fn create(alloc: std.mem.Allocator) !*AppTab {
-        var ret = try alloc.create(AppTab);
-        errdefer alloc.destroy(ret);
+    pub fn init(self: *AppTab, gpa: std.mem.Allocator) !void {
+        self.tab = .new2();
 
-        ret.tab = .new2();
-
-        const layout = QHBoxLayout.new(ret.tab);
+        const layout = QHBoxLayout.new(self.tab);
         const panes = QSplitter.new2();
         layout.addWidget(panes);
 
-        ret.outline = .new(ret.tab);
-        panes.addWidget(ret.outline);
-        ret.outline.onCurrentItemChanged(AppTab.handleJumpToBookmark);
+        self.outline = .new(self.tab);
+        panes.addWidget(self.outline);
+        self.outline.onCurrentItemChanged(AppTab.handleJumpToBookmark);
 
-        ret.text_area = .new(ret.tab);
-        try app_tab_map.put(alloc, .{ .ptr = @ptrCast(ret.text_area.ptr) }, ret);
-        try app_tab_map.put(alloc, .{ .ptr = @ptrCast(ret.outline.ptr) }, ret);
+        self.text_area = .new(self.tab);
+        try app_tab_map.put(gpa, .{ .ptr = @ptrCast(self.text_area.ptr) }, self);
+        try app_tab_map.put(gpa, .{ .ptr = @ptrCast(self.outline.ptr) }, self);
 
-        ret.text_area.onTextChanged(AppTab.handleTextChanged);
-        panes.addWidget(ret.text_area);
+        self.text_area.onTextChanged(AppTab.handleTextChanged);
+        panes.addWidget(self.text_area);
 
         var sizes = [_]i32{ 250, 550 };
         panes.setSizes(&sizes);
-
-        return ret;
     }
 
-    pub fn destroy(self: *AppTab, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *const AppTab) void {
         self.tab.delete();
-        alloc.destroy(self);
     }
 
-    pub fn updateOutlineForContent(self: *AppTab, content: []const u8) void {
+    pub fn updateOutlineForContent(self: *const AppTab, content: []const u8) void {
         self.outline.clear();
 
         var lines = std.mem.splitScalar(u8, content, '\n');
@@ -143,15 +137,12 @@ pub const AppTab = struct {
 };
 
 pub const AppWindow = struct {
-    w: QMainWindow,
-    tabs: QTabWidget,
+    w: QMainWindow = undefined,
+    tabs: QTabWidget = undefined,
 
-    pub fn create(alloc: std.mem.Allocator) !*AppWindow {
-        var ret = try alloc.create(AppWindow);
-        errdefer alloc.destroy(ret);
-
-        ret.w = .new2();
-        ret.w.setWindowTitle("Markdown Outliner");
+    pub fn init(self: *AppWindow, gpa: std.mem.Allocator) !void {
+        self.w = .new2();
+        self.w.setWindowTitle("Markdown Outliner");
 
         // Menu setup
         const mnu = QMenuBar.new2();
@@ -198,43 +189,41 @@ pub const AppWindow = struct {
         about.setShortcut(about_shortcut_sequence);
         about.onTriggered(AppWindow.handleAbout);
 
-        ret.w.setMenuBar(mnu);
+        self.w.setMenuBar(mnu);
 
         // Ctrl+W shortcut
         const close_key_param = "Ctrl+W";
         const close_key_sequence = QKeySequence.new2(close_key_param);
         defer close_key_sequence.delete();
-        const close = ret.w.addAction4(close_key_param, close_key_sequence);
+        const close = self.w.addAction4(close_key_param, close_key_sequence);
         close.setShortcut(close_key_sequence);
         close.onTriggered(AppWindow.handleCloseCurrentTab);
 
         // Main widgets
-        ret.tabs = .new(ret.w);
-        ret.tabs.setTabsClosable(true);
-        ret.tabs.setMovable(true);
-        ret.tabs.onTabCloseRequested(AppWindow.handleTabClose);
-        ret.w.setCentralWidget(ret.tabs);
+        self.tabs = .new(self.w);
+        self.tabs.setTabsClosable(true);
+        self.tabs.setMovable(true);
+        self.tabs.onTabCloseRequested(AppWindow.handleTabClose);
+        self.w.setCentralWidget(self.tabs);
 
         // Add initial tab
-        ret.createTabWithContents(alloc, "README.md", @embedFile("README.md"));
+        self.createTabWithContents(gpa, "README.md", @embedFile("README.md"));
 
-        try app_window_tab_map.put(alloc, ret.tabs, ret);
-
-        return ret;
+        try app_window_tab_map.put(gpa, self.tabs, self);
     }
 
-    pub fn destroy(self: *AppWindow, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *const AppWindow) void {
         self.w.delete();
-        alloc.destroy(self);
     }
 
     pub fn createTabWithContents(
-        self: *AppWindow,
-        alloc: std.mem.Allocator,
+        self: *const AppWindow,
+        gpa: std.mem.Allocator,
         tab_title: []const u8,
         tab_content: []const u8,
     ) void {
-        const tab = AppTab.create(alloc) catch @panic("Failed to create tab");
+        var tab: AppTab = undefined;
+        tab.init(gpa) catch @panic("Failed to create tab");
         // the new tab is cleaned up during handleTabClose
 
         tab.text_area.setText(tab_content);
@@ -262,7 +251,7 @@ pub const AppWindow = struct {
                 if (apptab.tab.ptr == widget.ptr) {
                     _ = app_tab_map.fetchRemove(.{ .ptr = @ptrCast(apptab.text_area.ptr) });
                     _ = app_tab_map.fetchRemove(.{ .ptr = @ptrCast(apptab.outline.ptr) });
-                    apptab.destroy(allocator);
+                    apptab.deinit();
                     break;
                 }
             }
@@ -325,11 +314,11 @@ pub fn main(init: std.process.Init) !void {
     allocator = init.gpa;
     io = init.io;
 
-    app_window = try .create(init.gpa);
+    try app_window.init(init.gpa);
     defer {
         while (app_window.tabs.count() > 0)
             AppWindow.handleTabClose(app_window.tabs, 0);
-        app_window.destroy(init.gpa);
+        app_window.deinit();
         app_tab_map.deinit(init.gpa);
         app_window_tab_map.deinit(init.gpa);
     }
