@@ -18,15 +18,12 @@ const QFinalState = qt6.QFinalState;
 const QStateMachine = qt6.QStateMachine;
 
 pub const LightWidget = struct {
-    color: i32,
-    on: bool,
-    widget: QWidget,
+    color: i32 = 0,
+    on: bool = false,
+    widget: QWidget = undefined,
 
-    pub fn create(alloc: std.mem.Allocator, color: i32) !*LightWidget {
-        var self = try alloc.create(LightWidget);
-
+    pub fn init(self: *LightWidget, color: i32) void {
         self.color = color;
-        self.on = false;
         self.widget = .new2();
         self.widget.onPaintEvent(onPaintEvent);
 
@@ -38,31 +35,12 @@ pub const LightWidget = struct {
 
         _ = self.widget.setProperty("on", on_variant);
         _ = self.widget.setProperty("color", color_variant);
-
-        return self;
-    }
-
-    pub fn isOn(self: *LightWidget) bool {
-        return self.on;
     }
 
     pub fn setOn(self: *LightWidget, on: bool) void {
         if (on == self.on) return;
         self.on = on;
         self.widget.update();
-    }
-
-    pub fn turnOff(self: *LightWidget) void {
-        self.setOn(false);
-    }
-
-    pub fn turnOn(self: *LightWidget) void {
-        self.setOn(true);
-    }
-
-    pub fn destroy(self: *LightWidget, alloc: std.mem.Allocator) void {
-        self.widget.delete();
-        alloc.destroy(self);
     }
 
     fn onPaintEvent(self: QWidget, _: QPaintEvent) callconv(.c) void {
@@ -99,25 +77,18 @@ pub const LightWidget = struct {
 };
 
 pub const TrafficWidget = struct {
-    red: *LightWidget,
-    yellow: *LightWidget,
-    green: *LightWidget,
-    widget: QWidget,
+    red: LightWidget = .{},
+    yellow: LightWidget = .{},
+    green: LightWidget = .{},
+    widget: QWidget = undefined,
 
-    pub fn create(alloc: std.mem.Allocator) !*TrafficWidget {
-        var self = try alloc.create(TrafficWidget);
-        errdefer alloc.destroy(self);
-
+    pub fn init(self: *TrafficWidget) void {
         self.widget = .new2();
         const layout = QVBoxLayout.new(self.widget);
 
-        self.red = try .create(alloc, qnamespace_enums.GlobalColor.Red);
-        errdefer self.red.destroy(alloc);
-
-        self.yellow = try .create(alloc, qnamespace_enums.GlobalColor.Yellow);
-        errdefer self.yellow.destroy(alloc);
-
-        self.green = try .create(alloc, qnamespace_enums.GlobalColor.Green);
+        self.red.init(qnamespace_enums.GlobalColor.Red);
+        self.yellow.init(qnamespace_enums.GlobalColor.Yellow);
+        self.green.init(qnamespace_enums.GlobalColor.Green);
 
         layout.addWidget(self.red.widget);
         layout.addWidget(self.yellow.widget);
@@ -132,28 +103,13 @@ pub const TrafficWidget = struct {
         palette.setColor2(qpalette_enums.ColorRole.Window, color);
         self.widget.setPalette(palette);
         self.widget.setAutoFillBackground(true);
-
-        return self;
     }
 
-    pub fn redLight(self: *TrafficWidget) *LightWidget {
-        return self.red;
-    }
-
-    pub fn yellowLight(self: *TrafficWidget) *LightWidget {
-        return self.yellow;
-    }
-
-    pub fn greenLight(self: *TrafficWidget) *LightWidget {
-        return self.green;
-    }
-
-    pub fn destroy(self: *TrafficWidget, alloc: std.mem.Allocator) void {
-        self.red.destroy(alloc);
-        self.yellow.destroy(alloc);
-        self.green.destroy(alloc);
+    pub fn deinit(self: *const TrafficWidget) void {
+        self.red.widget.delete();
+        self.yellow.widget.delete();
+        self.green.widget.delete();
         self.widget.delete();
-        alloc.destroy(self);
     }
 };
 
@@ -173,19 +129,20 @@ pub fn main(init: std.process.Init) !void {
     traffic_light.setMinimumWidth(200);
 
     const layout = QVBoxLayout.new(traffic_light);
-    const traffic_widget = try TrafficWidget.create(init.gpa);
-    defer traffic_widget.destroy(init.gpa);
+    var traffic_widget: TrafficWidget = undefined;
+    traffic_widget.init();
+    defer traffic_widget.deinit();
 
     layout.addWidget(traffic_widget.widget);
     layout.setContentsMargins(0, 0, 0, 0);
 
-    const red_going_green = createLightState(traffic_widget.redLight(), 3000);
+    const red_going_green = createLightState(&traffic_widget.red, 3000);
     defer red_going_green.delete();
 
-    const green_going_yellow = createLightState(traffic_widget.greenLight(), 3000);
+    const green_going_yellow = createLightState(&traffic_widget.green, 3000);
     defer green_going_yellow.delete();
 
-    const yellow_going_red = createLightState(traffic_widget.yellowLight(), 1000);
+    const yellow_going_red = createLightState(&traffic_widget.yellow, 1000);
     defer yellow_going_red.delete();
 
     _ = red_going_green.addTransition2(red_going_green, "finished()", green_going_yellow);
@@ -204,7 +161,7 @@ pub fn main(init: std.process.Init) !void {
     _ = QApplication.exec();
 }
 
-pub fn createLightState(light: *LightWidget, duration: i32) QState {
+pub fn createLightState(light: *const LightWidget, duration: i32) QState {
     const light_state = QState.new();
     const timing = QState.new3(light_state);
 
@@ -244,7 +201,7 @@ fn onEntered(self: QState) callconv(.c) void {
     const timer_value = timer_variant.toULongLong();
     const timer: QTimer = .{ .ptr = @ptrFromInt(@as(usize, @intCast(timer_value))) };
 
-    light.turnOn();
+    light.setOn(true);
     timer.start2();
 }
 
@@ -255,5 +212,5 @@ fn onExited(self: QState) callconv(.c) void {
     const light_value = light_variant.toULongLong();
     const light: *LightWidget = @ptrFromInt(@as(usize, @intCast(light_value)));
 
-    light.turnOff();
+    light.setOn(false);
 }
