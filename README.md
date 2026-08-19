@@ -56,7 +56,7 @@ Examples in special subdirectories have per-example options that can be used to 
 zig build -Denable-charts -Denable-qscintilla=false
 ```
 
-In the event that one or more extra library include paths are needed e.g. a locally compiled extra library in a non-standard path, the `extra-paths` option supports this use case:
+In the event that one or more extra library include paths are needed, e.g. a locally compiled extra library in a non-standard path, the `extra-paths` option supports this use case:
 
 ```bash
 zig build -Dextra-paths="C:/Qt/6/llvm-mingw_64"
