@@ -25,21 +25,18 @@ const offset_x: i32 = 200;
 var buf: [4]u8 = undefined;
 var clients: [max_clients]QWebSocket = @splat(.{ .ptr = null });
 var client_num: usize = 0;
-var client_dialogs: [num_clients]*ClientDialog = @splat(undefined);
+var client_dialogs: [num_clients]ClientDialog = @splat(undefined);
 
 pub const ClientDialog = struct {
-    name: []const u8,
-    dialog: QDialog,
-    socket: QWebSocket,
-    messages: QTextEdit,
-    input: QLineEdit,
-    button: QPushButton,
+    name: []const u8 = &.{},
+    dialog: QDialog = undefined,
+    socket: QWebSocket = undefined,
+    messages: QTextEdit = undefined,
+    input: QLineEdit = undefined,
+    button: QPushButton = undefined,
 
-    pub fn create(alloc: std.mem.Allocator, name: []const u8, num_str: []const u8) !*ClientDialog {
-        var self = try alloc.create(ClientDialog);
-        errdefer alloc.destroy(self);
-
-        self.name = try alloc.dupe(u8, num_str);
+    pub fn init(self: *ClientDialog, gpa: std.mem.Allocator, name: []const u8, num_str: []const u8) !void {
+        self.name = try gpa.dupe(u8, num_str);
 
         self.dialog = .new2();
         self.dialog.setWindowTitle(name);
@@ -72,15 +69,18 @@ pub const ClientDialog = struct {
         self.socket.onErrorOccurred(onClientErrorOccurred);
         self.dialog.onCloseEvent(onClientCloseEvent);
         self.button.onClicked(onSendClicked);
-
-        return self;
     }
 
-    pub fn connectToServer(self: *ClientDialog, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *const ClientDialog, gpa: std.mem.Allocator) void {
+        self.dialog.deleteLater();
+        gpa.free(self.name);
+    }
+
+    pub fn connectToServer(self: *const ClientDialog, gpa: std.mem.Allocator) void {
         self.messages.append("Connecting...");
-        const ws = std.fmt.allocPrint(alloc, "ws://localhost:{d}", .{local_port}) catch
+        const ws = std.fmt.allocPrint(gpa, "ws://localhost:{d}", .{local_port}) catch
             @panic("Failed to allocPrint");
-        defer alloc.free(ws);
+        defer gpa.free(ws);
 
         const url = QUrl.new3(ws);
         defer url.delete();
@@ -88,31 +88,25 @@ pub const ClientDialog = struct {
         self.socket.open(url);
     }
 
-    fn sendMessage(self: *ClientDialog, alloc: std.mem.Allocator) void {
-        const message = self.input.text(alloc);
-        defer alloc.free(message);
+    fn sendMessage(self: *const ClientDialog, gpa: std.mem.Allocator) void {
+        const message = self.input.text(gpa);
+        defer gpa.free(message);
         if (message.len == 0) return;
 
         const trimmed_text = std.mem.trim(u8, message, &std.ascii.whitespace);
         if (trimmed_text.len == 0) return;
 
-        const out_message = std.fmt.allocPrint(alloc, "({s}): {s}", .{ self.name, trimmed_text }) catch
+        const out_message = std.fmt.allocPrint(gpa, "({s}): {s}", .{ self.name, trimmed_text }) catch
             @panic("Failed to allocPrint");
-        defer alloc.free(out_message);
+        defer gpa.free(out_message);
 
         _ = self.socket.sendTextMessage(out_message);
 
-        const self_entry = std.fmt.allocPrint(alloc, ">> {s}", .{trimmed_text}) catch
+        const self_entry = std.fmt.allocPrint(gpa, ">> {s}", .{trimmed_text}) catch
             @panic("Failed to allocPrint");
-        defer alloc.free(self_entry);
+        defer gpa.free(self_entry);
         self.messages.append(self_entry);
         self.input.clear();
-    }
-
-    pub fn destroy(self: *ClientDialog, alloc: std.mem.Allocator) void {
-        self.dialog.deleteLater();
-        allocator.free(self.name);
-        alloc.destroy(self);
     }
 
     fn onClientConnected(self: QWebSocket) callconv(.c) void {
@@ -193,8 +187,7 @@ pub fn main(init: std.process.Init) !void {
         const name = try std.fmt.allocPrint(allocator, "Qt 6 WebSockets Example Client #{s}", .{num_str});
         defer allocator.free(name);
 
-        client_dialogs[i] = try .create(allocator, name, num_str);
-
+        try client_dialogs[i].init(allocator, name, num_str);
         client_dialogs[i].connectToServer(allocator);
 
         client_dialogs[i].dialog.show();
@@ -210,7 +203,7 @@ pub fn main(init: std.process.Init) !void {
                 clients[i].ptr = null;
         }
         for (client_dialogs) |client|
-            client.destroy(allocator);
+            client.deinit(allocator);
     }
 
     server.onNewConnection(onNewConnection);
