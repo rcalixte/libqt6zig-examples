@@ -31,29 +31,26 @@ var score_mapper: QSignalMapper = undefined;
 var level_mapper: QSignalMapper = undefined;
 var lines_mapper: QSignalMapper = undefined;
 
-var global_board: *TetrixBoard = undefined;
-var tetrix_window: *TetrixWindow = undefined;
+var global_board: TetrixBoard = undefined;
+var tetrix_window: TetrixWindow = .{};
 
 const board_width: i16 = 10;
 const board_height: i16 = 22;
 
 const TetrixWindow = struct {
-    window: QWidget,
-    board: *TetrixBoard,
-    next_piece_label: QLabel,
-    score_lcd: QLCDNumber,
-    level_lcd: QLCDNumber,
-    lines_lcd: QLCDNumber,
-    new_game_button: QPushButton,
-    quit_button: QPushButton,
-    pause_button: QPushButton,
-    game_over_label: QLabel,
+    window: QWidget = undefined,
+    board: TetrixBoard = .{},
+    next_piece_label: QLabel = undefined,
+    score_lcd: QLCDNumber = undefined,
+    level_lcd: QLCDNumber = undefined,
+    lines_lcd: QLCDNumber = undefined,
+    new_game_button: QPushButton = undefined,
+    quit_button: QPushButton = undefined,
+    pause_button: QPushButton = undefined,
+    game_over_label: QLabel = undefined,
 
-    pub fn create(allocator: std.mem.Allocator) !*TetrixWindow {
-        var self = try allocator.create(TetrixWindow);
-        errdefer allocator.destroy(self);
-
-        self.board = try .create(allocator);
+    pub fn init(self: *TetrixWindow) void {
+        self.board.init();
         self.next_piece_label = .new2();
         self.next_piece_label.setFrameStyle(qframe_enums.Shape.Box | qframe_enums.Shadow.Raised);
         self.next_piece_label.setAlignment(qnamespace_enums.AlignmentFlag.AlignCenter);
@@ -147,17 +144,20 @@ const TetrixWindow = struct {
         message_box.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
         message_box.setWindowTitle("Game Controls");
         message_box.setText(
-            \\### * Left/Right: Move piece
-            \\### * Down/Up: Rotate piece
-            \\### * D: Move piece one line down
-            \\### * Space: Drop piece
-            \\### * Alt+N/Ctrl+N: New game
-            \\### * Alt+Q/Ctrl+Q: Quit
-            \\### * Alt+P/Esc: Pause
+            \\### - Left/Right: Move piece
+            \\### - Down/Up: Rotate piece
+            \\### - D: Move piece one line down
+            \\### - Space: Drop piece
+            \\### - Alt+N/Ctrl+N: New game
+            \\### - Alt+Q/Ctrl+Q: Quit
+            \\### - Alt+P/Esc: Pause
         );
         message_box.show();
+    }
 
-        return self;
+    pub fn deinit(self: *const TetrixWindow) void {
+        self.board.deinit();
+        self.window.delete();
     }
 
     fn quit(_: QPushButton) callconv(.c) void {
@@ -209,12 +209,6 @@ const TetrixWindow = struct {
         tetrix_window.pause_button.click();
     }
 
-    pub fn destroy(self: *TetrixWindow, allocator: std.mem.Allocator) void {
-        self.board.destroy(allocator);
-        self.window.delete();
-        allocator.destroy(self);
-    }
-
     fn createLabel(text: []const u8) QLabel {
         const label = QLabel.new3(text);
         label.setAlignment(qnamespace_enums.AlignmentFlag.AlignHCenter |
@@ -236,37 +230,30 @@ const TetrixWindow = struct {
 };
 
 const TetrixBoard = struct {
-    frame: QFrame,
-    board: [board_width * board_height]TetrixShape,
-    timer: QBasicTimer,
-    next_piece_label: QLabel,
-    is_started: bool,
-    is_paused: bool,
-    is_waiting_after_line: bool,
-    cur_piece: *TetrixPiece,
-    next_piece: *TetrixPiece,
-    cur_x: i16,
-    cur_y: i16,
-    num_lines_removed: u16,
-    num_pieces_dropped: u16,
-    score: u17,
-    level: u10,
+    frame: QFrame = undefined,
+    board: [board_width * board_height]TetrixShape = @splat(.no_shape),
+    timer: QBasicTimer = undefined,
+    next_piece_label: QLabel = undefined,
+    is_started: bool = false,
+    is_paused: bool = false,
+    is_waiting_after_line: bool = false,
+    cur_piece: TetrixPiece = .{},
+    next_piece: TetrixPiece = .{},
+    cur_x: i16 = 0,
+    cur_y: i16 = 0,
+    num_lines_removed: u16 = 0,
+    num_pieces_dropped: u16 = 0,
+    score: u17 = 0,
+    level: u10 = 0,
 
     var frame_width: i32 = undefined;
 
-    pub fn create(allocator: std.mem.Allocator) !*TetrixBoard {
-        var self = try allocator.create(TetrixBoard);
-        errdefer allocator.destroy(self);
-
+    pub fn init(self: *TetrixBoard) void {
         self.frame = .new2();
         self.frame.setFrameStyle(qframe_enums.Shape.Panel | qframe_enums.Shadow.Sunken);
         self.frame.setFocusPolicy(qnamespace_enums.FocusPolicy.StrongFocus);
         self.clearBoard();
 
-        self.next_piece = try allocator.create(TetrixPiece);
-        errdefer allocator.destroy(self.next_piece);
-
-        self.cur_piece = try allocator.create(TetrixPiece);
         self.cur_piece.setShape(.no_shape);
         self.cur_x = 0;
         self.cur_y = 0;
@@ -284,16 +271,11 @@ const TetrixBoard = struct {
         self.frame.onPaintEvent(onPaintEvent);
         self.frame.onKeyPressEvent(onKeyPressEvent);
         self.frame.onTimerEvent(onTimerEvent);
-
-        return self;
     }
 
-    pub fn destroy(self: *TetrixBoard, allocator: std.mem.Allocator) void {
-        allocator.destroy(self.next_piece);
-        allocator.destroy(self.cur_piece);
+    pub fn deinit(self: *const TetrixBoard) void {
         self.timer.delete();
         self.frame.delete();
-        allocator.destroy(self);
     }
 
     fn onSizeHint() callconv(.c) QSize {
@@ -359,12 +341,12 @@ const TetrixBoard = struct {
 
         switch (event.key()) {
             qnamespace_enums.Key.Key_Left => _ = global_board.tryMove(
-                global_board.cur_piece,
+                &global_board.cur_piece,
                 global_board.cur_x - 1,
                 global_board.cur_y,
             ),
             qnamespace_enums.Key.Key_Right => _ = global_board.tryMove(
-                global_board.cur_piece,
+                &global_board.cur_piece,
                 global_board.cur_x + 1,
                 global_board.cur_y,
             ),
@@ -375,7 +357,7 @@ const TetrixBoard = struct {
 
                 global_board.cur_piece.rotatedRight();
                 _ = global_board.tryMove(
-                    global_board.cur_piece,
+                    &global_board.cur_piece,
                     global_board.cur_x,
                     global_board.cur_y,
                 );
@@ -387,7 +369,7 @@ const TetrixBoard = struct {
 
                 global_board.cur_piece.rotatedLeft();
                 _ = global_board.tryMove(
-                    global_board.cur_piece,
+                    &global_board.cur_piece,
                     global_board.cur_x,
                     global_board.cur_y,
                 );
@@ -414,18 +396,18 @@ const TetrixBoard = struct {
             self.board[i] = .no_shape;
     }
 
-    pub fn timeoutTime(self: *TetrixBoard) i16 {
+    pub fn timeoutTime(self: *const TetrixBoard) i16 {
         return @divTrunc(1000, (self.level + 1));
     }
 
-    pub fn squareWidth(self: *TetrixBoard) i32 {
+    pub fn squareWidth(self: *const TetrixBoard) i32 {
         const rect = self.frame.contentsRect();
         defer rect.delete();
 
         return @divTrunc(rect.width(), board_width);
     }
 
-    pub fn squareHeight(self: *TetrixBoard) i32 {
+    pub fn squareHeight(self: *const TetrixBoard) i32 {
         const rect = self.frame.contentsRect();
         defer rect.delete();
 
@@ -436,7 +418,7 @@ const TetrixBoard = struct {
         var drop_height: u8 = 0;
         var new_y: i16 = self.cur_y;
         while (new_y > 0) : (new_y -= 1) {
-            if (!self.tryMove(self.cur_piece, self.cur_x, new_y - 1))
+            if (!self.tryMove(&self.cur_piece, self.cur_x, new_y - 1))
                 break;
             drop_height += 1;
         }
@@ -444,7 +426,7 @@ const TetrixBoard = struct {
     }
 
     pub fn oneLineDown(self: *TetrixBoard) void {
-        if (!self.tryMove(self.cur_piece, self.cur_x, self.cur_y - 1))
+        if (!self.tryMove(&self.cur_piece, self.cur_x, self.cur_y - 1))
             self.pieceDropped(0);
     }
 
@@ -469,7 +451,7 @@ const TetrixBoard = struct {
         if (!self.is_waiting_after_line) self.newPiece();
     }
 
-    pub fn shapeAt(self: *TetrixBoard, x: usize, y: usize) TetrixShape {
+    pub fn shapeAt(self: *const TetrixBoard, x: usize, y: usize) TetrixShape {
         return self.board[y * board_width + x];
     }
 
@@ -508,13 +490,13 @@ const TetrixBoard = struct {
     }
 
     pub fn newPiece(self: *TetrixBoard) void {
-        self.cur_piece.* = self.next_piece.*;
+        self.cur_piece = self.next_piece;
         self.next_piece.setRandomShape();
         self.showNextPiece();
         self.cur_x = board_width / 2 + 1;
         self.cur_y = board_height - 1 + self.cur_piece.minY();
 
-        if (!self.tryMove(self.cur_piece, self.cur_x, self.cur_y)) {
+        if (!self.tryMove(&self.cur_piece, self.cur_x, self.cur_y)) {
             self.cur_piece.setShape(.no_shape);
             self.timer.stop();
             self.is_started = false;
@@ -523,7 +505,7 @@ const TetrixBoard = struct {
         }
     }
 
-    pub fn showNextPiece(self: *TetrixBoard) void {
+    pub fn showNextPiece(self: *const TetrixBoard) void {
         if (self.next_piece_label.ptr == null) return;
 
         const dx = self.next_piece.maxX() - self.next_piece.minX() + 1;
@@ -553,7 +535,7 @@ const TetrixBoard = struct {
         self.next_piece_label.setPixmap(pixmap);
     }
 
-    pub fn drawSquare(self: *TetrixBoard, painter: QPainter, x: i32, y: i32, shape: TetrixShape) void {
+    pub fn drawSquare(self: *const TetrixBoard, painter: QPainter, x: i32, y: i32, shape: TetrixShape) void {
         const color_table = [8]u32{
             0x000000, 0xCC6666, 0x66CC66, 0x6666CC,
             0xCCCC66, 0xCC66CC, 0x66CCCC, 0xDAAA00,
@@ -586,7 +568,7 @@ const TetrixBoard = struct {
             if (self.shapeAt(@intCast(x), @intCast(y)) != .no_shape) return false;
         }
 
-        self.cur_piece.* = new_piece.*;
+        self.cur_piece = new_piece.*;
         self.cur_x = new_x;
         self.cur_y = new_y;
         self.frame.update();
@@ -594,13 +576,13 @@ const TetrixBoard = struct {
     }
 };
 
-const num_shapes: u8 = @typeInfo(TetrixShape).@"enum".fields.len;
+const num_shapes: u4 = @typeInfo(TetrixShape).@"enum".fields.len;
 const num_cells: u4 = 4;
 const pair_cells: u2 = 2;
 
 const TetrixPiece = struct {
-    piece_shape: TetrixShape,
-    coords: [num_cells][pair_cells]i8,
+    piece_shape: TetrixShape = .no_shape,
+    coords: [num_cells][pair_cells]i8 = @splat(@splat(0)),
 
     pub fn setRandomShape(self: *TetrixPiece) void {
         self.setShape(@enumFromInt(QRandomGenerator.global().bounded2(num_shapes - 1) + 1));
@@ -626,36 +608,36 @@ const TetrixPiece = struct {
         self.piece_shape = shape;
     }
 
-    pub fn x(self: *TetrixPiece, index: usize) i8 {
+    pub fn x(self: *const TetrixPiece, index: usize) i8 {
         return self.coords[index][0];
     }
 
-    pub fn y(self: *TetrixPiece, index: usize) i8 {
+    pub fn y(self: *const TetrixPiece, index: usize) i8 {
         return self.coords[index][1];
     }
 
-    pub fn minX(self: *TetrixPiece) i8 {
+    pub fn minX(self: *const TetrixPiece) i8 {
         var min = self.coords[0][0];
         for (1..num_cells) |i|
             min = @min(min, self.coords[i][0]);
         return min;
     }
 
-    pub fn maxX(self: *TetrixPiece) i8 {
+    pub fn maxX(self: *const TetrixPiece) i8 {
         var max = self.coords[0][0];
         for (1..num_cells) |i|
             max = @max(max, self.coords[i][0]);
         return max;
     }
 
-    pub fn minY(self: *TetrixPiece) i8 {
+    pub fn minY(self: *const TetrixPiece) i8 {
         var min = self.coords[0][1];
         for (1..num_cells) |i|
             min = @min(min, self.coords[i][1]);
         return min;
     }
 
-    pub fn maxY(self: *TetrixPiece) i8 {
+    pub fn maxY(self: *const TetrixPiece) i8 {
         var max = self.coords[0][1];
         for (1..num_cells) |i|
             max = @max(max, self.coords[i][1]);
@@ -693,7 +675,7 @@ const TetrixPiece = struct {
     }
 };
 
-const TetrixShape = enum(u8) {
+const TetrixShape = enum(u3) {
     no_shape,
     z_shape,
     s_shape,
@@ -711,8 +693,8 @@ pub fn main(init: std.process.Init) !void {
     const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
     defer qapp.delete();
 
-    tetrix_window = try .create(init.gpa);
-    defer tetrix_window.destroy(init.gpa);
+    tetrix_window.init();
+    defer tetrix_window.deinit();
 
     global_board = tetrix_window.board;
 
