@@ -2,6 +2,7 @@ const std = @import("std");
 const qt6 = @import("libqt6zig");
 const ui = @import("design.zig");
 const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
@@ -10,8 +11,9 @@ pub fn main(init: std.process.Init) !void {
     const qapp: QApplication = .new(init.arena.allocator(), &argc, argv);
     defer qapp.delete();
 
-    const uic = try ui.create(init.gpa);
-    defer uic.destroy(init.gpa);
+    var uic: ui.MainWindowUi = undefined;
+    uic.init(init.gpa, QWidget{ .ptr = null });
+    defer uic.deinit();
 
     uic.MainWindow.show();
 
