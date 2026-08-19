@@ -8,30 +8,146 @@ const qt6 = @import("libqt6zig");
 
 /// The type definition for MainWindowUi containing all of the Qt objects
 pub const MainWindowUi = struct {
-    MainWindow: qt6.QMainWindow,
-    centralwidget: qt6.QWidget,
-    gridLayout: qt6.QGridLayout,
-    tabWidget: qt6.QTabWidget,
-    tab: qt6.QWidget,
-    formLayout: qt6.QFormLayout,
-    label: qt6.QLabel,
-    comboBox: qt6.QComboBox,
-    label_2: qt6.QLabel,
-    spinBox: qt6.QSpinBox,
-    tab_2: qt6.QWidget,
-    treeWidget: qt6.QTreeWidget,
-    menubar: qt6.QMenuBar,
-    menu_File: qt6.QMenu,
-    statusbar: qt6.QStatusBar,
-    dockWidget: qt6.QDockWidget,
-    dockWidgetContents: qt6.QWidget,
-    verticalLayout: qt6.QVBoxLayout,
-    calendarWidget: qt6.QCalendarWidget,
-    action_New: qt6.QAction,
-    actionE_xit: qt6.QAction,
+    MainWindow: qt6.QMainWindow = undefined,
+    centralwidget: qt6.QWidget = undefined,
+    gridLayout: qt6.QGridLayout = undefined,
+    tabWidget: qt6.QTabWidget = undefined,
+    tab: qt6.QWidget = undefined,
+    formLayout: qt6.QFormLayout = undefined,
+    label: qt6.QLabel = undefined,
+    comboBox: qt6.QComboBox = undefined,
+    label_2: qt6.QLabel = undefined,
+    spinBox: qt6.QSpinBox = undefined,
+    tab_2: qt6.QWidget = undefined,
+    treeWidget: qt6.QTreeWidget = undefined,
+    menubar: qt6.QMenuBar = undefined,
+    menu_File: qt6.QMenu = undefined,
+    statusbar: qt6.QStatusBar = undefined,
+    dockWidget: qt6.QDockWidget = undefined,
+    dockWidgetContents: qt6.QWidget = undefined,
+    verticalLayout: qt6.QVBoxLayout = undefined,
+    calendarWidget: qt6.QCalendarWidget = undefined,
+    action_New: qt6.QAction = undefined,
+    actionE_xit: qt6.QAction = undefined,
 
-    /// Reapplies all text translations
-    pub fn retranslate(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
+    /// Initialize all of the Qt objects for MainWindowUi
+    ///
+    /// ## Parameters:
+    ///
+    /// ` ui: *MainWindowUi `
+    ///
+    /// ` allocator: std.mem.Allocator `
+    ///
+    /// ` parent: QWidget ` (can be null)
+    ///
+    pub fn init(ui: *MainWindowUi, allocator: std.mem.Allocator, parent: anytype) void {
+        ui.MainWindow = .new2();
+        ui.MainWindow.setObjectName("MainWindow");
+        ui.MainWindow.setParent(parent);
+        ui.MainWindow.resize(800, 600);
+
+        ui.action_New = .new4(ui.MainWindow);
+        ui.action_New.setObjectName("action_New");
+
+        ui.actionE_xit = .new4(ui.MainWindow);
+        ui.actionE_xit.setObjectName("actionE_xit");
+
+        ui.centralwidget = .new(ui.MainWindow);
+        ui.centralwidget.setObjectName("centralwidget");
+
+        ui.gridLayout = .new(ui.centralwidget);
+        ui.gridLayout.setObjectName("gridLayout");
+
+        ui.tabWidget = .new(ui.centralwidget);
+        ui.tabWidget.setObjectName("tabWidget");
+
+        ui.tab = .new2();
+        ui.tab.setObjectName("tab");
+
+        ui.formLayout = .new(ui.tab);
+        ui.formLayout.setObjectName("formLayout");
+
+        ui.label = .new(ui.tab);
+        ui.label.setObjectName("label");
+        ui.formLayout.setWidget(0, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label);
+
+        ui.comboBox = .new(ui.tab);
+        ui.comboBox.setObjectName("comboBox");
+        ui.comboBox.addItem("");
+        ui.comboBox.addItem("");
+        ui.formLayout.setWidget(0, qt6.qformlayout_enums.ItemRole.FieldRole, ui.comboBox);
+
+        ui.label_2 = .new(ui.tab);
+        ui.label_2.setObjectName("label_2");
+        ui.formLayout.setWidget(1, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label_2);
+
+        ui.spinBox = .new(ui.tab);
+        ui.spinBox.setObjectName("spinBox");
+        ui.formLayout.setWidget(1, qt6.qformlayout_enums.ItemRole.FieldRole, ui.spinBox);
+
+        _ = ui.tabWidget.addTab(ui.tab, "");
+
+        ui.tab_2 = .new2();
+        ui.tab_2.setObjectName("tab_2");
+
+        _ = ui.tabWidget.addTab(ui.tab_2, "");
+        ui.gridLayout.addWidget2(ui.tabWidget, 0, 0);
+
+        ui.treeWidget = .new(ui.centralwidget);
+        ui.treeWidget.setObjectName("treeWidget");
+        ui.treeWidget.setFrameShape(qt6.qframe_enums.Shape.Panel);
+        const ui_treeWidget_item = qt6.QTreeWidgetItem.new();
+        ui.treeWidget.setHeaderItem(ui_treeWidget_item);
+        ui_treeWidget_item.setText(0, "1");
+        ui.gridLayout.addWidget2(ui.treeWidget, 0, 1);
+
+        ui.MainWindow.setCentralWidget(ui.centralwidget);
+
+        ui.menubar = .new(ui.MainWindow);
+        ui.menubar.setObjectName("menubar");
+        ui.menubar.setGeometry(0, 0, 800, 27);
+
+        ui.menu_File = .new(ui.menubar);
+        ui.menu_File.setObjectName("menu_File");
+        ui.MainWindow.setMenuBar(ui.menubar);
+
+        ui.statusbar = .new(ui.MainWindow);
+        ui.statusbar.setObjectName("statusbar");
+        ui.MainWindow.setStatusBar(ui.statusbar);
+
+        ui.dockWidget = .new(ui.MainWindow);
+        ui.dockWidget.setObjectName("dockWidget");
+        ui.MainWindow.addDockWidget(1, ui.dockWidget); // qt6.qnamespace_enums.DockWidgetArea (1)
+
+        ui.dockWidgetContents = .new2();
+        ui.dockWidgetContents.setObjectName("dockWidgetContents");
+
+        ui.verticalLayout = .new(ui.dockWidgetContents);
+        ui.verticalLayout.setObjectName("verticalLayout");
+
+        ui.calendarWidget = .new(ui.dockWidgetContents);
+        ui.calendarWidget.setObjectName("calendarWidget");
+
+        ui.verticalLayout.addWidget(ui.calendarWidget);
+        ui.dockWidget.setWidget(ui.dockWidgetContents);
+
+        ui.menubar.addAction(ui.menu_File.menuAction());
+        ui.menu_File.addAction(ui.action_New);
+        _ = ui.menu_File.addSeparator();
+        ui.menu_File.addAction(ui.actionE_xit);
+
+        ui.retranslate(allocator);
+    }
+
+    /// If there is no parent widget, delete the main widget for
+    /// MainWindowUi and the child Qt objects
+    pub fn deinit(ui: *const MainWindowUi) void {
+        if (ui.MainWindow.parentWidget().ptr == null)
+            ui.MainWindow.delete();
+    }
+
+    /// Reapply all text translations
+    pub fn retranslate(ui: *const MainWindowUi, allocator: std.mem.Allocator) void {
         const text0 = qt6.QCoreApplication.translate(allocator, "MainWindow", "MainWindow");
         defer allocator.free(text0);
         ui.MainWindow.setWindowTitle(text0);
@@ -71,113 +187,4 @@ pub const MainWindowUi = struct {
         defer allocator.free(text11);
         ui.dockWidget.setWindowTitle(text11);
     }
-
-    /// Destroys all the Qt objects for MainWindowUi and frees the allocated memory
-    pub fn destroy(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
-        ui.MainWindow.delete();
-        allocator.destroy(ui);
-    }
 };
-
-/// Creates all the Qt objects for MainWindowUi
-pub fn create(allocator: std.mem.Allocator) !*MainWindowUi {
-    var ui = try allocator.create(MainWindowUi);
-
-    ui.MainWindow = .new2();
-    ui.MainWindow.setObjectName("MainWindow");
-    ui.MainWindow.resize(800, 600);
-
-    ui.action_New = .new4(ui.MainWindow);
-    ui.action_New.setObjectName("action_New");
-
-    ui.actionE_xit = .new4(ui.MainWindow);
-    ui.actionE_xit.setObjectName("actionE_xit");
-
-    ui.centralwidget = .new(ui.MainWindow);
-    ui.centralwidget.setObjectName("centralwidget");
-
-    ui.gridLayout = .new(ui.centralwidget);
-    ui.gridLayout.setObjectName("gridLayout");
-
-    ui.tabWidget = .new(ui.centralwidget);
-    ui.tabWidget.setObjectName("tabWidget");
-
-    ui.tab = .new2();
-    ui.tab.setObjectName("tab");
-
-    ui.formLayout = .new(ui.tab);
-    ui.formLayout.setObjectName("formLayout");
-
-    ui.label = .new(ui.tab);
-    ui.label.setObjectName("label");
-    ui.formLayout.setWidget(0, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label);
-
-    ui.comboBox = .new(ui.tab);
-    ui.comboBox.setObjectName("comboBox");
-    ui.comboBox.addItem("");
-    ui.comboBox.addItem("");
-    ui.formLayout.setWidget(0, qt6.qformlayout_enums.ItemRole.FieldRole, ui.comboBox);
-
-    ui.label_2 = .new(ui.tab);
-    ui.label_2.setObjectName("label_2");
-    ui.formLayout.setWidget(1, qt6.qformlayout_enums.ItemRole.LabelRole, ui.label_2);
-
-    ui.spinBox = .new(ui.tab);
-    ui.spinBox.setObjectName("spinBox");
-    ui.formLayout.setWidget(1, qt6.qformlayout_enums.ItemRole.FieldRole, ui.spinBox);
-
-    _ = ui.tabWidget.addTab(ui.tab, "");
-
-    ui.tab_2 = .new2();
-    ui.tab_2.setObjectName("tab_2");
-
-    _ = ui.tabWidget.addTab(ui.tab_2, "");
-    ui.gridLayout.addWidget2(ui.tabWidget, 0, 0);
-
-    ui.treeWidget = .new(ui.centralwidget);
-    ui.treeWidget.setObjectName("treeWidget");
-    ui.treeWidget.setFrameShape(qt6.qframe_enums.Shape.Panel);
-    const ui_treeWidget_item = qt6.QTreeWidgetItem.new();
-    ui.treeWidget.setHeaderItem(ui_treeWidget_item);
-    ui_treeWidget_item.setText(0, "1");
-    ui.gridLayout.addWidget2(ui.treeWidget, 0, 1);
-
-    ui.MainWindow.setCentralWidget(ui.centralwidget);
-
-    ui.menubar = .new(ui.MainWindow);
-    ui.menubar.setObjectName("menubar");
-    ui.menubar.setGeometry(0, 0, 800, 27);
-
-    ui.menu_File = .new(ui.menubar);
-    ui.menu_File.setObjectName("menu_File");
-    ui.MainWindow.setMenuBar(ui.menubar);
-
-    ui.statusbar = .new(ui.MainWindow);
-    ui.statusbar.setObjectName("statusbar");
-    ui.MainWindow.setStatusBar(ui.statusbar);
-
-    ui.dockWidget = .new(ui.MainWindow);
-    ui.dockWidget.setObjectName("dockWidget");
-    ui.MainWindow.addDockWidget(1, ui.dockWidget); // qt6.qnamespace_enums.DockWidgetArea (1)
-
-    ui.dockWidgetContents = .new2();
-    ui.dockWidgetContents.setObjectName("dockWidgetContents");
-
-    ui.verticalLayout = .new(ui.dockWidgetContents);
-    ui.verticalLayout.setObjectName("verticalLayout");
-
-    ui.calendarWidget = .new(ui.dockWidgetContents);
-    ui.calendarWidget.setObjectName("calendarWidget");
-
-    ui.verticalLayout.addWidget(ui.calendarWidget);
-    ui.dockWidget.setWidget(ui.dockWidgetContents);
-
-    ui.menubar.addAction(ui.menu_File.menuAction());
-    ui.menu_File.addAction(ui.action_New);
-    _ = ui.menu_File.addSeparator();
-    ui.menu_File.addAction(ui.actionE_xit);
-
-    ui.retranslate(allocator);
-
-    return ui;
-}
