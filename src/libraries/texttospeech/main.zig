@@ -3,6 +3,7 @@ const qt6 = @import("libqt6zig");
 const MainWindow = @import("mainwindow.zig");
 const MainWindowUi = MainWindow.MainWindowUi;
 const QApplication = qt6.QApplication;
+const QWidget = qt6.QWidget;
 const QVoice = qt6.QVoice;
 const QVariant = qt6.QVariant;
 const QTextToSpeech = qt6.QTextToSpeech;
@@ -15,7 +16,7 @@ const QPushButton = qt6.QPushButton;
 
 var allocator: std.mem.Allocator = undefined;
 
-var ui: *MainWindowUi = undefined;
+var ui: MainWindowUi = undefined;
 var speech: QTextToSpeech = .{ .ptr = null };
 var voices: []QVoice = &.{};
 
@@ -28,8 +29,8 @@ pub fn main(init: std.process.Init) !void {
 
     allocator = init.gpa;
 
-    ui = try MainWindow.create(init.gpa);
-    defer ui.destroy(init.gpa);
+    ui.init(init.gpa, QWidget{ .ptr = null });
+    defer ui.deinit();
 
     const engines = QTextToSpeech.availableEngines(init.gpa);
     defer {

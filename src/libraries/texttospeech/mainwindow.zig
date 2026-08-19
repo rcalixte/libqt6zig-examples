@@ -8,33 +8,233 @@ const qt6 = @import("libqt6zig");
 
 /// The type definition for MainWindowUi containing all of the Qt objects
 pub const MainWindowUi = struct {
-    MainWindow: qt6.QMainWindow,
-    centralwidget: qt6.QWidget,
-    verticalLayout: qt6.QVBoxLayout,
-    plainTextEdit: qt6.QPlainTextEdit,
-    gridLayout: qt6.QGridLayout,
-    label_5: qt6.QLabel,
-    label_3: qt6.QLabel,
-    label_4: qt6.QLabel,
-    pitch: qt6.QSlider,
-    label_6: qt6.QLabel,
-    volume: qt6.QSlider,
-    language: qt6.QComboBox,
-    voice: qt6.QComboBox,
-    label: qt6.QLabel,
-    label_2: qt6.QLabel,
-    rate: qt6.QSlider,
-    engine: qt6.QComboBox,
-    horizontalLayout: qt6.QHBoxLayout,
-    speakButton: qt6.QPushButton,
-    pauseButton: qt6.QPushButton,
-    resumeButton: qt6.QPushButton,
-    stopButton: qt6.QPushButton,
-    verticalSpacer: qt6.QSpacerItem,
-    statusbar: qt6.QStatusBar,
+    MainWindow: qt6.QMainWindow = undefined,
+    centralwidget: qt6.QWidget = undefined,
+    verticalLayout: qt6.QVBoxLayout = undefined,
+    plainTextEdit: qt6.QPlainTextEdit = undefined,
+    gridLayout: qt6.QGridLayout = undefined,
+    label_5: qt6.QLabel = undefined,
+    label_3: qt6.QLabel = undefined,
+    label_4: qt6.QLabel = undefined,
+    pitch: qt6.QSlider = undefined,
+    label_6: qt6.QLabel = undefined,
+    volume: qt6.QSlider = undefined,
+    language: qt6.QComboBox = undefined,
+    voice: qt6.QComboBox = undefined,
+    label: qt6.QLabel = undefined,
+    label_2: qt6.QLabel = undefined,
+    rate: qt6.QSlider = undefined,
+    engine: qt6.QComboBox = undefined,
+    horizontalLayout: qt6.QHBoxLayout = undefined,
+    speakButton: qt6.QPushButton = undefined,
+    pauseButton: qt6.QPushButton = undefined,
+    resumeButton: qt6.QPushButton = undefined,
+    stopButton: qt6.QPushButton = undefined,
+    verticalSpacer: qt6.QSpacerItem = undefined,
+    statusbar: qt6.QStatusBar = undefined,
 
-    /// Reapplies all text translations
-    pub fn retranslate(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
+    /// Initialize all of the Qt objects for MainWindowUi
+    ///
+    /// ## Parameters:
+    ///
+    /// ` ui: *MainWindowUi `
+    ///
+    /// ` allocator: std.mem.Allocator `
+    ///
+    /// ` parent: QWidget ` (can be null)
+    ///
+    pub fn init(ui: *MainWindowUi, allocator: std.mem.Allocator, parent: anytype) void {
+        ui.MainWindow = .new2();
+        ui.MainWindow.setObjectName("MainWindow");
+        ui.MainWindow.setParent(parent);
+        ui.MainWindow.resize(551, 448);
+
+        ui.centralwidget = .new(ui.MainWindow);
+        ui.centralwidget.setObjectName("centralwidget");
+
+        ui.verticalLayout = .new(ui.centralwidget);
+        ui.verticalLayout.setObjectName("verticalLayout");
+
+        ui.plainTextEdit = .new(ui.centralwidget);
+        ui.plainTextEdit.setObjectName("plainTextEdit");
+        const size_policy0 = qt6.QSizePolicy.new3();
+        defer size_policy0.delete();
+        size_policy0.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
+        size_policy0.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
+        size_policy0.setHorizontalStretch(0);
+        size_policy0.setVerticalStretch(0);
+        const plainTextEdit_sp = ui.plainTextEdit.sizePolicy();
+        defer plainTextEdit_sp.delete();
+        size_policy0.setHeightForWidth(plainTextEdit_sp.hasHeightForWidth());
+        ui.plainTextEdit.setSizePolicy(size_policy0);
+
+        ui.verticalLayout.addWidget(ui.plainTextEdit);
+
+        ui.gridLayout = .new2();
+        ui.gridLayout.setObjectName("gridLayout");
+
+        ui.label_5 = .new(ui.centralwidget);
+        ui.label_5.setObjectName("label_5");
+        const size_policy1 = qt6.QSizePolicy.new3();
+        defer size_policy1.delete();
+        size_policy1.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Minimum);
+        size_policy1.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Preferred);
+        size_policy1.setHorizontalStretch(0);
+        size_policy1.setVerticalStretch(0);
+        const label_5_sp = ui.label_5.sizePolicy();
+        defer label_5_sp.delete();
+        size_policy1.setHeightForWidth(label_5_sp.hasHeightForWidth());
+        ui.label_5.setSizePolicy(size_policy1);
+        ui.label_5.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label_5, 4, 0);
+
+        ui.label_3 = .new(ui.centralwidget);
+        ui.label_3.setObjectName("label_3");
+        const label_3_sp = ui.label_3.sizePolicy();
+        defer label_3_sp.delete();
+        size_policy1.setHeightForWidth(label_3_sp.hasHeightForWidth());
+        ui.label_3.setSizePolicy(size_policy1);
+        ui.label_3.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label_3, 3, 0);
+
+        ui.label_4 = .new(ui.centralwidget);
+        ui.label_4.setObjectName("label_4");
+        const label_4_sp = ui.label_4.sizePolicy();
+        defer label_4_sp.delete();
+        size_policy1.setHeightForWidth(label_4_sp.hasHeightForWidth());
+        ui.label_4.setSizePolicy(size_policy1);
+        ui.label_4.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label_4, 5, 0);
+
+        ui.pitch = .new(ui.centralwidget);
+        ui.pitch.setObjectName("pitch");
+        ui.pitch.setMinimum(-10);
+        ui.pitch.setMaximum(10);
+        ui.pitch.setSingleStep(1);
+        ui.pitch.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
+        ui.gridLayout.addWidget2(ui.pitch, 3, 2);
+
+        ui.label_6 = .new(ui.centralwidget);
+        ui.label_6.setObjectName("label_6");
+        ui.label_6.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label_6, 6, 0);
+
+        ui.volume = .new(ui.centralwidget);
+        ui.volume.setObjectName("volume");
+        ui.volume.setMaximum(100);
+        ui.volume.setSingleStep(5);
+        ui.volume.setPageStep(20);
+        ui.volume.setValue(70);
+        ui.volume.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
+        ui.gridLayout.addWidget2(ui.volume, 1, 2);
+
+        ui.language = .new(ui.centralwidget);
+        ui.language.setObjectName("language");
+        const size_policy2 = qt6.QSizePolicy.new3();
+        defer size_policy2.delete();
+        size_policy2.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
+        size_policy2.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Fixed);
+        size_policy2.setHorizontalStretch(0);
+        size_policy2.setVerticalStretch(0);
+        const language_sp = ui.language.sizePolicy();
+        defer language_sp.delete();
+        size_policy2.setHeightForWidth(language_sp.hasHeightForWidth());
+        ui.language.setSizePolicy(size_policy2);
+        ui.gridLayout.addWidget2(ui.language, 5, 2);
+
+        ui.voice = .new(ui.centralwidget);
+        ui.voice.setObjectName("voice");
+        ui.gridLayout.addWidget2(ui.voice, 6, 2);
+
+        ui.label = .new(ui.centralwidget);
+        ui.label.setObjectName("label");
+        const label_sp = ui.label.sizePolicy();
+        defer label_sp.delete();
+        size_policy1.setHeightForWidth(label_sp.hasHeightForWidth());
+        ui.label.setSizePolicy(size_policy1);
+        ui.label.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label, 2, 0);
+
+        ui.label_2 = .new(ui.centralwidget);
+        ui.label_2.setObjectName("label_2");
+        const label_2_sp = ui.label_2.sizePolicy();
+        defer label_2_sp.delete();
+        size_policy1.setHeightForWidth(label_2_sp.hasHeightForWidth());
+        ui.label_2.setSizePolicy(size_policy1);
+        ui.label_2.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
+        ui.gridLayout.addWidget2(ui.label_2, 1, 0);
+
+        ui.rate = .new(ui.centralwidget);
+        ui.rate.setObjectName("rate");
+        ui.rate.setMinimum(-10);
+        ui.rate.setMaximum(10);
+        ui.rate.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
+        ui.gridLayout.addWidget2(ui.rate, 2, 2);
+
+        ui.engine = .new(ui.centralwidget);
+        ui.engine.setObjectName("engine");
+        const engine_sp = ui.engine.sizePolicy();
+        defer engine_sp.delete();
+        size_policy2.setHeightForWidth(engine_sp.hasHeightForWidth());
+        ui.engine.setSizePolicy(size_policy2);
+        ui.gridLayout.addWidget2(ui.engine, 4, 2);
+
+        ui.verticalLayout.addLayout(ui.gridLayout);
+
+        ui.horizontalLayout = .new2();
+        ui.horizontalLayout.setObjectName("horizontalLayout");
+
+        ui.speakButton = .new(ui.centralwidget);
+        ui.speakButton.setObjectName("speakButton");
+
+        ui.horizontalLayout.addWidget(ui.speakButton);
+
+        ui.pauseButton = .new(ui.centralwidget);
+        ui.pauseButton.setObjectName("pauseButton");
+        ui.pauseButton.setEnabled(false);
+
+        ui.horizontalLayout.addWidget(ui.pauseButton);
+
+        ui.resumeButton = .new(ui.centralwidget);
+        ui.resumeButton.setObjectName("resumeButton");
+        ui.resumeButton.setEnabled(false);
+
+        ui.horizontalLayout.addWidget(ui.resumeButton);
+
+        ui.stopButton = .new(ui.centralwidget);
+        ui.stopButton.setObjectName("stopButton");
+
+        ui.horizontalLayout.addWidget(ui.stopButton);
+
+        ui.verticalLayout.addLayout(ui.horizontalLayout);
+
+        ui.verticalSpacer = .new4(20, 40, qt6.qsizepolicy_enums.Policy.Minimum, qt6.qsizepolicy_enums.Policy.Expanding);
+        ui.verticalLayout.addItem(ui.verticalSpacer);
+
+        ui.MainWindow.setCentralWidget(ui.centralwidget);
+
+        ui.statusbar = .new(ui.MainWindow);
+        ui.statusbar.setObjectName("statusbar");
+        ui.MainWindow.setStatusBar(ui.statusbar);
+
+        ui.label_4.setBuddy(ui.language);
+        qt6.QWidget.setTabOrder(ui.plainTextEdit, ui.speakButton);
+        qt6.QWidget.setTabOrder(ui.speakButton, ui.pauseButton);
+        qt6.QWidget.setTabOrder(ui.pauseButton, ui.resumeButton);
+        qt6.QWidget.setTabOrder(ui.resumeButton, ui.stopButton);
+
+        ui.retranslate(allocator);
+    }
+
+    /// If there is no parent widget, delete the main widget for
+    /// MainWindowUi and the child Qt objects
+    pub fn deinit(ui: *const MainWindowUi) void {
+        if (ui.MainWindow.parentWidget().ptr == null)
+            ui.MainWindow.delete();
+    }
+
+    /// Reapply all text translations
+    pub fn retranslate(ui: *const MainWindowUi, allocator: std.mem.Allocator) void {
         const text0 = qt6.QCoreApplication.translate(allocator, "MainWindow", "MainWindow");
         defer allocator.free(text0);
         ui.MainWindow.setWindowTitle(text0);
@@ -72,197 +272,4 @@ pub const MainWindowUi = struct {
         defer allocator.free(text11);
         ui.stopButton.setText(text11);
     }
-
-    /// Destroys all the Qt objects for MainWindowUi and frees the allocated memory
-    pub fn destroy(ui: *MainWindowUi, allocator: std.mem.Allocator) void {
-        ui.MainWindow.delete();
-        allocator.destroy(ui);
-    }
 };
-
-/// Creates all the Qt objects for MainWindowUi
-pub fn create(allocator: std.mem.Allocator) !*MainWindowUi {
-    var ui = try allocator.create(MainWindowUi);
-
-    ui.MainWindow = .new2();
-    ui.MainWindow.setObjectName("MainWindow");
-    ui.MainWindow.resize(551, 448);
-
-    ui.centralwidget = .new(ui.MainWindow);
-    ui.centralwidget.setObjectName("centralwidget");
-
-    ui.verticalLayout = .new(ui.centralwidget);
-    ui.verticalLayout.setObjectName("verticalLayout");
-
-    ui.plainTextEdit = .new(ui.centralwidget);
-    ui.plainTextEdit.setObjectName("plainTextEdit");
-    const size_policy0 = qt6.QSizePolicy.new3();
-    defer size_policy0.delete();
-    size_policy0.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
-    size_policy0.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
-    size_policy0.setHorizontalStretch(0);
-    size_policy0.setVerticalStretch(0);
-    const plainTextEdit_sp = ui.plainTextEdit.sizePolicy();
-    defer plainTextEdit_sp.delete();
-    size_policy0.setHeightForWidth(plainTextEdit_sp.hasHeightForWidth());
-    ui.plainTextEdit.setSizePolicy(size_policy0);
-
-    ui.verticalLayout.addWidget(ui.plainTextEdit);
-
-    ui.gridLayout = .new2();
-    ui.gridLayout.setObjectName("gridLayout");
-
-    ui.label_5 = .new(ui.centralwidget);
-    ui.label_5.setObjectName("label_5");
-    const size_policy1 = qt6.QSizePolicy.new3();
-    defer size_policy1.delete();
-    size_policy1.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Minimum);
-    size_policy1.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Preferred);
-    size_policy1.setHorizontalStretch(0);
-    size_policy1.setVerticalStretch(0);
-    const label_5_sp = ui.label_5.sizePolicy();
-    defer label_5_sp.delete();
-    size_policy1.setHeightForWidth(label_5_sp.hasHeightForWidth());
-    ui.label_5.setSizePolicy(size_policy1);
-    ui.label_5.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label_5, 4, 0);
-
-    ui.label_3 = .new(ui.centralwidget);
-    ui.label_3.setObjectName("label_3");
-    const label_3_sp = ui.label_3.sizePolicy();
-    defer label_3_sp.delete();
-    size_policy1.setHeightForWidth(label_3_sp.hasHeightForWidth());
-    ui.label_3.setSizePolicy(size_policy1);
-    ui.label_3.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label_3, 3, 0);
-
-    ui.label_4 = .new(ui.centralwidget);
-    ui.label_4.setObjectName("label_4");
-    const label_4_sp = ui.label_4.sizePolicy();
-    defer label_4_sp.delete();
-    size_policy1.setHeightForWidth(label_4_sp.hasHeightForWidth());
-    ui.label_4.setSizePolicy(size_policy1);
-    ui.label_4.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label_4, 5, 0);
-
-    ui.pitch = .new(ui.centralwidget);
-    ui.pitch.setObjectName("pitch");
-    ui.pitch.setMinimum(-10);
-    ui.pitch.setMaximum(10);
-    ui.pitch.setSingleStep(1);
-    ui.pitch.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
-    ui.gridLayout.addWidget2(ui.pitch, 3, 2);
-
-    ui.label_6 = .new(ui.centralwidget);
-    ui.label_6.setObjectName("label_6");
-    ui.label_6.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label_6, 6, 0);
-
-    ui.volume = .new(ui.centralwidget);
-    ui.volume.setObjectName("volume");
-    ui.volume.setMaximum(100);
-    ui.volume.setSingleStep(5);
-    ui.volume.setPageStep(20);
-    ui.volume.setValue(70);
-    ui.volume.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
-    ui.gridLayout.addWidget2(ui.volume, 1, 2);
-
-    ui.language = .new(ui.centralwidget);
-    ui.language.setObjectName("language");
-    const size_policy2 = qt6.QSizePolicy.new3();
-    defer size_policy2.delete();
-    size_policy2.setHorizontalPolicy(qt6.qsizepolicy_enums.Policy.Expanding);
-    size_policy2.setVerticalPolicy(qt6.qsizepolicy_enums.Policy.Fixed);
-    size_policy2.setHorizontalStretch(0);
-    size_policy2.setVerticalStretch(0);
-    const language_sp = ui.language.sizePolicy();
-    defer language_sp.delete();
-    size_policy2.setHeightForWidth(language_sp.hasHeightForWidth());
-    ui.language.setSizePolicy(size_policy2);
-    ui.gridLayout.addWidget2(ui.language, 5, 2);
-
-    ui.voice = .new(ui.centralwidget);
-    ui.voice.setObjectName("voice");
-    ui.gridLayout.addWidget2(ui.voice, 6, 2);
-
-    ui.label = .new(ui.centralwidget);
-    ui.label.setObjectName("label");
-    const label_sp = ui.label.sizePolicy();
-    defer label_sp.delete();
-    size_policy1.setHeightForWidth(label_sp.hasHeightForWidth());
-    ui.label.setSizePolicy(size_policy1);
-    ui.label.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label, 2, 0);
-
-    ui.label_2 = .new(ui.centralwidget);
-    ui.label_2.setObjectName("label_2");
-    const label_2_sp = ui.label_2.sizePolicy();
-    defer label_2_sp.delete();
-    size_policy1.setHeightForWidth(label_2_sp.hasHeightForWidth());
-    ui.label_2.setSizePolicy(size_policy1);
-    ui.label_2.setAlignment(qt6.qnamespace_enums.AlignmentFlag.AlignRight | qt6.qnamespace_enums.AlignmentFlag.AlignTrailing | qt6.qnamespace_enums.AlignmentFlag.AlignVCenter);
-    ui.gridLayout.addWidget2(ui.label_2, 1, 0);
-
-    ui.rate = .new(ui.centralwidget);
-    ui.rate.setObjectName("rate");
-    ui.rate.setMinimum(-10);
-    ui.rate.setMaximum(10);
-    ui.rate.setOrientation(qt6.qnamespace_enums.Orientation.Horizontal);
-    ui.gridLayout.addWidget2(ui.rate, 2, 2);
-
-    ui.engine = .new(ui.centralwidget);
-    ui.engine.setObjectName("engine");
-    const engine_sp = ui.engine.sizePolicy();
-    defer engine_sp.delete();
-    size_policy2.setHeightForWidth(engine_sp.hasHeightForWidth());
-    ui.engine.setSizePolicy(size_policy2);
-    ui.gridLayout.addWidget2(ui.engine, 4, 2);
-
-    ui.verticalLayout.addLayout(ui.gridLayout);
-
-    ui.horizontalLayout = .new2();
-    ui.horizontalLayout.setObjectName("horizontalLayout");
-
-    ui.speakButton = .new(ui.centralwidget);
-    ui.speakButton.setObjectName("speakButton");
-
-    ui.horizontalLayout.addWidget(ui.speakButton);
-
-    ui.pauseButton = .new(ui.centralwidget);
-    ui.pauseButton.setObjectName("pauseButton");
-    ui.pauseButton.setEnabled(false);
-
-    ui.horizontalLayout.addWidget(ui.pauseButton);
-
-    ui.resumeButton = .new(ui.centralwidget);
-    ui.resumeButton.setObjectName("resumeButton");
-    ui.resumeButton.setEnabled(false);
-
-    ui.horizontalLayout.addWidget(ui.resumeButton);
-
-    ui.stopButton = .new(ui.centralwidget);
-    ui.stopButton.setObjectName("stopButton");
-
-    ui.horizontalLayout.addWidget(ui.stopButton);
-
-    ui.verticalLayout.addLayout(ui.horizontalLayout);
-
-    ui.verticalSpacer = .new4(20, 40, qt6.qsizepolicy_enums.Policy.Minimum, qt6.qsizepolicy_enums.Policy.Expanding);
-    ui.verticalLayout.addItem(ui.verticalSpacer);
-
-    ui.MainWindow.setCentralWidget(ui.centralwidget);
-
-    ui.statusbar = .new(ui.MainWindow);
-    ui.statusbar.setObjectName("statusbar");
-    ui.MainWindow.setStatusBar(ui.statusbar);
-
-    ui.label_4.setBuddy(ui.language);
-    qt6.QWidget.setTabOrder(ui.plainTextEdit, ui.speakButton);
-    qt6.QWidget.setTabOrder(ui.speakButton, ui.pauseButton);
-    qt6.QWidget.setTabOrder(ui.pauseButton, ui.resumeButton);
-    qt6.QWidget.setTabOrder(ui.resumeButton, ui.stopButton);
-
-    ui.retranslate(allocator);
-
-    return ui;
-}
