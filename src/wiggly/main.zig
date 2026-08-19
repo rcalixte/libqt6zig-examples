@@ -14,7 +14,7 @@ const QDialog = qt6.QDialog;
 const QVBoxLayout = qt6.QVBoxLayout;
 const QLineEdit = qt6.QLineEdit;
 
-var wiggly: *WigglyWidget = undefined;
+var wiggly: WigglyWidget = .{};
 
 const wiggly_text = "Hello Wiggly Text";
 const max_len: i32 = 32;
@@ -26,17 +26,15 @@ const sine_table = [_]i32{
 };
 
 pub const WigglyWidget = struct {
-    timer: QBasicTimer,
-    buffer: [max_len:0]u8,
-    text: []u8,
-    step: usize,
-    widget: QWidget,
+    timer: QBasicTimer = undefined,
+    buffer: [max_len:0]u8 = undefined,
+    text: []u8 = &.{},
+    step: usize = 0,
+    widget: QWidget = undefined,
+    font_metrics: QFontMetrics = undefined,
+    color: QColor = undefined,
 
-    pub fn create(alloc: std.mem.Allocator, text: []const u8) !*WigglyWidget {
-        var self = try alloc.create(WigglyWidget);
-        errdefer alloc.destroy(self);
-
-        self.step = 0;
+    pub fn init(self: *WigglyWidget, text: []const u8) !void {
         self.text = try std.fmt.bufPrint(&self.buffer, "{s}", .{text});
 
         self.widget = .new2();
@@ -52,44 +50,40 @@ pub const WigglyWidget = struct {
         font.setPointSize(font.pointSize() + 25);
         self.widget.setFont(font);
 
+        const wiggly_font = QFont.new();
+        defer wiggly_font.delete();
+
+        self.font_metrics = .new(wiggly_font);
+        self.color = .new3();
+
         self.widget.onPaintEvent(onPaintEvent);
         self.widget.onTimerEvent(onTimerEvent);
-
-        return self;
     }
 
-    pub fn destroy(self: *WigglyWidget, alloc: std.mem.Allocator) void {
+    pub fn deinit(self: *const WigglyWidget) void {
         self.timer.delete();
+        self.color.delete();
+        self.font_metrics.delete();
         self.widget.deleteLater();
-        alloc.destroy(self);
     }
 
     fn onPaintEvent(self: QWidget, _: QPaintEvent) callconv(.c) void {
-        const font = QFont.new();
-        defer font.delete();
-
-        const font_metrics = QFontMetrics.new(font);
-        defer font_metrics.delete();
-
-        var x = @divFloor(self.width() - font_metrics.horizontalAdvance(wiggly.text), 4);
-        const y = @divFloor(self.height() + font_metrics.ascent() - font_metrics.descent(), 2);
-
-        const color = QColor.new3();
-        defer color.delete();
+        var x = @divFloor(self.width() - wiggly.font_metrics.horizontalAdvance(wiggly.text), 4);
+        const y = @divFloor(self.height() + wiggly.font_metrics.ascent() - wiggly.font_metrics.descent(), 2);
 
         const painter = QStylePainter.new(self);
         defer painter.delete();
 
         for (0..wiggly.text.len) |i| {
             const index: usize = @mod(wiggly.step + i, sine_table.len);
-            color.setHsv(@intCast((63 - index) * (sine_table.len / 4)), 255, 191);
-            painter.setPen(color);
+            wiggly.color.setHsv(@intCast((63 - index) * (sine_table.len / 4)), 255, 191);
+            painter.setPen(wiggly.color);
             painter.drawText3(
                 x,
-                y - @divFloor(sine_table[index] * font_metrics.height() * 2, 300),
+                y - @divFloor(sine_table[index] * wiggly.font_metrics.height() * 2, 300),
                 wiggly.text[i..][0..1],
             );
-            x += font_metrics.horizontalAdvance(wiggly.text[i..][0..1]) * 3;
+            x += wiggly.font_metrics.horizontalAdvance(wiggly.text[i..][0..1]) * 3;
         }
     }
 
@@ -116,8 +110,8 @@ pub fn main(init: std.process.Init) !void {
     dialog.setWindowTitle("Qt 6 Wiggly Text Example");
     dialog.resize(500, 180);
 
-    wiggly = try .create(init.gpa, wiggly_text);
-    defer wiggly.destroy(init.gpa);
+    try wiggly.init(wiggly_text);
+    defer wiggly.deinit();
 
     const line_edit = QLineEdit.new2();
     line_edit.setText(wiggly_text);
