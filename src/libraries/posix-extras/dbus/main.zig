@@ -70,9 +70,7 @@ pub fn main(init: std.process.Init) !void {
     defer reply.delete();
 
     if (reply.type0() != qdbusmessage_enums.MessageType.ReplyMessage) {
-        std.Io.File.stdout().writeStreamingAll(init.io, "Failed to send message\n") catch
-            @panic("Failed to print to stdout");
-
+        std.log.err("Failed to send message", .{});
         QCoreApplication.quit();
     }
 }
