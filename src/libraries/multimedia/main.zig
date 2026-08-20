@@ -22,7 +22,7 @@ pub fn main(init: std.process.Init) !void {
     defer player.delete();
 
     if (player.error0() != qmediaplayer_enums.Error.NoError) {
-        try std.Io.File.stdout().writeStreamingAll(init.io, "Failed to create player.\n");
+        std.log.err("Failed to create player.", .{});
         return;
     }
 
