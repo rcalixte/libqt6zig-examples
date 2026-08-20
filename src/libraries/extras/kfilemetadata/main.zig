@@ -20,7 +20,6 @@ const types_enums = qt6.types_enums;
 const extractionresult_enums = qt6.extractionresult_enums;
 
 var allocator: std.mem.Allocator = undefined;
-var io: std.Io = undefined;
 
 const filename = "assets/Qt.png";
 
@@ -39,7 +38,6 @@ pub fn main(init: std.process.Init) !void {
     defer qapp.delete();
 
     allocator = init.gpa;
-    io = init.io;
 
     const listwidget = QListWidget.new2();
     defer listwidget.delete();
@@ -108,7 +106,7 @@ pub fn main(init: std.process.Init) !void {
 
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     const n: usize = 1;
-    const list: [*:null]?[*:0]const u8 = switch (builtin.os.tag == .windows) {
+    const list: [*:null]?[*:0]const u8 = switch (builtin.target.os.tag == .windows) {
         true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
         false => std.heap.c_allocator.allocSentinel(?[*:0]const u8, n, null) catch
             @panic("Failed to allocate memory"),
@@ -126,20 +124,14 @@ fn onExtract(_: KFileMetaData__ExtractorPlugin, result: KFileMetaData__Extractio
     defer reader.delete();
 
     if (!reader.canRead()) {
-        std.Io.File.stdout().writeStreamingAll(
-            io,
-            "Unable to read input image: '" ++ filename ++ "'\n",
-        ) catch @panic("onExtract stdout error during read");
+        std.log.err("Unable to read input image: '{s}'", .{filename});
         return;
     }
 
     result.addType(types_enums.Type.Image);
 
     if ((result.inputFlags() & extractionresult_enums.Flag.ExtractMetaData) == 0) {
-        std.Io.File.stdout().writeStreamingAll(
-            io,
-            "Unable to extract metadata from image: '" ++ filename ++ "'\n",
-        ) catch @panic("onExtract stdout error during extraction");
+        std.log.err("Unable to extract metadata from image: '{s}'", .{filename});
         return;
     }
 
