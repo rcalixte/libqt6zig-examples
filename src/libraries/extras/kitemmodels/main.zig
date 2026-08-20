@@ -63,8 +63,8 @@ pub fn main(init: std.process.Init) !void {
     _ = QApplication.exec();
 }
 
-fn makeStandardItemsList(alloc: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(QStandardItem) {
-    var row: std.ArrayList(QStandardItem) = try .initCapacity(alloc, labels.len);
+fn makeStandardItemsList(gpa: std.mem.Allocator, labels: []const []const u8) !std.ArrayList(QStandardItem) {
+    var row: std.ArrayList(QStandardItem) = try .initCapacity(gpa, labels.len);
     for (labels) |label|
         row.appendAssumeCapacity(.new2(label));
     return row;
