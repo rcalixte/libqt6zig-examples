@@ -25,9 +25,5 @@ pub fn main(init: std.process.Init) !void {
         const msg = std.fmt.bufPrint(&buffer, "Successfully wrote to '{s}'\n", .{file_path}) catch
             @panic("Failed to write to buffer");
         try std.Io.File.stdout().writeStreamingAll(init.io, msg);
-    } else {
-        const msg = std.fmt.bufPrint(&buffer, "Failed to open '{s}' for writing\n", .{file_path}) catch
-            @panic("Failed to write to buffer");
-        try std.Io.File.stdout().writeStreamingAll(init.io, msg);
-    }
+    } else std.log.err("Failed to open '{s}' for writing", .{file_path});
 }
