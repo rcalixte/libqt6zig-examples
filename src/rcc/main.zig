@@ -17,14 +17,11 @@ pub fn main(init: std.process.Init) !void {
 
     var ok = rcc.init();
     if (!ok)
-        try std.Io.File.stdout().writeStreamingAll(init.io, "Resource initialization failed!\n");
+        std.log.err("Resource initialization failed!", .{});
     defer {
         ok = rcc.deinit();
         if (!ok)
-            std.Io.File.stdout().writeStreamingAll(
-                init.io,
-                "Resource deinitialization failed!\n",
-            ) catch @panic("Failed to stdout deinit\n");
+            std.log.err("Resource deinitialization failed!", .{});
     }
 
     const widget = QWidget.new2();
