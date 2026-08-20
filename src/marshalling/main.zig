@@ -274,7 +274,7 @@ pub fn main(init: std.process.Init) !void {
 fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
     // Use of the C allocator or std.c.malloc is required here
     const n: usize = 3;
-    const list: [*:null]?[*:0]const u8 = switch (builtin.os.tag == .windows) {
+    const list: [*:null]?[*:0]const u8 = switch (builtin.target.os.tag == .windows) {
         true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
         false => c_allocator.allocSentinel(?[*:0]const u8, n, null) catch
             @panic("Failed to allocate memory"),
