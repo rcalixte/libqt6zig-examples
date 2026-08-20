@@ -34,12 +34,11 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
         const dns_error = dns.errorString(allocator);
         defer allocator.free(dns_error);
 
-        const errorStr = std.fmt.allocPrint(allocator, "\nDNS lookup failed: {s}\n", .{dns_error}) catch
+        const errorStr = std.fmt.allocPrint(allocator, "DNS lookup failed: {s}\n", .{dns_error}) catch
             @panic("Failed to allocPrint error(s)");
         defer allocator.free(errorStr);
 
-        std.Io.File.stdout().writeStreamingAll(io, errorStr) catch
-            @panic("Failed to write error(s)");
+        std.log.err("{s}", .{errorStr});
         QCoreApplication.exit1(dns.error0());
         return;
     }
