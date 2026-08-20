@@ -77,11 +77,10 @@ fn labelKeyPressEvent(_: QLabel, event: QKeyEvent) callconv(.c) void {
 }
 
 fn keyPressEvent(event: QKeyEvent) void {
-    const key = event.key();
     const formatted = std.fmt.bufPrint(
         &buffer,
         "## You pressed key code: {d}",
-        .{key},
+        .{event.key()},
     ) catch @panic("Buffer full");
     label.setText(formatted);
 }
