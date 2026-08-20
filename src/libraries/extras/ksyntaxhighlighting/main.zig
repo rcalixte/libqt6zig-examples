@@ -29,7 +29,7 @@ pub fn main(init: std.process.Init) !void {
     const file = QFile.new4(src_file, window);
 
     if (!file.open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
-        try std.Io.File.stdout().writeStreamingAll(init.io, "\nFailed to open file: \t" ++ src_file ++ "\n");
+        std.log.err("Failed to open file: {s}", .{src_file});
         return;
     }
 
