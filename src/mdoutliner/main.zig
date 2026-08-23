@@ -57,8 +57,9 @@ pub const AppTab = struct {
         panes.setSizes(&sizes);
     }
 
-    pub fn deinit(self: *const AppTab) void {
+    pub fn deinit(self: *AppTab, gpa: std.mem.Allocator) void {
         self.tab.delete();
+        gpa.destroy(self);
     }
 
     pub fn updateOutlineForContent(self: *const AppTab, content: []const u8) void {
@@ -67,7 +68,7 @@ pub const AppTab = struct {
         var lines = std.mem.splitScalar(u8, content, '\n');
         var in_code_block = false;
         var line_number: i32 = 0;
-        var prev_line: []const u8 = undefined;
+        var prev_line: []const u8 = "";
         var buf: [32]u8 = undefined;
 
         while (lines.next()) |line| {
@@ -222,9 +223,9 @@ pub const AppWindow = struct {
         tab_title: []const u8,
         tab_content: []const u8,
     ) void {
-        var tab: AppTab = undefined;
-        tab.init(gpa) catch @panic("Failed to create tab");
+        const tab = gpa.create(AppTab) catch @panic("Failed to allocate tab");
         // the new tab is cleaned up during handleTabClose
+        tab.init(gpa) catch @panic("Failed to create tab");
 
         tab.text_area.setText(tab_content);
 
@@ -251,7 +252,7 @@ pub const AppWindow = struct {
                 if (apptab.tab.ptr == widget.ptr) {
                     _ = app_tab_map.fetchRemove(.{ .ptr = @ptrCast(apptab.text_area.ptr) });
                     _ = app_tab_map.fetchRemove(.{ .ptr = @ptrCast(apptab.outline.ptr) });
-                    apptab.deinit();
+                    apptab.deinit(allocator);
                     break;
                 }
             }
