@@ -8,7 +8,7 @@ const QBasicTimer = qt6.QBasicTimer;
 const QFont = qt6.QFont;
 const QFontMetrics = qt6.QFontMetrics;
 const QColor = qt6.QColor;
-const QStylePainter = qt6.QStylePainter;
+const QPainter = qt6.QPainter;
 const QTimerEvent = qt6.QTimerEvent;
 const QDialog = qt6.QDialog;
 const QVBoxLayout = qt6.QVBoxLayout;
@@ -71,7 +71,7 @@ pub const WigglyWidget = struct {
         var x = @divFloor(self.width() - wiggly.font_metrics.horizontalAdvance(wiggly.text), 4);
         const y = @divFloor(self.height() + wiggly.font_metrics.ascent() - wiggly.font_metrics.descent(), 2);
 
-        const painter = QStylePainter.new(self);
+        const painter = QPainter.new2(self.asQPaintDevice());
         defer painter.delete();
 
         for (0..wiggly.text.len) |i| {

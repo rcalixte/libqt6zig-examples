@@ -10,5 +10,4 @@ qlayout
 qlineedit
 qobject
 qpainter
-qstylepainter
 qwidget
