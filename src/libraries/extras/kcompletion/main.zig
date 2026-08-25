@@ -28,10 +28,9 @@ pub fn main(init: std.process.Init) !void {
     lineedit.setCompletionMode(kcompletion_enums.CompletionMode.CompletionPopupAuto);
 
     const completion = KCompletion.new();
-    defer completion.delete();
-
     completion.setSoundsEnabled(false);
     lineedit.setCompletionObject(completion, true);
+    lineedit.setAutoDeleteCompletionObject(true);
 
     const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
     completion.setItems(init.gpa, &items);
