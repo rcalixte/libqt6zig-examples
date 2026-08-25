@@ -4,7 +4,7 @@ const QApplication = qt6.QApplication;
 const QWidget = qt6.QWidget;
 const QVariant = qt6.QVariant;
 const QPaintEvent = qt6.QPaintEvent;
-const QStylePainter = qt6.QStylePainter;
+const QPainter = qt6.QPainter;
 const QBrush = qt6.QBrush;
 const qnamespace_enums = qt6.qnamespace_enums;
 const qpainter_enums = qt6.qpainter_enums;
@@ -57,7 +57,7 @@ pub const LightWidget = struct {
 
         const color_value = color_variant.toInt();
 
-        const painter = QStylePainter.new(self);
+        const painter = QPainter.new2(self.asQPaintDevice());
         defer painter.delete();
 
         const brush = QBrush.new4(color_value);
