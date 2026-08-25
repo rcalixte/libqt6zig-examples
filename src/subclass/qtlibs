@@ -4,5 +4,4 @@ qevent
 qgroupbox
 qguiapplication
 qpainter
-qstylepainter
 qwidget

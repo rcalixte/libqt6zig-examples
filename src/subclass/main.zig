@@ -4,7 +4,7 @@ const QApplication = qt6.QApplication;
 const qnamespace_enums = qt6.qnamespace_enums;
 const QGroupBox = qt6.QGroupBox;
 const QPaintEvent = qt6.QPaintEvent;
-const QStylePainter = qt6.QStylePainter;
+const QPainter = qt6.QPainter;
 const QBrush = qt6.QBrush;
 const QContextMenuEvent = qt6.QContextMenuEvent;
 const QKeyEvent = qt6.QKeyEvent;
@@ -49,7 +49,7 @@ fn onPaintEvent(self: QGroupBox, ev: QPaintEvent) callconv(.c) void {
     self.superPaintEvent(ev);
 
     // Then, draw on top of it
-    const painter = QStylePainter.new(self);
+    const painter = QPainter.new2(self.asQPaintDevice());
     defer painter.delete();
 
     const brush = QBrush.new12(colors[current_color], qnamespace_enums.BrushStyle.SolidPattern);
