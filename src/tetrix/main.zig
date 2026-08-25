@@ -22,7 +22,6 @@ const QPixmap = qt6.QPixmap;
 const QPainter = qt6.QPainter;
 const QColor = qt6.QColor;
 const QSize = qt6.QSize;
-const QStylePainter = qt6.QStylePainter;
 const QPaintEvent = qt6.QPaintEvent;
 const QKeyEvent = qt6.QKeyEvent;
 const QTimerEvent = qt6.QTimerEvent;
@@ -295,7 +294,7 @@ const TetrixBoard = struct {
     fn onPaintEvent(self: QFrame, event: QPaintEvent) callconv(.c) void {
         self.superPaintEvent(event);
 
-        const painter = QStylePainter.new(self);
+        const painter = QPainter.new2(self.asQPaintDevice());
         defer painter.delete();
 
         const rect = self.contentsRect();
