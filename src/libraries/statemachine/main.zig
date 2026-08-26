@@ -57,7 +57,7 @@ pub const LightWidget = struct {
 
         const color_value = color_variant.toInt();
 
-        const painter = QPainter.new2(self.asQPaintDevice());
+        const painter = QPainter.new2(self);
         defer painter.delete();
 
         const brush = QBrush.new4(color_value);
