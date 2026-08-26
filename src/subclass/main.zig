@@ -49,7 +49,7 @@ fn onPaintEvent(self: QGroupBox, ev: QPaintEvent) callconv(.c) void {
     self.superPaintEvent(ev);
 
     // Then, draw on top of it
-    const painter = QPainter.new2(self.asQPaintDevice());
+    const painter = QPainter.new2(self);
     defer painter.delete();
 
     const brush = QBrush.new12(colors[current_color], qnamespace_enums.BrushStyle.SolidPattern);
