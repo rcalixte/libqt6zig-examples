@@ -71,7 +71,7 @@ pub const WigglyWidget = struct {
         var x = @divFloor(self.width() - wiggly.font_metrics.horizontalAdvance(wiggly.text), 4);
         const y = @divFloor(self.height() + wiggly.font_metrics.ascent() - wiggly.font_metrics.descent(), 2);
 
-        const painter = QPainter.new2(self.asQPaintDevice());
+        const painter = QPainter.new2(self);
         defer painter.delete();
 
         for (0..wiggly.text.len) |i| {
