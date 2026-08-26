@@ -35,12 +35,12 @@ pub fn main(init: std.process.Init) !void {
     window.setCentralWidget(widget);
     widget.setLayout(layout);
 
+    htmlview = .new2();
     edit = .new2();
     edit.setAcceptRichText(false);
+    edit.setPlaceholderText("Enter a value like an email address or fully-qualified domain.");
 
     layout.addWidget(edit);
-
-    htmlview = .new2();
     layout.addWidget(htmlview);
 
     timer = .new2(qapp);
