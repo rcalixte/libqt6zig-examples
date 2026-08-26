@@ -294,7 +294,7 @@ const TetrixBoard = struct {
     fn onPaintEvent(self: QFrame, event: QPaintEvent) callconv(.c) void {
         self.superPaintEvent(event);
 
-        const painter = QPainter.new2(self.asQPaintDevice());
+        const painter = QPainter.new2(self);
         defer painter.delete();
 
         const rect = self.contentsRect();
