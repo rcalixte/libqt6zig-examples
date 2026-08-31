@@ -26,10 +26,6 @@ const QPaintEvent = qt6.QPaintEvent;
 const QKeyEvent = qt6.QKeyEvent;
 const QTimerEvent = qt6.QTimerEvent;
 
-var score_mapper: QSignalMapper = undefined;
-var level_mapper: QSignalMapper = undefined;
-var lines_mapper: QSignalMapper = undefined;
-
 var global_board: TetrixBoard = undefined;
 var tetrix_window: TetrixWindow = .{};
 
@@ -103,18 +99,6 @@ const TetrixWindow = struct {
         self.game_over_label.hide();
 
         self.window = .new2();
-        score_mapper = .new2(self.window);
-        score_mapper.setMapping(self.score_lcd, 0);
-        score_mapper.onMappedInt(onScoreChanged);
-
-        level_mapper = .new2(self.window);
-        level_mapper.setMapping(self.level_lcd, 0);
-        level_mapper.onMappedInt(onLevelChanged);
-
-        lines_mapper = .new2(self.window);
-        lines_mapper.setMapping(self.lines_lcd, 0);
-        lines_mapper.onMappedInt(onLinesRemovedChanged);
-
         const layout = QGridLayout.new(self.window);
         layout.addWidget2(createLabel("NEXT"), 0, 0);
         layout.addWidget2(self.next_piece_label, 1, 0);
@@ -136,22 +120,6 @@ const TetrixWindow = struct {
 
         self.window.setWindowTitle("Qt 6 Tetrix Example");
         self.window.setFixedSize2(1000, 750);
-
-        const message_box = QMessageBox.new(self.window);
-        message_box.setOption2(qmessagebox_enums.Option.DontUseNativeDialog, true);
-        message_box.setWindowModality(qnamespace_enums.WindowModality.ApplicationModal);
-        message_box.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
-        message_box.setWindowTitle("Game Controls");
-        message_box.setText(
-            \\### - Left/Right: Move piece
-            \\### - Down/Up: Rotate piece
-            \\### - D: Move piece one line down
-            \\### - Space: Drop piece
-            \\### - Alt+N/Ctrl+N: New game
-            \\### - Alt+Q/Ctrl+Q: Quit
-            \\### - Alt+P/Esc: Pause
-        );
-        message_box.show();
     }
 
     pub fn deinit(self: *const TetrixWindow) void {
@@ -176,9 +144,9 @@ const TetrixWindow = struct {
         tetrix_window.pause_button.setDisabled(false);
         global_board.clearBoard();
 
-        lines_mapper.mappedInt(global_board.num_lines_removed);
-        score_mapper.mappedInt(global_board.score);
-        level_mapper.mappedInt(global_board.level);
+        tetrix_window.lines_lcd.display2(global_board.num_lines_removed);
+        tetrix_window.score_lcd.display2(global_board.score);
+        tetrix_window.level_lcd.display2(global_board.level);
 
         global_board.newPiece();
         global_board.timer.start(global_board.timeoutTime(), global_board.frame);
@@ -213,18 +181,6 @@ const TetrixWindow = struct {
         label.setAlignment(qnamespace_enums.AlignmentFlag.AlignHCenter |
             qnamespace_enums.AlignmentFlag.AlignBottom);
         return label;
-    }
-
-    pub fn onScoreChanged(_: QSignalMapper, value: i32) callconv(.c) void {
-        tetrix_window.score_lcd.display2(value);
-    }
-
-    pub fn onLevelChanged(_: QSignalMapper, value: i32) callconv(.c) void {
-        tetrix_window.level_lcd.display2(value);
-    }
-
-    pub fn onLinesRemovedChanged(_: QSignalMapper, value: i32) callconv(.c) void {
-        tetrix_window.lines_lcd.display2(value);
     }
 };
 
@@ -440,11 +396,11 @@ const TetrixBoard = struct {
         if (@mod(self.num_pieces_dropped, 25) == 0) {
             self.level += 1;
             self.timer.start(self.timeoutTime(), self.frame);
-            level_mapper.mappedInt(self.level);
+            tetrix_window.level_lcd.display2(self.level);
         }
 
         self.score += drop_height + 7;
-        score_mapper.mappedInt(self.score);
+        tetrix_window.score_lcd.display2(self.score);
         self.removeFullLines();
 
         if (!self.is_waiting_after_line) self.newPiece();
@@ -478,8 +434,8 @@ const TetrixBoard = struct {
         if (num_full_lines > 0) {
             self.num_lines_removed += num_full_lines;
             self.score += 10 * num_full_lines;
-            lines_mapper.mappedInt(self.num_lines_removed);
-            score_mapper.mappedInt(self.score);
+            tetrix_window.lines_lcd.display2(self.num_lines_removed);
+            tetrix_window.score_lcd.display2(self.score);
 
             self.timer.start(500, self.frame);
             self.is_waiting_after_line = true;
@@ -698,6 +654,22 @@ pub fn main(init: std.process.Init) !void {
     global_board = tetrix_window.board;
 
     tetrix_window.window.show();
+
+    const message_box = QMessageBox.new(tetrix_window.window);
+    message_box.setOption2(qmessagebox_enums.Option.DontUseNativeDialog, true);
+    message_box.setWindowModality(qnamespace_enums.WindowModality.ApplicationModal);
+    message_box.setTextFormat(qnamespace_enums.TextFormat.MarkdownText);
+    message_box.setWindowTitle("Game Controls");
+    message_box.setText(
+        \\### - Left/Right: Move piece
+        \\### - Down/Up: Rotate piece
+        \\### - D: Move piece one line down
+        \\### - Space: Drop piece
+        \\### - Alt+N/Ctrl+N: New game
+        \\### - Alt+Q/Ctrl+Q: Quit
+        \\### - Alt+P/Esc: Pause
+    );
+    message_box.show();
 
     _ = QApplication.exec();
 }

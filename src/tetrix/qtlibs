@@ -18,7 +18,6 @@ qpushbutton
 qrandom
 qrect
 qshortcut
-qsignalmapper
 qsize
 qsizepolicy
 qwidget
