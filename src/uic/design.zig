@@ -96,9 +96,9 @@ pub const MainWindowUi = struct {
         ui.treeWidget = .new(ui.centralwidget);
         ui.treeWidget.setObjectName("treeWidget");
         ui.treeWidget.setFrameShape(qt6.qframe_enums.Shape.Panel);
-        const ui_treeWidget_item = qt6.QTreeWidgetItem.new();
-        ui.treeWidget.setHeaderItem(ui_treeWidget_item);
-        ui_treeWidget_item.setText(0, "1");
+        const ui_treeWidget_colitem = qt6.QTreeWidgetItem.new();
+        ui.treeWidget.setHeaderItem(ui_treeWidget_colitem);
+        ui_treeWidget_colitem.setText(0, "1");
         ui.gridLayout.addWidget2(ui.treeWidget, 0, 1);
 
         ui.MainWindow.setCentralWidget(ui.centralwidget);
