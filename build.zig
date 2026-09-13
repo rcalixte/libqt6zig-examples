@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
     const extra_paths = b.option([]const []const u8, "extra-paths", "Extra library header and include search paths") orelse &.{};
+    const maintainer = b.option(bool, "maintainer", "Enable maintainer mode") orelse false;
 
     const is_macos = target.result.os.tag == .macos or host_os == .macos;
     const is_windows = target.result.os.tag == .windows or host_os == .windows;
@@ -168,6 +169,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .@"extra-paths" = extra_paths,
         .@"macos-libraries" = try macos_syslibs.toOwnedSlice(b.allocator),
+        .maintainer = maintainer,
     });
 
     const run_all_step = b.step("run", "Build and run all of the examples");
