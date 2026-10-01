@@ -33,7 +33,7 @@ pub fn main(init: std.process.Init) !void {
     _ = QApplication.exec();
 }
 
-fn initializeGL() callconv(.c) void {
+fn initializeGL(_: QOpenGLWidget) callconv(.c) void {
     glfuncs = QOpenGLContext.currentContext().extraFunctions();
 
     glfuncs.initializeOpenGLFunctions();
