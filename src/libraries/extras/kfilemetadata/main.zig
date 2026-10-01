@@ -104,7 +104,7 @@ pub fn main(init: std.process.Init) !void {
     _ = QApplication.exec();
 }
 
-fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
+fn onMimeTypes(_: KFileMetaData__ExtractorPlugin) callconv(.c) ?[*:null]?[*:0]const u8 {
     const n: usize = 1;
     const list: [*:null]?[*:0]const u8 = switch (builtin.target.os.tag == .windows) {
         true => @ptrCast(@alignCast(std.c.malloc((n + 1) * @sizeOf(?[*:0]const u8)) orelse return null)),
