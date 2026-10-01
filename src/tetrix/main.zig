@@ -233,14 +233,14 @@ const TetrixBoard = struct {
         self.frame.delete();
     }
 
-    fn onSizeHint() callconv(.c) QSize {
+    fn onSizeHint(_: QFrame) callconv(.c) QSize {
         return .new4(
             board_width * 15 + frame_width * 2,
             board_height * 15 + frame_width * 2,
         );
     }
 
-    fn onMinimumSizeHint() callconv(.c) QSize {
+    fn onMinimumSizeHint(_: QFrame) callconv(.c) QSize {
         return .new4(
             board_width * 5 + frame_width * 2,
             board_height * 5 + frame_width * 2,
