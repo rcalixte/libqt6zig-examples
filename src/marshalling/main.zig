@@ -271,7 +271,7 @@ pub fn main(init: std.process.Init) !void {
         );
 }
 
-fn onMimeTypes() callconv(.c) ?[*:null]?[*:0]const u8 {
+fn onMimeTypes(_: QTableWidget) callconv(.c) ?[*:null]?[*:0]const u8 {
     // Use of the C allocator or std.c.malloc is required here
     const n: usize = 3;
     const list: [*:null]?[*:0]const u8 = switch (builtin.target.os.tag == .windows) {
