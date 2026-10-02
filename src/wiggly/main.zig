@@ -35,7 +35,7 @@ pub const WigglyWidget = struct {
     color: QColor = undefined,
 
     pub fn init(self: *WigglyWidget, text: []const u8) !void {
-        self.text = try std.fmt.bufPrint(&self.buffer, "{s}", .{text});
+        self.text = try std.mem.print(&self.buffer, "{s}", .{text});
 
         self.widget = .new2();
         self.widget.setBackgroundRole(qpalette_enums.ColorRole.Midlight);
@@ -128,11 +128,11 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn onTextChanged(_: QLineEdit, text: [*:0]const u8) callconv(.c) void {
-    wiggly.text = std.fmt.bufPrint(
+    wiggly.text = std.mem.print(
         &wiggly.buffer,
         "{s}",
         .{std.mem.span(text)},
-    ) catch @panic("Failed to bufPrint");
+    ) catch @panic("Failed to print");
 
     wiggly.widget.update();
 }
