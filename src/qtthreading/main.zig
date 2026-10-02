@@ -146,10 +146,10 @@ const Counter = struct {
     fn asyncUpdate(context: ?*anyopaque) callconv(.c) void {
         const counter: *Counter = @ptrCast(@alignCast(context));
         counter.counter +%= 1;
-        const text = std.fmt.bufPrint(&buffer, "{d} {d}", .{
+        const text = std.mem.print(&buffer, "{d} {d}", .{
             counter.counter,
             std.Io.Clock.real.now(counter.io).toSeconds(),
-        }) catch @panic("Failed to bufPrint");
+        }) catch @panic("Failed to print");
         counter.label.setText(text);
     }
 };
