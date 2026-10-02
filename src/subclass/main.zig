@@ -69,7 +69,7 @@ fn onContextMenuEvent(self: QGroupBox, ev: QContextMenuEvent) callconv(.c) void 
 fn onKeyPressEvent(self: QGroupBox, ev: QKeyEvent) callconv(.c) void {
     self.superKeyPressEvent(ev);
 
-    const title = std.fmt.bufPrint(
+    const title = std.mem.print(
         &buffer,
         "Keypress {d}",
         .{ev.key()},
