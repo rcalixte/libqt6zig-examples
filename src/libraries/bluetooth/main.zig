@@ -117,8 +117,8 @@ fn onDeviceDiscovered(_: QBluetoothDeviceDiscoveryAgent, info: QBluetoothDeviceI
 
     const title = switch (name.len) {
         0 => "Unknown",
-        else => std.fmt.bufPrint(&buffer, "{s} ({s})", .{ name, address_str }) catch
-            @panic("Failed to bufPrint"),
+        else => std.mem.print(&buffer, "{s} ({s})", .{ name, address_str }) catch
+            @panic("Failed to print"),
     };
 
     list.addItem(title);
@@ -128,8 +128,8 @@ fn onFinished(_: QBluetoothDeviceDiscoveryAgent) callconv(.c) void {
     button.setEnabled(toggle.isChecked());
 
     const text = "Scan complete - {d} device(s) found.";
-    const formatted = std.fmt.bufPrint(&buffer, text, .{list.count()}) catch
-        @panic("Failed to bufPrint");
+    const formatted = std.mem.print(&buffer, text, .{list.count()}) catch
+        @panic("Failed to print");
     status.setText(formatted);
 }
 
