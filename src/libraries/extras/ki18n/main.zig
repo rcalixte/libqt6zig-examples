@@ -79,13 +79,13 @@ fn onCurrentIndexChanged(_: QComboBox, index: i32) callconv(.c) void {
     const country = all_countries[@intCast(index)];
     const emoji_flag = country.emojiFlag(allocator);
     defer allocator.free(emoji_flag);
-    const emoji_text = std.fmt.bufPrint(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch
-        @panic("Failed to bufPrint emoji flag");
+    const emoji_text = std.mem.print(&buffer, "Emoji flag: {s}", .{emoji_flag}) catch
+        @panic("Failed to print emoji flag");
     emoji_flag_label.setText(emoji_text);
 
     const currency = country.currencyCode(allocator);
     defer allocator.free(currency);
-    const currency_text = std.fmt.bufPrint(&buffer, "Currency code: {s}", .{currency}) catch
-        @panic("Failed to bufPrint currency code");
+    const currency_text = std.mem.print(&buffer, "Currency code: {s}", .{currency}) catch
+        @panic("Failed to print currency code");
     currency_label.setText(currency_text);
 }
