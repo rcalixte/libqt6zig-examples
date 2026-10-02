@@ -45,7 +45,7 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn onPlaybackStateChanged(_: QMediaPlayer, state: i32) callconv(.c) void {
-    const play_str = std.fmt.bufPrint(&buffer, "Playback state: {d}\n", .{state}) catch
+    const play_str = std.mem.print(&buffer, "Playback state: {d}\n", .{state}) catch
         @panic("Playback state stdout error");
     std.Io.File.stdout().writeStreamingAll(io, play_str) catch
         @panic("Failed to write playback state");
