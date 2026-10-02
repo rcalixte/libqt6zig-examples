@@ -175,11 +175,10 @@ fn saveScreenshot(_: QPushButton) callconv(.c) void {
         initial_path = QDir.currentPath(allocator);
     }
 
-    const out_path = std.fmt.allocPrint(
-        allocator,
+    const out_path = allocator.print(
         "{s}/untitled.{s}",
         .{ initial_path, format },
-    ) catch @panic("Failed to allocPrint");
+    ) catch @panic("Failed to print");
     defer allocator.free(out_path);
 
     const file_dialog = QFileDialog.new5(screenshot, "Save As", out_path);
@@ -215,11 +214,10 @@ fn saveScreenshot(_: QPushButton) callconv(.c) void {
         const save_path = QDir.toNativeSeparators(allocator, selected_files[0]);
         defer allocator.free(save_path);
 
-        const error_message = std.fmt.allocPrint(
-            allocator,
+        const error_message = allocator.print(
             "Failed to save screenshot to {s}",
             .{save_path},
-        ) catch @panic("Failed to allocPrint");
+        ) catch @panic("Failed to print");
         defer allocator.free(error_message);
 
         _ = QMessageBox.warning(screenshot, "Save Error", error_message);
