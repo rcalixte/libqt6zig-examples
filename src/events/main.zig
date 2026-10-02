@@ -58,7 +58,7 @@ fn mousePressEvent(event: QMouseEvent) void {
         qnamespace_enums.MouseButton.LeftButton => label.setText("## Left mouse button pressed!"),
         qnamespace_enums.MouseButton.RightButton => label.setText("## Right mouse button pressed!"),
         else => {
-            const formatted = std.fmt.bufPrint(
+            const formatted = std.mem.print(
                 &buffer,
                 "## Mouse button keycode: {d}",
                 .{mouse},
@@ -77,7 +77,7 @@ fn labelKeyPressEvent(_: QLabel, event: QKeyEvent) callconv(.c) void {
 }
 
 fn keyPressEvent(event: QKeyEvent) void {
-    const formatted = std.fmt.bufPrint(
+    const formatted = std.mem.print(
         &buffer,
         "## You pressed key code: {d}",
         .{event.key()},
