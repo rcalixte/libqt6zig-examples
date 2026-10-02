@@ -78,8 +78,8 @@ pub const ClientDialog = struct {
 
     pub fn connectToServer(self: *const ClientDialog, gpa: std.mem.Allocator) void {
         self.messages.append("Connecting...");
-        const ws = std.fmt.allocPrint(gpa, "ws://localhost:{d}", .{local_port}) catch
-            @panic("Failed to allocPrint");
+        const ws = gpa.print("ws://localhost:{d}", .{local_port}) catch
+            @panic("Failed to print");
         defer gpa.free(ws);
 
         const url = QUrl.new3(ws);
@@ -96,14 +96,14 @@ pub const ClientDialog = struct {
         const trimmed_text = std.mem.trim(u8, message, &std.ascii.whitespace);
         if (trimmed_text.len == 0) return;
 
-        const out_message = std.fmt.allocPrint(gpa, "({s}): {s}", .{ self.name, trimmed_text }) catch
-            @panic("Failed to allocPrint");
+        const out_message = gpa.print("({s}): {s}", .{ self.name, trimmed_text }) catch
+            @panic("Failed to print");
         defer gpa.free(out_message);
 
         _ = self.socket.sendTextMessage(out_message);
 
-        const self_entry = std.fmt.allocPrint(gpa, ">> {s}", .{trimmed_text}) catch
-            @panic("Failed to allocPrint");
+        const self_entry = gpa.print(">> {s}", .{trimmed_text}) catch
+            @panic("Failed to print");
         defer gpa.free(self_entry);
         self.messages.append(self_entry);
         self.input.clear();
@@ -183,8 +183,8 @@ pub fn main(init: std.process.Init) !void {
     }
 
     for (0..num_clients) |i| {
-        const num_str = try std.fmt.bufPrint(&buf, "{d}", .{i + 1});
-        const name = try std.fmt.allocPrint(allocator, "Qt 6 WebSockets Example Client #{s}", .{num_str});
+        const num_str = try std.mem.print(&buf, "{d}", .{i + 1});
+        const name = try allocator.print("Qt 6 WebSockets Example Client #{s}", .{num_str});
         defer allocator.free(name);
 
         try client_dialogs[i].init(allocator, name, num_str);
