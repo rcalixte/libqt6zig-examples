@@ -531,7 +531,7 @@ const TetrixBoard = struct {
     }
 };
 
-const num_shapes: u4 = @typeInfo(TetrixShape).@"enum".fields.len;
+const num_shapes: u4 = @typeInfo(TetrixShape).@"enum".field_names.len;
 const num_cells: u4 = 4;
 const pair_cells: u2 = 2;
 
