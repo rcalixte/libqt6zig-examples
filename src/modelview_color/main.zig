@@ -57,8 +57,8 @@ fn onData(_: QAbstractListModel, index: QModelIndex, role: i32) callconv(.c) QVa
             return color.toQVariant();
         },
         qnamespace_enums.ItemDataRole.DisplayRole => {
-            const str = std.fmt.bufPrint(&buf, "this is row {d}", .{index.row()}) catch
-                @panic("failed to bufPrint");
+            const str = std.mem.print(&buf, "this is row {d}", .{index.row()}) catch
+                @panic("failed to print");
             return .new24(str);
         },
         else => return .new(),
