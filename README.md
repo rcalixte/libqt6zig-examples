@@ -4,7 +4,7 @@
 <img alt="libqt6zig-examples" src="assets/libqt6zig-examples.png" height="128px;" />
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/rcalixte/libqt6zig-examples/blob/master/LICENSE)
-[![Static Badge](https://img.shields.io/badge/v0.16%20(stable)-fdc009?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
+[![Static Badge](https://img.shields.io/badge/v0.17%20(stable)-fdc009?logo=zig&logoColor=f7a41d&label=Zig)](https://ziglang.org/download/)
 </div>
 
 ---
@@ -109,10 +109,10 @@ The examples compile a subset of the entire main library and then build the samp
 
 ### Q2. What build modes are supported by the examples?
 
-Currently, `Debug`, `ReleaseFast`, `ReleaseSafe`, and `ReleaseSmall` are supported. The default build mode is `Debug`. To change the build mode:
+Currently, `debug`, `fast`, `safe`, and `small` are supported. The default build mode is `debug`. To change the build mode:
 
 ```bash
-zig build -Doptimize=ReleaseSafe
+zig build -Doptimize=safe
 ```
 
 or
