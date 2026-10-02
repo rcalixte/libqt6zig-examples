@@ -128,6 +128,6 @@ fn onTextChanged(_: QLineEdit, _: [*:0]const u8) callconv(.c) void {
     const converted_text = converted_value.toString(allocator);
     defer allocator.free(converted_text);
 
-    result.setText(std.fmt.bufPrint(&buffer, "### Result: {s}", .{converted_text}) catch
-        @panic("Failed to bufPrint"));
+    result.setText(std.mem.print(&buffer, "### Result: {s}", .{converted_text}) catch
+        @panic("Failed to print"));
 }
