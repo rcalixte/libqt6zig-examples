@@ -62,11 +62,11 @@ pub fn main(init: std.process.Init) !void {
 
 fn onClicked(self: QPushButton) callconv(.c) void {
     counter +%= 1;
-    const formatted = std.fmt.bufPrint(
+    const formatted = std.mem.print(
         &buffer,
         "You have clicked the button {d} time(s)",
         .{counter},
-    ) catch @panic("Failed to bufPrint");
+    ) catch @panic("Failed to print");
     self.setText(formatted);
 }
 
