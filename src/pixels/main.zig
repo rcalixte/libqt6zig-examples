@@ -154,13 +154,13 @@ fn itemHoverMoveEvent(self: QGraphicsPixmapItem, event: QGraphicsSceneHoverEvent
     const g = color.green();
     const b = color.blue();
 
-    const msg = std.fmt.bufPrint(&buffer, "x: {d}, y: {d}, r: {d}, g: {d}, b: {d}", .{
+    const msg = std.mem.print(&buffer, "x: {d}, y: {d}, r: {d}, g: {d}, b: {d}", .{
         x,
         y,
         r,
         g,
         b,
-    }) catch @panic("Failed to bufPrint");
+    }) catch @panic("Failed to print");
 
     status_bar.showMessage(msg);
 }
@@ -183,13 +183,13 @@ fn drawPixel(item: QGraphicsPixmapItem, pos: QPointF) void {
 
     if (x < 0 or y < 0 or x >= width or y >= height) return;
 
-    const msg = std.fmt.bufPrint(&buffer, "x: {d}, y: {d}, r: {d}, g: {d}, b: {d}", .{
+    const msg = std.mem.print(&buffer, "x: {d}, y: {d}, r: {d}, g: {d}, b: {d}", .{
         x,
         y,
         replacement_r,
         replacement_g,
         replacement_b,
-    }) catch @panic("Failed to bufPrint");
+    }) catch @panic("Failed to print");
 
     status_bar.showMessage(msg);
 
