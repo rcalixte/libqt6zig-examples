@@ -34,8 +34,8 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
         const dns_error = dns.errorString(allocator);
         defer allocator.free(dns_error);
 
-        const errorStr = std.fmt.allocPrint(allocator, "DNS lookup failed: {s}\n", .{dns_error}) catch
-            @panic("Failed to allocPrint error(s)");
+        const errorStr = allocator.print("DNS lookup failed: {s}\n", .{dns_error}) catch
+            @panic("Failed to print error(s)");
         defer allocator.free(errorStr);
 
         std.log.err("{s}", .{errorStr});
@@ -46,8 +46,8 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
     const results = dns.hostAddressRecords(allocator);
     defer allocator.free(results);
 
-    const results_str = std.fmt.allocPrint(allocator, "Found {d} results.\n", .{results.len}) catch
-        @panic("Failed to allocPrint results");
+    const results_str = allocator.print("Found {d} results.\n", .{results.len}) catch
+        @panic("Failed to print results");
     defer allocator.free(results_str);
 
     std.Io.File.stdout().writeStreamingAll(io, results_str) catch
@@ -62,8 +62,8 @@ fn onFinished(dns: QDnsLookup) callconv(.c) void {
         const record = value.toString(allocator);
         defer allocator.free(record);
 
-        const record_str = std.fmt.allocPrint(allocator, "- {s}\n", .{record}) catch
-            @panic("Failed to allocPrint record(s)");
+        const record_str = allocator.print("- {s}\n", .{record}) catch
+            @panic("Failed to print record(s)");
         defer allocator.free(record_str);
 
         std.Io.File.stdout().writeStreamingAll(io, record_str) catch
