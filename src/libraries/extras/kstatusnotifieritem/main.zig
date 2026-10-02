@@ -127,22 +127,20 @@ fn onTriggered(self: QAction) callconv(.c) void {
 }
 
 fn onActivateRequested(_: KStatusNotifierItem, active: bool, pos: QPoint) callconv(.c) void {
-    const text = std.fmt.allocPrint(
-        allocator,
+    const text = allocator.print(
         "Activated: active = {any}, pos = ({d}, {d})",
         .{ active, pos.x(), pos.y() },
-    ) catch @panic("Failed to allocPrint");
+    ) catch @panic("Failed to print");
     defer allocator.free(text);
 
     text_edit.append(text);
 }
 
 fn onSecondaryActivateRequested(_: KStatusNotifierItem, pos: QPoint) callconv(.c) void {
-    const text = std.fmt.allocPrint(
-        allocator,
+    const text = allocator.print(
         "Secondary Activated: pos = ({d}, {d})",
         .{ pos.x(), pos.y() },
-    ) catch @panic("Failed to allocPrint");
+    ) catch @panic("Failed to print");
     defer allocator.free(text);
 
     text_edit.append(text);
@@ -153,11 +151,10 @@ fn onScrollRequested(_: KStatusNotifierItem, delta: i32, orientation: i32) callc
         "Horizontally"
     else
         "Vertically";
-    const text = std.fmt.allocPrint(
-        allocator,
+    const text = allocator.print(
         "Scrolled {s}: delta = {d}",
         .{ direction, delta },
-    ) catch @panic("Failed to allocPrint");
+    ) catch @panic("Failed to print");
     defer allocator.free(text);
 
     text_edit.append(text);
