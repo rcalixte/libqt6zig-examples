@@ -1,6 +1,8 @@
 # OVERVIEW
 
-This document represents a simpler representation of the current examples. There are innumerable insights to be gained from studying the code, so that is still encouraged for the curious. Clicking on the example will open the related directory containing the source code and any auxiliary files.
+This document represents a simpler representation of the current examples. There are innumerable insights to be gained from studying the programs, so that is still encouraged for the curious. Clicking on the example will open the related directory containing the source code and any auxiliary files.
+
+As a reminder, the examples have a unique and slightly complicated structure because of the shared central build system. For a simpler and more straightforward demonstration using a single application, the [demo](https://github.com/rcalixte/libqt6zig-demo) was created with that purpose in mind.
 
 ## CLI-based
 
