@@ -40,7 +40,7 @@ pub fn main(init: std.process.Init) !void {
     b.setChecked(true);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Checked: {any}\n", .{b.isChecked()}),
+        try std.mem.print(&buffer, "Checked: {any}\n", .{b.isChecked()}),
     );
 
     // Int
@@ -49,7 +49,7 @@ pub fn main(init: std.process.Init) !void {
     s.setWidth(128);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Width: {d}\n", .{s.width()}),
+        try std.mem.print(&buffer, "Width: {d}\n", .{s.width()}),
     );
 
     // Int by reference
@@ -59,7 +59,7 @@ pub fn main(init: std.process.Init) !void {
     r.?.* = 64;
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Height: {d}\n", .{size.height()}),
+        try std.mem.print(&buffer, "Height: {d}\n", .{size.height()}),
     );
 
     // QString
@@ -70,7 +70,7 @@ pub fn main(init: std.process.Init) !void {
     defer init.gpa.free(tooltip);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "ToolTip: {s}\n", .{tooltip}),
+        try std.mem.print(&buffer, "ToolTip: {s}\n", .{tooltip}),
     );
 
     // QList<int>
@@ -82,7 +82,7 @@ pub fn main(init: std.process.Init) !void {
     for (segs, 0..) |seg, i|
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "Segment {d}: {d}\n", .{ i, seg }),
+            try std.mem.print(&buffer, "Segment {d}: {d}\n", .{ i, seg }),
         );
 
     // QStringList
@@ -96,7 +96,7 @@ pub fn main(init: std.process.Init) !void {
         defer init.gpa.free(item);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "ComboBoxItems[{d}]: {s}\n", .{ i, item }),
+            try std.mem.print(&buffer, "ComboBoxItems[{d}]: {s}\n", .{ i, item }),
         );
     }
 
@@ -110,7 +110,7 @@ pub fn main(init: std.process.Init) !void {
         defer init.gpa.free(item);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "MimeTypes[{d}]: {s}\n", .{ i, item }),
+            try std.mem.print(&buffer, "MimeTypes[{d}]: {s}\n", .{ i, item }),
         );
     }
 
@@ -135,7 +135,7 @@ pub fn main(init: std.process.Init) !void {
         }
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "Shortcuts[{d}]: {s}\n", .{ i, qkey_tostring }),
+            try std.mem.print(&buffer, "Shortcuts[{d}]: {s}\n", .{ i, qkey_tostring }),
         );
     }
 
@@ -147,7 +147,7 @@ pub fn main(init: std.process.Init) !void {
     defer init.gpa.free(f_output);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "QByteArray: {s}\n", .{f_output}),
+        try std.mem.print(&buffer, "QByteArray: {s}\n", .{f_output}),
     );
 
     // QAnyStringView
@@ -158,7 +158,7 @@ pub fn main(init: std.process.Init) !void {
     defer init.gpa.free(value);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Value: {s}\n", .{value}),
+        try std.mem.print(&buffer, "Value: {s}\n", .{value}),
     );
 
     // QLatin1StringView
@@ -169,14 +169,14 @@ pub fn main(init: std.process.Init) !void {
     defer init.gpa.free(color_name);
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Color name: {s}\n", .{color_name}),
+        try std.mem.print(&buffer, "Color name: {s}\n", .{color_name}),
     );
 
     // QStringView
     const locale = QLocale.codeToScript("Latn");
     try std.Io.File.stdout().writeStreamingAll(
         init.io,
-        try std.fmt.bufPrint(&buffer, "Locale script: {d}\n", .{locale}),
+        try std.mem.print(&buffer, "Locale script: {d}\n", .{locale}),
     );
     const reader = QXmlStreamReader.new3("<?xml version=\"1.0\"?><foo>bar</foo>");
     defer reader.delete();
@@ -185,7 +185,7 @@ pub fn main(init: std.process.Init) !void {
         defer init.gpa.free(name);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "XML Name: {s}\n", .{name}),
+            try std.mem.print(&buffer, "XML Name: {s}\n", .{name}),
         );
     }
 
@@ -214,7 +214,7 @@ pub fn main(init: std.process.Init) !void {
         defer init.gpa.free(value_str);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "QMap[{s}]: {s}\n", .{ key, value_str }),
+            try std.mem.print(&buffer, "QMap[{s}]: {s}\n", .{ key, value_str }),
         );
     }
 
@@ -241,7 +241,7 @@ pub fn main(init: std.process.Init) !void {
         defer init.gpa.free(_key);
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "HTTP Header: {s}: ", .{_key}),
+            try std.mem.print(&buffer, "HTTP Header: {s}: ", .{_key}),
         );
         const value_list = entry.value_ptr.*;
         defer init.gpa.free(value_list);
@@ -250,7 +250,7 @@ pub fn main(init: std.process.Init) !void {
             defer init.gpa.free(value_string);
             try std.Io.File.stdout().writeStreamingAll(
                 init.io,
-                try std.fmt.bufPrint(&buffer, "{s}", .{value_string}),
+                try std.mem.print(&buffer, "{s}", .{value_string}),
             );
             if (j < value_list.len - 1)
                 try std.Io.File.stdout().writeStreamingAll(init.io, ",");
@@ -267,7 +267,7 @@ pub fn main(init: std.process.Init) !void {
     for (0..3) |i|
         try std.Io.File.stdout().writeStreamingAll(
             init.io,
-            try std.fmt.bufPrint(&buffer, "Easing function value: {d}\n", .{easingFunc(@floatFromInt(i))}),
+            try std.mem.print(&buffer, "Easing function value: {d}\n", .{easingFunc(@floatFromInt(i))}),
         );
 }
 
