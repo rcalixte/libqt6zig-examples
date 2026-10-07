@@ -268,7 +268,7 @@ const TetrixBoard = struct {
                 const shape = global_board.shapeAt(j, board_height - i - 1);
                 if (shape != .no_shape)
                     global_board.drawSquare(
-                        .{ .ptr = @ptrCast(painter.ptr) },
+                        painter,
                         rect.left() + @as(i32, @intCast(j)) * global_board.squareWidth(),
                         board_top + @as(i32, @intCast(i)) * global_board.squareHeight(),
                         shape,
@@ -280,7 +280,7 @@ const TetrixBoard = struct {
                 const x = global_board.cur_x + global_board.cur_piece.x(i);
                 const y = global_board.cur_y - global_board.cur_piece.y(i);
                 global_board.drawSquare(
-                    .{ .ptr = @ptrCast(painter.ptr) },
+                    painter,
                     rect.left() + x * global_board.squareWidth(),
                     board_top + (board_height - y - 1) * global_board.squareHeight(),
                     global_board.cur_piece.piece_shape,
@@ -496,7 +496,7 @@ const TetrixBoard = struct {
             0xCCCC66, 0xCC66CC, 0x66CCCC, 0xDAAA00,
         };
 
-        const color = QColor.new6(color_table[@intFromEnum(shape)]);
+        const color = QColor.new6(color_table[@backingInt(shape)]);
         defer color.delete();
 
         const lighter = color.lighter();
@@ -540,7 +540,7 @@ const TetrixPiece = struct {
     coords: [num_cells][pair_cells]i8 = @splat(@splat(0)),
 
     pub fn setRandomShape(self: *TetrixPiece) void {
-        self.setShape(@enumFromInt(QRandomGenerator.global().bounded2(num_shapes - 1) + 1));
+        self.setShape(@fromBackingInt(@intCast(QRandomGenerator.global().bounded2(num_shapes - 1) + 1)));
     }
 
     pub fn setShape(self: *TetrixPiece, shape: TetrixShape) void {
@@ -557,7 +557,7 @@ const TetrixPiece = struct {
 
         for (0..num_cells) |i| {
             for (0..pair_cells) |j|
-                self.coords[i][j] = coords_table[@intFromEnum(shape)][i][j];
+                self.coords[i][j] = coords_table[@backingInt(shape)][i][j];
         }
 
         self.piece_shape = shape;
