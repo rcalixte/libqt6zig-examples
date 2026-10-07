@@ -25,7 +25,7 @@ var buffer: [256]u8 = undefined;
 const c_allocator = std.heap.c_allocator;
 
 const ArrayMap_constu8_QVariant = types.ArrayMap_constu8_QVariant;
-const ArrayMap_u8_Sliceu8 = types.ArrayMap_u8_Sliceu8;
+const ArrayMap_constu8_constconstu8 = types.ArrayMap_constu8_constconstu8;
 
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
@@ -162,8 +162,7 @@ pub fn main(init: std.process.Init) !void {
     );
 
     // QLatin1StringView
-    var blue = "blue".*;
-    const color = QColor.new11(&blue);
+    const color = QColor.new11("blue");
     defer color.delete();
     const color_name = color.name(init.gpa);
     defer init.gpa.free(color_name);
@@ -192,9 +191,9 @@ pub fn main(init: std.process.Init) !void {
     // QMap<QString, QVariant>
     var input_map: ArrayMap_constu8_QVariant = .empty;
     defer input_map.deinit(init.gpa);
-    try input_map.put(init.gpa, "foo", QVariant.new24("FOO"));
-    try input_map.put(init.gpa, "bar", QVariant.new24("BAR"));
-    try input_map.put(init.gpa, "baz", QVariant.new24("BAZ"));
+    try input_map.put(init.gpa, "foo", .new24("FOO"));
+    try input_map.put(init.gpa, "bar", .new24("BAR"));
+    try input_map.put(init.gpa, "baz", .new24("BAZ"));
     defer {
         var input_it = input_map.iterator();
         while (input_it.next()) |entry|
@@ -219,17 +218,14 @@ pub fn main(init: std.process.Init) !void {
     }
 
     // QMultiMap<QString, QString>
-    var multi_map: ArrayMap_u8_Sliceu8 = .empty;
-    const map_value = try init.gpa.alloc([]u8, 3);
-    defer init.gpa.free(map_value);
-    var val0 = "text/html".*;
-    var val1 = "application/xhtml+xml".*;
-    var val2 = "application/xml;".*;
-    map_value[0] = &val0;
-    map_value[1] = &val1;
-    map_value[2] = &val2;
+    var multi_map: ArrayMap_constu8_constconstu8 = .empty;
+    var map_values: std.ArrayList([]const u8) = .empty;
+    defer map_values.deinit(init.gpa);
+    try map_values.append(init.gpa, "text/html");
+    try map_values.append(init.gpa, "application/xhtml+xml");
+    try map_values.append(init.gpa, "application/xml;");
     const key = "Accept";
-    try multi_map.put(init.gpa, key, map_value);
+    try multi_map.put(init.gpa, key, map_values.items);
     defer multi_map.deinit(init.gpa);
     const qheaders = QHttpHeaders.fromMultiMap(init.gpa, multi_map);
     defer qheaders.delete();
