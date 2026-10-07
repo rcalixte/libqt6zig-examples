@@ -119,8 +119,7 @@ fn onMimeTypes(_: KFileMetaData__ExtractorPlugin) callconv(.c) ?[*:null]?[*:0]co
 }
 
 fn onExtract(_: KFileMetaData__ExtractorPlugin, result: KFileMetaData__ExtractionResult) callconv(.c) void {
-    var format = "png".*;
-    const reader = QImageReader.new5(filename, &format);
+    const reader = QImageReader.new5(filename, "png");
     defer reader.delete();
 
     if (!reader.canRead()) {
