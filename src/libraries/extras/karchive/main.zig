@@ -20,8 +20,7 @@ pub fn main(init: std.process.Init) !void {
     if (archive.open(qiodevicebase_enums.OpenModeFlag.WriteOnly)) {
         defer _ = archive.close();
 
-        var data = "The whole world inside a hello".*;
-        _ = archive.writeFile("world", &data);
+        _ = archive.writeFile("world", "The whole world inside a hello");
         const msg = std.mem.print(&buffer, "Successfully wrote to '{s}'\n", .{file_path}) catch
             @panic("Failed to write to buffer");
         try std.Io.File.stdout().writeStreamingAll(init.io, msg);
