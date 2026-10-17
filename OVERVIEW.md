@@ -37,6 +37,12 @@ The following examples are fully CLI-based and therefore do not have screenshots
 
 ---
 
+[![datavis](src/libraries/restricted-extras/datavis/screenshot.png)](src/libraries/restricted-extras/datavis)
+
+[datavis](src/libraries/restricted-extras/datavis)
+
+---
+
 [![dbus](src/libraries/posix-extras/dbus/screenshot.png)](src/libraries/posix-extras/dbus)
 
 [dbus](src/libraries/posix-extras/dbus)
