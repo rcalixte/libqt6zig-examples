@@ -16,8 +16,6 @@ const ButtonData = struct {
     button: QPushButton,
 };
 
-var buffer: [32]u8 = undefined;
-
 pub fn main(init: std.process.Init) !void {
     const argv = try qt6.init(init.gpa, init.minimal.args);
     defer qt6.deinit(init.gpa, argv);
@@ -130,6 +128,7 @@ const Counter = struct {
     running: bool = false,
     io: std.Io,
     group: *std.Io.Group,
+    buffer: [32]u8 = undefined,
 
     fn run(self: *Counter) !void {
         while (self.running) {
@@ -146,7 +145,7 @@ const Counter = struct {
     fn asyncUpdate(context: ?*anyopaque) callconv(.c) void {
         const counter: *Counter = @ptrCast(@alignCast(context));
         counter.counter +%= 1;
-        const text = std.mem.print(&buffer, "{d} {d}", .{
+        const text = std.mem.print(&counter.buffer, "{d} {d}", .{
             counter.counter,
             std.Io.Clock.real.now(counter.io).toSeconds(),
         }) catch @panic("Failed to print");
