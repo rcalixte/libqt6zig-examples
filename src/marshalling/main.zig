@@ -88,8 +88,7 @@ pub fn main(init: std.process.Init) !void {
     // QStringList
     const c = QInputDialog.new2();
     defer c.delete();
-    const items = [_][]const u8{ "foo", "bar", "baz", "quux" };
-    c.setComboBoxItems(init.gpa, &items);
+    c.setComboBoxItems(init.gpa, &.{ "foo", "bar", "baz", "quux" });
     const combo_items = c.comboBoxItems(init.gpa);
     defer init.gpa.free(combo_items);
     for (combo_items, 0..) |item, i| {
