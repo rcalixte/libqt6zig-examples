@@ -209,8 +209,11 @@ pub const MainWindowUi = struct {
         defer allocator.free(keditlistwidget_items1);
         const keditlistwidget_items2 = qt6.QCoreApplication.translate(allocator, "MainWindow", "Item 3");
         defer allocator.free(keditlistwidget_items2);
-        const keditlistwidget_items = [_][]const u8{ keditlistwidget_items0, keditlistwidget_items1, keditlistwidget_items2 };
-        ui.keditlistwidget.setItems(allocator, &keditlistwidget_items);
+        ui.keditlistwidget.setItems(allocator, &.{
+            keditlistwidget_items0,
+            keditlistwidget_items1,
+            keditlistwidget_items2,
+        });
         const text4 = qt6.QCoreApplication.translate(allocator, "MainWindow", "Tab 1");
         defer allocator.free(text4);
         ui.tabWidget.setTabText(ui.tabWidget.indexOf(ui.tab), text4);
