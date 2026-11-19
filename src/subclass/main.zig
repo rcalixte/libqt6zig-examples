@@ -12,7 +12,7 @@ const QKeyEvent = qt6.QKeyEvent;
 var buffer: [32]u8 = undefined;
 var current_color: u2 = 0;
 
-const colors = [_]i32{
+const colors: []const i32 = &.{
     qnamespace_enums.GlobalColor.Black,
     qnamespace_enums.GlobalColor.Red,
     qnamespace_enums.GlobalColor.Green,
