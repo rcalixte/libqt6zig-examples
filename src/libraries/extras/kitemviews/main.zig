@@ -36,29 +36,24 @@ pub fn main(init: std.process.Init) !void {
 
     treewidget = .new(dialog);
     treewidget.setColumnCount(4);
-    const labels = [_][]const u8{ "Item", "Price", "HIDDEN COLUMN", "Source" };
-    treewidget.setHeaderLabels(allocator, &labels);
+    treewidget.setHeaderLabels(allocator, &.{ "Item", "Price", "HIDDEN COLUMN", "Source" });
     treewidget.hideColumn(2);
 
     const searchwidget = KTreeWidgetSearchLineWidget.new3(dialog, treewidget);
     searchline = searchwidget.searchLine();
 
-    const red_s = [_][]const u8{"Red"};
-    const red = QTreeWidgetItem.new4(allocator, treewidget, &red_s);
+    const red = QTreeWidgetItem.new4(allocator, treewidget, &.{"Red"});
     red.setWhatsThis(0, "This item is red");
     red.setWhatsThis(1, "This item is pricey");
     treewidget.expandItem(red);
 
-    const blue_s = [_][]const u8{"Blue"};
-    const blue = QTreeWidgetItem.new4(allocator, treewidget, &blue_s);
+    const blue = QTreeWidgetItem.new4(allocator, treewidget, &.{"Blue"});
     treewidget.expandItem(blue);
 
-    const green_s = [_][]const u8{"Green"};
-    const green = QTreeWidgetItem.new4(allocator, treewidget, &green_s);
+    const green = QTreeWidgetItem.new4(allocator, treewidget, &.{"Green"});
     treewidget.expandItem(green);
 
-    const yellow_s = [_][]const u8{"Yellow"};
-    const yellow = QTreeWidgetItem.new4(allocator, treewidget, &yellow_s);
+    const yellow = QTreeWidgetItem.new4(allocator, treewidget, &.{"Yellow"});
     treewidget.expandItem(yellow);
 
     createSecondLevel(red);
@@ -100,36 +95,28 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn createSecondLevel(item: QTreeWidgetItem) void {
-    const beans_s = [_][]const u8{"Beans"};
-    const beans = QTreeWidgetItem.new7(allocator, item, &beans_s);
+    const beans = QTreeWidgetItem.new7(allocator, item, &.{"Beans"});
     treewidget.expandItem(beans);
     createThirdLevel(beans);
 
-    const grapes_s = [_][]const u8{"Grapes"};
-    const grapes = QTreeWidgetItem.new7(allocator, item, &grapes_s);
+    const grapes = QTreeWidgetItem.new7(allocator, item, &.{"Grapes"});
     treewidget.expandItem(grapes);
     createThirdLevel(grapes);
 
-    const plums_s = [_][]const u8{"Plums"};
-    const plums = QTreeWidgetItem.new7(allocator, item, &plums_s);
+    const plums = QTreeWidgetItem.new7(allocator, item, &.{"Plums"});
     treewidget.expandItem(plums);
     createThirdLevel(plums);
 
-    const bananas_s = [_][]const u8{"Bananas"};
-    const bananas = QTreeWidgetItem.new7(allocator, item, &bananas_s);
+    const bananas = QTreeWidgetItem.new7(allocator, item, &.{"Bananas"});
     treewidget.expandItem(bananas);
     createThirdLevel(bananas);
 }
 
 fn createThirdLevel(item: QTreeWidgetItem) void {
-    const growing = [_][]const u8{ "Growing", "$2.00", "", "Farmer" };
-    _ = QTreeWidgetItem.new7(allocator, item, &growing);
-    const ripe = [_][]const u8{ "Ripe", "$8.00", "", "Market" };
-    _ = QTreeWidgetItem.new7(allocator, item, &ripe);
-    const decaying = [_][]const u8{ "Decaying", "$0.50", "", "Ground" };
-    _ = QTreeWidgetItem.new7(allocator, item, &decaying);
-    const pickled = [_][]const u8{ "Pickled", "$4.00", "", "Shop" };
-    _ = QTreeWidgetItem.new7(allocator, item, &pickled);
+    _ = QTreeWidgetItem.new7(allocator, item, &.{ "Growing", "$2.00", "", "Farmer" });
+    _ = QTreeWidgetItem.new7(allocator, item, &.{ "Ripe", "$8.00", "", "Market" });
+    _ = QTreeWidgetItem.new7(allocator, item, &.{ "Decaying", "$0.50", "", "Ground" });
+    _ = QTreeWidgetItem.new7(allocator, item, &.{ "Pickled", "$4.00", "", "Shop" });
 }
 
 fn switchCaseSensitivity(_: QPushButton, checked: bool) callconv(.c) void {
