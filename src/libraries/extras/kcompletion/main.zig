@@ -32,8 +32,13 @@ pub fn main(init: std.process.Init) !void {
     lineedit.setCompletionObject(completion, true);
     lineedit.setAutoDeleteCompletionObject(true);
 
-    const items = [_][]const u8{ "Hello Qt", "Hello Zig", "Hello libqt6zig", "Hello you", "Hello world" };
-    completion.setItems(init.gpa, &items);
+    completion.setItems(init.gpa, &.{
+        "Hello Qt",
+        "Hello Zig",
+        "Hello libqt6zig",
+        "Hello you",
+        "Hello world",
+    });
 
     vboxlayout.addStretch();
     vboxlayout.addWidget(QLabel.new3("Enter the letter 'H':"));
