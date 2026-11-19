@@ -24,10 +24,10 @@ pub fn main(init: std.process.Init) !void {
     const file = QFile.new4("src/libraries/extras/ktextwidgets/main.zig", textedit);
 
     if (file.open(qiodevicebase_enums.OpenModeFlag.ReadOnly)) {
+        defer file.close();
         const text = file.readAll(init.gpa);
         defer init.gpa.free(text);
         textedit.setTextOrHtml(text);
-        file.close();
     }
 
     textedit.show();
