@@ -18,7 +18,7 @@ var wiggly: WigglyWidget = .{};
 
 const wiggly_text = "Hello Wiggly Text";
 const max_len: i32 = 32;
-const sine_table = [_]i32{
+const sine_table: []const i32 = &.{
     0,    38,  71,  92,
     100,  92,  71,  38,
     0,    -38, -71, -92,
