@@ -24,7 +24,9 @@ var up_button: QPushButton = undefined;
 var down_button: QPushButton = undefined;
 var left_button: QPushButton = undefined;
 var right_button: QPushButton = undefined;
+
 var exit_action: QAction = undefined;
+
 var file_menu: QMenu = undefined;
 
 pub fn main(init: std.process.Init) !void {
@@ -37,9 +39,7 @@ pub fn main(init: std.process.Init) !void {
     allocator = init.gpa;
 
     const combo = QComboBox.new2();
-    const texts = [_][]const u8{ "en", "es", "fr" };
-
-    combo.addItems(allocator, &texts);
+    combo.addItems(allocator, &.{ "en", "es", "fr" });
     combo.onCurrentTextChanged(onCurrentTextChanged);
 
     label = .new3("L&anguage:");
