@@ -23,10 +23,7 @@ var allocator: std.mem.Allocator = undefined;
 
 const filename = "assets/Qt.png";
 
-const text_mapping = [_]struct {
-    key: []const u8,
-    property: i32,
-}{
+const text_mapping: []const struct { key: []const u8, property: i32 } = &.{
     .{ .key = "Comment", .property = properties_enums.Property.Comment },
 };
 
